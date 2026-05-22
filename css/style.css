@@ -409,7 +409,8 @@ img { max-width: 100%; }
 }
 
 /* === PAGE CONTENT === */
-.page { padding: 24px; flex: 1; }
+.page  { padding: 24px; flex: 1; }
+.content { padding: 24px; flex: 1; }
 
 .page-header {
   display: flex;
