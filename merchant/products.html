@@ -264,13 +264,17 @@
 <script>
 const CHANNEL_SETS = [
   ['trendyol'],
-  ['trendyol', 'site'],
+  ['trendyol', 'ikas'],
   ['trendyol', 'hepsi'],
-  ['trendyol', 'hepsi', 'n11', 'site'],
-  ['hepsi', 'site'],
-  ['site'],
+  ['trendyol', 'hepsi', 'n11', 'ikas'],
+  ['hepsi', 'ikas'],
+  ['ikas'],
   ['trendyol', 'n11'],
   ['hepsi', 'n11'],
+  ['trendyol', 'shopify'],
+  ['shopify'],
+  ['trendyol', 'hepsi', 'ticimax'],
+  ['ticimax'],
 ];
 const VARIANTS = ['', ' - Siyah', ' - Beyaz', ' - Gümüş', ' - Uzay Grisi', ' - Altın', ' - Mavi', ' - Kırmızı', ' - Yeşil', ' - Mor', ' - Sarı', ' - Pembe', ' - Turuncu', ' - Gri', ' - Kahverengi', ' - Lacivert'];
 
@@ -329,26 +333,22 @@ function stockCell(p) {
 }
 
 const CHANNEL_META = {
-  trendyol: { title: 'Trendyol',     favicon: 'trendyol.com',     bg: '#FFF4EB' },
-  hepsi:    { title: 'Hepsiburada',  favicon: 'hepsiburada.com',  bg: '#FFF0EB' },
-  n11:      { title: 'N11',          favicon: 'n11.com',          bg: '#F5F0FF' },
-  site:     { title: 'Mağaza Sitesi',favicon: null,               bg: '#EEF2FF' },
+  trendyol: { title: 'Trendyol',      favicon: 'trendyol.com'     },
+  hepsi:    { title: 'Hepsiburada',   favicon: 'hepsiburada.com'  },
+  n11:      { title: 'N11',           favicon: 'n11.com'          },
+  ikas:     { title: 'İkas',          favicon: 'ikas.com'         },
+  shopify:  { title: 'Shopify',       favicon: 'shopify.com'      },
+  ticimax:  { title: 'Ticimax',       favicon: 'ticimax.com'      },
+  ideasoft: { title: 'İdeasoft',      favicon: 'ideasoft.com'     },
 };
-
-const SITE_SVG = `<svg viewBox="0 0 18 18" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="9" cy="9" r="7.5" stroke="#4F46E5" stroke-width="1.5"/>
-  <path d="M9 1.5C9 1.5 6 5.5 6 9s3 7.5 3 7.5M9 1.5C9 1.5 12 5.5 12 9s-3 7.5-3 7.5" stroke="#4F46E5" stroke-width="1.2"/>
-  <path d="M1.5 9h15" stroke="#4F46E5" stroke-width="1.5" stroke-linecap="round"/>
-</svg>`;
 
 function channelIcons(channels) {
   return channels.map(c => {
     const meta = CHANNEL_META[c];
     if (!meta) return '';
-    const inner = meta.favicon
-      ? `<img src="https://www.google.com/s2/favicons?domain=${meta.favicon}&sz=32" width="20" height="20" style="border-radius:2px;" onerror="this.style.display='none'">`
-      : SITE_SVG;
-    return `<span class="channel-icon ${c}" title="${meta.title}" style="background:transparent;width:22px;height:22px;">${inner}</span>`;
+    return `<span class="channel-icon ${c}" title="${meta.title}" style="background:transparent;width:20px;height:20px;">
+      <img src="https://www.google.com/s2/favicons?domain=${meta.favicon}&sz=32" width="20" height="20" style="border-radius:2px;display:block;" onerror="this.style.display='none'">
+    </span>`;
   }).join('');
 }
 
