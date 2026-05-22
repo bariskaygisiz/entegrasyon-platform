@@ -299,7 +299,9 @@ function generateAllProducts(count) {
     else { status = 'active'; stock = rInt(s, 23, 80) + 10; }
     const priceAdj = 1 + (rInt(s, 24, 21) - 10) / 100;
     const price = Math.round(base.price * priceAdj / 100) * 100 || base.price;
-    const cost = Math.round(price * (0.72 + rInt(s, 25, 16) / 100) / 100) * 100;
+    const discountRates = [0, 0, 0, 5, 10, 10, 15, 20, 25, 30];
+    const discountRate = discountRates[rInt(s, 27, discountRates.length)];
+    const discountedPrice = discountRate > 0 ? Math.round(price * (1 - discountRate / 100) / 100) * 100 : null;
     result.push({
       id: s,
       name: base.name + variant,
@@ -307,7 +309,7 @@ function generateAllProducts(count) {
       barcode: generateBarcode(s),
       emoji: base.emoji,
       category: base.category,
-      price, cost, stock, status,
+      price, discountRate, discountedPrice, stock, status,
       channels: CHANNEL_SETS[rInt(s, 26, CHANNEL_SETS.length)],
     });
   }
@@ -372,8 +374,14 @@ function renderTable() {
       </td>
       <td><span class="badge badge-gray">${p.category}</span></td>
       <td>
-        <div class="fw-600">${formatMoney(p.price)}</div>
-        <div style="font-size:11px;color:var(--text-muted);">Maliyet: ${formatMoney(p.cost)}</div>
+        ${p.discountedPrice
+          ? `<div style="display:flex;align-items:center;gap:6px;">
+               <span style="text-decoration:line-through;color:var(--text-muted);font-size:12px;">${formatMoney(p.price)}</span>
+               <span style="font-size:10px;font-weight:700;background:var(--danger-light);color:var(--danger);padding:1px 5px;border-radius:4px;">-%${p.discountRate}</span>
+             </div>
+             <div class="fw-600" style="color:var(--danger);">${formatMoney(p.discountedPrice)}</div>`
+          : `<div class="fw-600">${formatMoney(p.price)}</div>`
+        }
       </td>
       <td>${stockCell(p)}</td>
       <td><div style="display:flex;gap:4px;align-items:center;">${channelIcons(p.channels)}</div></td>
