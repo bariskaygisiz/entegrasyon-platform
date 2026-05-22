@@ -348,7 +348,7 @@ function channelIcons(channels) {
     const inner = meta.favicon
       ? `<img src="https://www.google.com/s2/favicons?domain=${meta.favicon}&sz=32" width="16" height="16" style="border-radius:2px;" onerror="this.style.display='none'">`
       : SITE_SVG;
-    return `<span class="channel-icon ${c}" title="${meta.title}" style="background:${meta.bg};width:26px;height:26px;">${inner}</span>`;
+    return `<span class="channel-icon ${c}" title="${meta.title}" style="background:transparent;width:20px;height:20px;">${inner}</span>`;
   }).join('');
 }
 
