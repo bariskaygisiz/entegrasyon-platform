@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entegrasyon Detayı — Entegrasyon</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/integrations.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <div><div class="logo-text">Entegrasyon<span>Entegrasyon Platformu</span></div></div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">×</button>
+    </div>
+    <div class="sidebar-store">
+      <div class="store-avatar">T</div>
+      <div><div class="store-name">Teknoloji A.Ş.</div><div class="store-plan">Pro Plan · 6 aktif</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Genel</div>
+        <a href="dashboard.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h7v7H3zM3 17h7v4H3zM14 3h7v11h-7zM14 17h7v4h-7z"/></svg>
+          <span>Panel Özeti</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Entegrasyonlar</div>
+        <a href="integrations.html" class="nav-item active">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <span>Tüm Entegrasyonlar</span>
+          <span class="nav-badge info">6</span>
+        </a>
+        <a href="flows.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          <span>Akışlar</span>
+          <span class="nav-badge info">3</span>
+        </a>
+        <a href="logs.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          <span>Loglar</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Hesap</div>
+        <a href="settings.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Ayarlar</span>
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">A</div>
+        <div><div class="user-name">Admin Kullanıcı</div><div class="user-role">Mağaza Sahibi</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="header">
+      <button class="menu-btn" id="menuBtn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="header-title">
+        <div style="display:flex;align-items:center;gap:8px">
+          <a href="integrations.html" style="color:var(--text-muted);font-size:13px;text-decoration:none">Entegrasyonlar</a>
+          <span style="color:var(--text-muted)">›</span>
+          <span id="breadcrumbName" style="font-size:13px;font-weight:600">—</span>
+        </div>
+      </div>
+      <div class="header-actions" id="headerActions"></div>
+    </header>
+
+    <div class="content" id="pageContent">
+      <div style="display:flex;align-items:center;justify-content:center;height:300px;color:var(--text-muted)">Yükleniyor…</div>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- Disconnect Confirm Modal -->
+<div class="modal-overlay" id="disconnectModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">Bağlantıyı Kes</div>
+      <button class="modal-close" onclick="closeModal('disconnectModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-secondary);margin-bottom:16px">Bu entegrasyonun bağlantısını kesmek istediğinizden emin misiniz? Mevcut akışlar duraklatılacaktır.</p>
+      <div style="background:var(--danger-light);border-radius:var(--radius-sm);padding:12px;font-size:13px;color:var(--danger)">
+        ⚠ Bağlantı kesildikten sonra otomasyon akışları çalışmayı durduracaktır.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('disconnectModal')">Vazgeç</button>
+      <button class="btn" style="background:var(--danger);color:#fff" onclick="confirmDisconnect()">Bağlantıyı Kes</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+const INT_META = {
+  'trendyol': {
+    name: 'Trendyol', short: 'TY', bg: '#FF6000', color: '#fff',
+    category: 'Pazaryeri', connected: true,
+    desc: 'Trendyol mağazanızla ürün, stok, fiyat ve sipariş senkronizasyonu.',
+    syncCount: 842, errorCount: 0, warnCount: 0,
+    lastSync: '2 dakika önce', connectedAt: '12 Oca 2026',
+    fields: [
+      { label: 'Supplier ID', key: 'supplierId', value: '123456', type: 'text' },
+      { label: 'API Key', key: 'apiKey', value: 'ty_live_**********************abc1', type: 'password' },
+      { label: 'API Secret', key: 'apiSecret', value: '****************************xyz9', type: 'password' },
+    ],
+    syncOptions: ['Ürün Senkronu', 'Stok Senkronu', 'Fiyat Senkronu', 'Sipariş Çekme'],
+    syncEnabled: [true, true, true, true],
+    syncIntervals: ['15 dk', '5 dk', '10 dk', '2 dk'],
+  },
+  'hepsiburada': {
+    name: 'Hepsiburada', short: 'HB', bg: '#FF6000', color: '#fff',
+    category: 'Pazaryeri', connected: true,
+    desc: 'Hepsiburada pazaryerinde ürün listeleme, stok ve sipariş yönetimi.',
+    syncCount: 318, errorCount: 0, warnCount: 1,
+    lastSync: '8 dakika önce', connectedAt: '3 Şub 2026',
+    fields: [
+      { label: 'Merchant ID', key: 'merchantId', value: 'HB-789012', type: 'text' },
+      { label: 'Username', key: 'username', value: 'teknoloji_as', type: 'text' },
+      { label: 'Password', key: 'password', value: '**********************', type: 'password' },
+    ],
+    syncOptions: ['Ürün Senkronu', 'Stok Senkronu', 'Fiyat Senkronu', 'Sipariş Çekme'],
+    syncEnabled: [true, true, true, true],
+    syncIntervals: ['30 dk', '10 dk', '15 dk', '5 dk'],
+  },
+  'amazon': {
+    name: 'Amazon', short: 'A', bg: '#FF9900', color: '#fff',
+    category: 'Pazaryeri', connected: false,
+    desc: 'Amazon Seller Central entegrasyonu. SP-API ile sipariş ve envanter senkronu.',
+    fields: [
+      { label: 'Seller ID', key: 'sellerId', value: '', type: 'text' },
+      { label: 'MWS Auth Token', key: 'mwsToken', value: '', type: 'password' },
+      { label: 'Marketplace ID', key: 'marketplaceId', value: 'A33AVAJ2PDY3EV', type: 'text' },
+    ],
+    syncOptions: ['Ürün Senkronu', 'Stok Senkronu', 'Sipariş Çekme'],
+    syncEnabled: [false, false, false],
+    syncIntervals: ['60 dk', '15 dk', '10 dk'],
+  },
+  'ikas': {
+    name: 'İkas', short: 'İ', bg: '#6366F1', color: '#fff',
+    category: 'E-Ticaret', connected: true,
+    desc: 'İkas mağazanızdan sipariş alın, stok ve ürün kataloğunu senkronize edin.',
+    syncCount: 124, errorCount: 0, warnCount: 0,
+    lastSync: '5 dakika önce', connectedAt: '20 Oca 2026',
+    fields: [
+      { label: 'Mağaza Adı', key: 'storeName', value: 'teknoloji-as', type: 'text' },
+      { label: 'API Token', key: 'apiToken', value: 'ik_live_**********************def2', type: 'password' },
+    ],
+    syncOptions: ['Ürün Kataloğu', 'Stok Güncelleme', 'Sipariş Aktarımı'],
+    syncEnabled: [true, true, true],
+    syncIntervals: ['20 dk', '5 dk', '3 dk'],
+  },
+  'ticimax': {
+    name: 'Ticimax', short: 'T', bg: '#0EA5E9', color: '#fff',
+    category: 'E-Ticaret', connected: false,
+    desc: 'Ticimax e-ticaret sitenizle çift yönlü ürün ve sipariş entegrasyonu.',
+    fields: [
+      { label: 'Site Kodu', key: 'siteCode', value: '', type: 'text' },
+      { label: 'API Key', key: 'apiKey', value: '', type: 'password' },
+    ],
+    syncOptions: ['Ürün Senkronu', 'Stok Senkronu', 'Sipariş Çekme'],
+    syncEnabled: [false, false, false],
+    syncIntervals: ['30 dk', '10 dk', '5 dk'],
+  },
+  'ideasoft': {
+    name: 'İdeasoft', short: 'I', bg: '#8B5CF6', color: '#fff',
+    category: 'E-Ticaret', connected: false,
+    desc: 'İdeasoft altyapısıyla gelişmiş e-ticaret entegrasyonu ve otomasyon akışları.',
+    fields: [
+      { label: 'Mağaza URL', key: 'storeUrl', value: '', type: 'text' },
+      { label: 'Client ID', key: 'clientId', value: '', type: 'text' },
+      { label: 'Client Secret', key: 'clientSecret', value: '', type: 'password' },
+    ],
+    syncOptions: ['Ürün Senkronu', 'Stok Senkronu', 'Sipariş Çekme'],
+    syncEnabled: [false, false, false],
+    syncIntervals: ['30 dk', '10 dk', '5 dk'],
+  },
+  'shopify': {
+    name: 'Shopify', short: 'S', bg: '#96BF48', color: '#fff',
+    category: 'E-Ticaret', connected: false,
+    desc: 'Shopify mağazanızla ürün senkronu, sipariş aktarımı ve webhook desteği.',
+    fields: [
+      { label: 'Mağaza Adı (.myshopify.com)', key: 'shopDomain', value: '', type: 'text' },
+      { label: 'Access Token', key: 'accessToken', value: '', type: 'password' },
+    ],
+    syncOptions: ['Ürün Senkronu', 'Stok Senkronu', 'Sipariş Aktarımı'],
+    syncEnabled: [false, false, false],
+    syncIntervals: ['20 dk', '5 dk', '3 dk'],
+  },
+  'parasut': {
+    name: 'Paraşüt', short: 'P', bg: '#10B981', color: '#fff',
+    category: 'Ön Muhasebe', connected: true,
+    desc: 'Sipariş ve fatura verilerini Paraşüt\'e aktarın, muhasebe süreçlerini otomatikleştirin.',
+    syncCount: 0, errorCount: 0, warnCount: 0,
+    lastSync: '12 dakika önce', connectedAt: '15 Oca 2026',
+    fields: [
+      { label: 'Client ID', key: 'clientId', value: 'ps_client_****', type: 'text' },
+      { label: 'Client Secret', key: 'clientSecret', value: '****************************', type: 'password' },
+      { label: 'Firma ID', key: 'companyId', value: '98765', type: 'text' },
+    ],
+    syncOptions: ['Satış Faturası Oluştur', 'Müşteri Kartı Sync', 'Ürün Kartı Sync'],
+    syncEnabled: [true, true, false],
+    syncIntervals: ['Anlık', 'Günlük', 'Günlük'],
+  },
+  'kolaybi': {
+    name: 'KolayBi', short: 'K', bg: '#3B82F6', color: '#fff',
+    category: 'Ön Muhasebe', connected: false,
+    desc: 'Kolay muhasebe ve ön muhasebe çözümü. Fatura, gider ve gelir takibi.',
+    fields: [
+      { label: 'API Key', key: 'apiKey', value: '', type: 'password' },
+      { label: 'Şirket Kodu', key: 'companyCode', value: '', type: 'text' },
+    ],
+    syncOptions: ['Satış Faturası Oluştur', 'Müşteri Sync'],
+    syncEnabled: [false, false],
+    syncIntervals: ['Anlık', 'Günlük'],
+  },
+  'logo-isbasi': {
+    name: 'Logo İşbaşı', short: 'L', bg: '#EF4444', color: '#fff',
+    category: 'Ön Muhasebe', connected: false,
+    desc: 'Logo İşbaşı ile entegre çalışan ön muhasebe ve iş yönetimi platformu.',
+    fields: [
+      { label: 'Kullanıcı Adı', key: 'username', value: '', type: 'text' },
+      { label: 'Şifre', key: 'password', value: '', type: 'password' },
+      { label: 'Şube Kodu', key: 'branchCode', value: '', type: 'text' },
+    ],
+    syncOptions: ['Fatura Aktarım', 'Cari Hesap Sync'],
+    syncEnabled: [false, false],
+    syncIntervals: ['Anlık', 'Günlük'],
+  },
+  'bizimhesap': {
+    name: 'Bizimhesap', short: 'B', bg: '#F59E0B', color: '#fff',
+    category: 'Ön Muhasebe', connected: false,
+    desc: 'Bulut tabanlı muhasebe yazılımı. Fatura, stok ve cari hesap yönetimi.',
+    fields: [
+      { label: 'API Token', key: 'apiToken', value: '', type: 'password' },
+      { label: 'Hesap ID', key: 'accountId', value: '', type: 'text' },
+    ],
+    syncOptions: ['Fatura Oluştur', 'Stok Sync'],
+    syncEnabled: [false, false],
+    syncIntervals: ['Anlık', 'Günlük'],
+  },
+  'trendyol-efatura': {
+    name: 'Trendyol E-Faturam', short: 'TY', bg: '#FF6000', color: '#fff',
+    category: 'E-Fatura', connected: true,
+    desc: 'Trendyol siparişleri için otomatik e-fatura/e-arşiv kesimi. GİB entegrasyonlu.',
+    syncCount: 0, errorCount: 0, warnCount: 1,
+    lastSync: '3 dakika önce', connectedAt: '10 Oca 2026',
+    fields: [
+      { label: 'VKN / TCKN', key: 'vkn', value: '1234567890', type: 'text' },
+      { label: 'GİB Kullanıcı Adı', key: 'gibUser', value: 'teknoloji_as', type: 'text' },
+      { label: 'GİB Şifresi', key: 'gibPass', value: '**********************', type: 'password' },
+      { label: 'API Token', key: 'apiToken', value: 'ty_ef_****_token_expires_soon', type: 'password' },
+    ],
+    syncOptions: ['E-Fatura Otomatik Kes', 'E-Arşiv Kes', 'İptal Faturası'],
+    syncEnabled: [true, true, true],
+    syncIntervals: ['Anlık', 'Anlık', 'Anlık'],
+    warning: 'API token süresi dolmak üzere. Lütfen Trendyol panelinden token\'ı yenileyin.',
+  },
+  'hepsi-efatura': {
+    name: 'Hepsiburada Faturam', short: 'HF', bg: '#FF6000', color: '#fff',
+    category: 'E-Fatura', connected: false,
+    desc: 'Hepsiburada siparişleri için e-fatura ve e-arşiv fatura oluşturma servisi.',
+    fields: [
+      { label: 'VKN / TCKN', key: 'vkn', value: '', type: 'text' },
+      { label: 'Faturam Kullanıcı Adı', key: 'username', value: '', type: 'text' },
+      { label: 'Faturam Şifre', key: 'password', value: '', type: 'password' },
+    ],
+    syncOptions: ['E-Fatura Otomatik Kes', 'E-Arşiv Kes'],
+    syncEnabled: [false, false],
+    syncIntervals: ['Anlık', 'Anlık'],
+  },
+  'aras-kargo': {
+    name: 'Aras Kargo', short: 'AR', bg: '#DC2626', color: '#fff',
+    category: 'Kargo', connected: true,
+    desc: 'Sipariş oluşturulduğunda otomatik kargo barcodu al ve takip linkini müşteriye ilet.',
+    syncCount: 0, errorCount: 0, warnCount: 0,
+    lastSync: '1 dakika önce', connectedAt: '8 Oca 2026',
+    fields: [
+      { label: 'Müşteri Kodu', key: 'customerCode', value: 'ARS-45123', type: 'text' },
+      { label: 'Kullanıcı Adı', key: 'username', value: 'teknoloji_kargo', type: 'text' },
+      { label: 'Şifre', key: 'password', value: '**********************', type: 'password' },
+    ],
+    syncOptions: ['Otomatik Barkod Al', 'Kargo Takip Bildirimi', 'Teslimat Güncelleme'],
+    syncEnabled: [true, true, true],
+    syncIntervals: ['Anlık', 'Anlık', '15 dk'],
+  },
+  'yurtici-kargo': {
+    name: 'Yurtiçi Kargo', short: 'YK', bg: '#EF4444', color: '#fff',
+    category: 'Kargo', connected: false,
+    desc: 'Yurtiçi Kargo API entegrasyonu ile gönderi oluşturma ve kargo takibi.',
+    fields: [
+      { label: 'Müşteri Numarası', key: 'customerNo', value: '', type: 'text' },
+      { label: 'Kullanıcı Adı', key: 'username', value: '', type: 'text' },
+      { label: 'Şifre', key: 'password', value: '', type: 'password' },
+    ],
+    syncOptions: ['Otomatik Barkod Al', 'Kargo Takip'],
+    syncEnabled: [false, false],
+    syncIntervals: ['Anlık', '15 dk'],
+  },
+  'mng-kargo': {
+    name: 'MNG Kargo', short: 'MNG', bg: '#1D4ED8', color: '#fff',
+    category: 'Kargo', connected: false,
+    desc: 'MNG Kargo ile hızlı gönderi oluşturma, etiket basma ve takip otomasyonu.',
+    fields: [
+      { label: 'Müşteri Kodu', key: 'customerCode', value: '', type: 'text' },
+      { label: 'Kullanıcı Adı', key: 'username', value: '', type: 'text' },
+      { label: 'Şifre', key: 'password', value: '', type: 'password' },
+    ],
+    syncOptions: ['Otomatik Barkod Al', 'Kargo Takip'],
+    syncEnabled: [false, false],
+    syncIntervals: ['Anlık', '15 dk'],
+  },
+  'ptt-kargo': { name: 'PTT Kargo', short: 'PTT', bg: '#F59E0B', color: '#fff', category: 'Kargo', connected: false, desc: 'PTT e-Devlet entegrasyonlu kargo servisi.', fields: [{ label: 'Müşteri Kodu', key: 'code', value: '', type: 'text' }, { label: 'Şifre', key: 'pass', value: '', type: 'password' }], syncOptions: ['Otomatik Barkod', 'Takip'], syncEnabled: [false, false], syncIntervals: ['Anlık', '15 dk'] },
+  'surat-kargo': { name: 'Sürat Kargo', short: 'SK', bg: '#7C3AED', color: '#fff', category: 'Kargo', connected: false, desc: 'Sürat Kargo hızlı teslimat servisi.', fields: [{ label: 'Müşteri Kodu', key: 'code', value: '', type: 'text' }, { label: 'Şifre', key: 'pass', value: '', type: 'password' }], syncOptions: ['Otomatik Barkod', 'Takip'], syncEnabled: [false, false], syncIntervals: ['Anlık', '15 dk'] },
+  'hepsijet': { name: 'Hepsijet', short: 'HJ', bg: '#FF6000', color: '#fff', category: 'Kargo', connected: false, desc: 'Hepsiburada\'nın lojistik kolu ile teslimat otomasyonu.', fields: [{ label: 'Merchant ID', key: 'mid', value: '', type: 'text' }, { label: 'API Key', key: 'key', value: '', type: 'password' }], syncOptions: ['Otomatik Barkod', 'Takip'], syncEnabled: [false, false], syncIntervals: ['Anlık', '15 dk'] },
+  'dhl': { name: 'DHL Türkiye', short: 'DHL', bg: '#FFCC00', color: '#D40511', category: 'Kargo', connected: false, desc: 'DHL Express uluslararası kargo.', fields: [{ label: 'Account Number', key: 'account', value: '', type: 'text' }, { label: 'API Key', key: 'key', value: '', type: 'password' }, { label: 'API Secret', key: 'secret', value: '', type: 'password' }], syncOptions: ['Gönderi Oluştur', 'Takip'], syncEnabled: [false, false], syncIntervals: ['Anlık', '30 dk'] },
+  'fedex': { name: 'FedEx', short: 'FdEx', bg: '#4D148C', color: '#FF6600', category: 'Kargo', connected: false, desc: 'FedEx uluslararası ve yurt içi ekspres kargo.', fields: [{ label: 'Account Number', key: 'account', value: '', type: 'text' }, { label: 'API Key', key: 'key', value: '', type: 'password' }, { label: 'Secret Key', key: 'secret', value: '', type: 'password' }], syncOptions: ['Gönderi Oluştur', 'Takip'], syncEnabled: [false, false], syncIntervals: ['Anlık', '30 dk'] },
+  'ups': { name: 'UPS', short: 'UPS', bg: '#351C15', color: '#FFB500', category: 'Kargo', connected: false, desc: 'UPS Türkiye kargo ve lojistik çözümleri.', fields: [{ label: 'Account Number', key: 'account', value: '', type: 'text' }, { label: 'Access Key', key: 'key', value: '', type: 'password' }, { label: 'Username', key: 'user', value: '', type: 'text' }, { label: 'Password', key: 'pass', value: '', type: 'password' }], syncOptions: ['Gönderi Oluştur', 'Takip'], syncEnabled: [false, false], syncIntervals: ['Anlık', '30 dk'] },
+  'kolay-gelsin': { name: 'Kolay Gelsin', short: 'KG', bg: '#06B6D4', color: '#fff', category: 'Kargo', connected: false, desc: 'Multi-kargo platformu. Tek entegrasyon, birden fazla kargo firması.', fields: [{ label: 'API Key', key: 'key', value: '', type: 'password' }], syncOptions: ['Otomatik Kargo Seçimi', 'Takip'], syncEnabled: [false, false], syncIntervals: ['Anlık', '15 dk'] },
+  'hepsilojistik': { name: 'Hepsilojistik', short: 'HL', bg: '#FF6000', color: '#fff', category: 'Depo', connected: false, desc: 'Hepsiburada\'nın fulfilment hizmeti.', fields: [{ label: 'Merchant ID', key: 'mid', value: '', type: 'text' }, { label: 'API Token', key: 'token', value: '', type: 'password' }], syncOptions: ['Stok Senkronu', 'Sipariş Yönlendirme', 'Fulfillment Durumu'], syncEnabled: [false, false, false], syncIntervals: ['15 dk', 'Anlık', '5 dk'] },
+};
+
+const MOCK_LOGS = [
+  { time: '09:41', type: 'ok',   msg: 'Sipariş #45231 başarıyla çekildi' },
+  { time: '09:38', type: 'ok',   msg: '12 ürün stoğu güncellendi' },
+  { time: '09:35', type: 'warn', msg: 'Rate limit yaklaşıyor (85%)' },
+  { time: '09:30', type: 'ok',   msg: 'Stok senkronu tamamlandı (156 ürün)' },
+  { time: '09:22', type: 'ok',   msg: 'Fiyat güncellemesi gönderildi (43 ürün)' },
+  { time: '09:15', type: 'ok',   msg: 'Bağlantı testi başarılı' },
+  { time: '09:10', type: 'ok',   msg: 'Token yenilendi' },
+  { time: '08:55', type: 'ok',   msg: 'Sipariş #45228 çekildi' },
+];
+
+let currentSlug = '';
+let isConnected = false;
+
+function renderPage(slug) {
+  const meta = INT_META[slug] || {
+    name: slug, short: slug.substring(0,2).toUpperCase(), bg: '#64748B', color: '#fff',
+    category: 'Diğer', connected: false, desc: 'Bu entegrasyon için detay sayfası.',
+    fields: [], syncOptions: [], syncEnabled: [], syncIntervals: [],
+  };
+
+  currentSlug = slug;
+  isConnected = meta.connected;
+
+  document.getElementById('breadcrumbName').textContent = meta.name;
+  document.title = meta.name + ' — Entegrasyon';
+
+  const warningBanner = meta.warning
+    ? `<div style="background:var(--warning-light);border:1px solid var(--warning);border-radius:var(--radius);padding:14px 18px;display:flex;gap:12px;align-items:flex-start;margin-bottom:20px">
+        <span style="font-size:18px">⚠</span>
+        <div>
+          <div style="font-weight:600;color:var(--warning);margin-bottom:2px">Uyarı</div>
+          <div style="font-size:13px;color:var(--text-secondary)">${meta.warning}</div>
+        </div>
+        <button class="btn btn-sm" style="margin-left:auto;background:var(--warning);color:#fff;white-space:nowrap" onclick="showToast('Token Yenilendi','API token başarıyla yenilendi.','success')">Token Yenile</button>
+      </div>`
+    : '';
+
+  const statsHtml = meta.connected
+    ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px">
+        <div class="card" style="padding:16px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--success)">${(meta.syncCount||0).toLocaleString('tr-TR')}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Bugün Senkron</div>
+        </div>
+        <div class="card" style="padding:16px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--danger)">${meta.errorCount||0}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Hata</div>
+        </div>
+        <div class="card" style="padding:16px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--warning)">${meta.warnCount||0}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Uyarı</div>
+        </div>
+        <div class="card" style="padding:16px;text-align:center">
+          <div style="font-size:13px;font-weight:700;color:var(--primary)">${meta.lastSync}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Son Senkron</div>
+        </div>
+      </div>`
+    : '';
+
+  const fieldsHtml = meta.fields.map(f => `
+    <div class="form-group">
+      <label class="form-label">${f.label}</label>
+      <div style="position:relative">
+        <input class="form-control" type="${f.type === 'password' ? 'password' : 'text'}" value="${f.value || ''}" placeholder="${f.label} giriniz" id="field_${f.key}">
+        ${f.type === 'password' ? `<button type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:13px" onclick="togglePwd('field_${f.key}')">👁</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  const syncRowsHtml = meta.syncOptions.map((opt, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light)">
+      <div>
+        <div style="font-size:13px;font-weight:500">${opt}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Sıklık: ${meta.syncIntervals[i]||'—'}</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" ${meta.syncEnabled[i] ? 'checked' : ''} onchange="showToast('Ayar Kaydedildi','Senkronizasyon ayarı güncellendi.','success')">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  `).join('');
+
+  const logsHtml = MOCK_LOGS.map(l => `
+    <div class="log-row">
+      <div class="log-status ${l.type === 'ok' ? 'ok' : 'warn'}">${l.type === 'ok' ? '✓' : '!'}</div>
+      <div class="log-content">
+        <div class="log-title">${l.msg}</div>
+        <div class="log-time">${l.time}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const headerActions = document.getElementById('headerActions');
+  if (meta.connected) {
+    headerActions.innerHTML = `
+      <button class="btn btn-ghost btn-sm" onclick="doSync()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14" style="margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Senkronize Et
+      </button>
+      <button class="btn btn-sm" style="background:var(--danger-light);color:var(--danger);border:1px solid var(--danger)" onclick="openModal('disconnectModal')">Bağlantıyı Kes</button>
+    `;
+  } else {
+    headerActions.innerHTML = `
+      <button class="btn btn-primary btn-sm" onclick="saveAndConnect()">Bağlan</button>
+    `;
+  }
+
+  document.getElementById('pageContent').innerHTML = `
+    <!-- Hero -->
+    <div class="card" style="padding:24px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="width:56px;height:56px;border-radius:14px;background:${meta.bg};color:${meta.color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0">${meta.short}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="font-size:18px;font-weight:800">${meta.name}</div>
+            ${meta.connected
+              ? `<span class="badge badge-success">Bağlı</span>`
+              : `<span class="badge badge-gray">Bağlı değil</span>`}
+            <span class="badge badge-info" style="font-size:11px">${meta.category}</span>
+          </div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">${meta.desc}</div>
+        </div>
+        ${meta.connected ? `<div style="text-align:right;font-size:11px;color:var(--text-muted)">Bağlandı: ${meta.connectedAt}</div>` : ''}
+      </div>
+    </div>
+
+    ${warningBanner}
+    ${statsHtml}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px" class="detail-grid">
+
+      <!-- API Ayarları -->
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700">API Bağlantı Ayarları</div>
+        <div style="padding:20px">
+          ${fieldsHtml || '<div style="color:var(--text-muted);font-size:13px">Yapılandırılacak alan yok.</div>'}
+          <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="${meta.connected ? 'saveSettings()' : 'saveAndConnect()'}">
+            ${meta.connected ? 'Ayarları Kaydet' : 'Bağlan'}
+          </button>
+        </div>
+      </div>
+
+      <!-- Senkronizasyon Ayarları -->
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700">Senkronizasyon Ayarları</div>
+        <div style="padding:4px 20px 16px">
+          ${syncRowsHtml || '<div style="padding:12px 0;color:var(--text-muted);font-size:13px">Senkronizasyon seçeneği yok.</div>'}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Son Loglar -->
+    <div class="card" style="padding:0;overflow:hidden;margin-top:20px">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:700">Son Aktivite</div>
+        <a href="logs.html?slug=${slug}" style="font-size:12px;color:var(--primary);text-decoration:none">Tüm loglar →</a>
+      </div>
+      <div>${meta.connected ? logsHtml : '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Entegrasyon bağlı değil. Log kaydı bulunmuyor.</div>'}</div>
+    </div>
+
+    <!-- Aktivite Grafiği -->
+    ${meta.connected ? `
+    <div class="card" style="padding:20px;margin-top:20px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:16px">Son 7 Gün Aktivite</div>
+      <canvas id="activityChart" height="80"></canvas>
+    </div>` : ''}
+  `;
+
+  if (meta.connected) {
+    const ctx = document.getElementById('activityChart');
+    if (ctx) {
+      const labels = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+      const seed = slug.length;
+      const data = labels.map((_, i) => Math.floor(50 + Math.abs(Math.sin(seed * 3 + i) * 400)));
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: meta.bg + 'CC',
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#F1F5F9' }, ticks: { font: { size: 11 } } },
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+          }
+        }
+      });
+    }
+  }
+}
+
+function togglePwd(id) {
+  const el = document.getElementById(id);
+  if (el) el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+function saveSettings() {
+  showToast('Kaydedildi', 'API ayarları başarıyla güncellendi.', 'success');
+}
+
+function saveAndConnect() {
+  showToast('Bağlanıyor…', 'Bağlantı test ediliyor, lütfen bekleyin.', 'info');
+  setTimeout(() => {
+    showToast('Bağlandı!', INT_META[currentSlug]?.name + ' başarıyla bağlandı.', 'success');
+  }, 1800);
+}
+
+function doSync() {
+  showToast('Senkronize ediliyor…', 'Manuel senkron başlatıldı.', 'info');
+  setTimeout(() => showToast('Senkron Tamamlandı', 'Tüm veriler güncellendi.', 'success'), 2000);
+}
+
+function confirmDisconnect() {
+  closeModal('disconnectModal');
+  showToast('Bağlantı Kesildi', (INT_META[currentSlug]?.name || 'Entegrasyon') + ' bağlantısı kesildi.', 'error');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initSidebar();
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug') || 'trendyol';
+  renderPage(slug);
+});
+</script>
+
+<style>
+@media (max-width: 900px) {
+  .detail-grid { grid-template-columns: 1fr !important; }
+}
+</style>
+</body>
+</html>

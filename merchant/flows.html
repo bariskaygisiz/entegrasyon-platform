@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Akışlar — Entegrasyon</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/integrations.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <div><div class="logo-text">Entegrasyon<span>Entegrasyon Platformu</span></div></div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">×</button>
+    </div>
+    <div class="sidebar-store">
+      <div class="store-avatar">T</div>
+      <div><div class="store-name">Teknoloji A.Ş.</div><div class="store-plan">Pro Plan · 3 akış</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Genel</div>
+        <a href="dashboard.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h7v7H3zM3 17h7v4H3zM14 3h7v11h-7zM14 17h7v4h-7z"/></svg>
+          <span>Panel Özeti</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Entegrasyonlar</div>
+        <a href="integrations.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <span>Tüm Entegrasyonlar</span>
+          <span class="nav-badge info">6</span>
+        </a>
+        <a href="flows.html" class="nav-item active">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          <span>Akışlar</span>
+          <span class="nav-badge info">3</span>
+        </a>
+        <a href="logs.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          <span>Loglar</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Hesap</div>
+        <a href="settings.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Ayarlar</span>
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">A</div>
+        <div><div class="user-name">Admin Kullanıcı</div><div class="user-role">Mağaza Sahibi</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="header">
+      <button class="menu-btn" id="menuBtn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="header-title">
+        <h1>Otomasyon Akışları</h1>
+        <p>Platformlar arası otomatik veri akışlarını yönetin</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary btn-sm" onclick="openModal('newFlowModal')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14" style="margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Yeni Akış
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- Summary chips -->
+      <div class="summary-row">
+        <div class="summary-chip">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block"></span>
+          <span class="val">3</span> Aktif Akış
+        </div>
+        <div class="summary-chip">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--text-muted);display:inline-block"></span>
+          <span class="val">1</span> Pasif
+        </div>
+        <div class="summary-chip">
+          <svg fill="none" stroke="var(--primary)" viewBox="0 0 24 24" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span class="val">2.847</span> Bugün çalıştı
+        </div>
+        <div class="summary-chip">
+          <svg fill="none" stroke="var(--success)" viewBox="0 0 24 24" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="val">%99.2</span> Başarı oranı
+        </div>
+      </div>
+
+      <!-- What is a flow? info box -->
+      <div style="background:var(--primary-light);border:1px solid var(--primary);border-radius:var(--radius);padding:14px 18px;display:flex;gap:12px;align-items:flex-start;margin-bottom:24px">
+        <span style="font-size:18px">💡</span>
+        <div style="font-size:13px;color:var(--text-secondary)">
+          <strong style="color:var(--text-primary)">Akış nedir?</strong> Bir platform üzerinde gerçekleşen bir tetikleyici olayda (yeni sipariş, stok değişimi vb.) diğer platformlara otomatik işlem yaptıran kurallardır. Örneğin: Trendyol'a yeni sipariş gelince hem Paraşüt'te fatura oluştur hem de Aras Kargo'ya kargo teslim et.
+        </div>
+      </div>
+
+      <!-- Active flows -->
+      <div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px">Aktif Akışlar</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:32px">
+
+        <!-- Flow 1 -->
+        <div class="flow-card active">
+          <div class="flow-header">
+            <div>
+              <div class="flow-name">Yeni Sipariş → Fatura + Kargo</div>
+              <div class="flow-run-count">Bugün 1.284 kez çalıştı · Son çalışma: 2 dk önce</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <label class="toggle">
+                <input type="checkbox" checked onchange="toggleFlow(this, 'Yeni Sipariş → Fatura + Kargo')">
+                <span class="toggle-slider"></span>
+              </label>
+              <button class="btn btn-ghost btn-sm" onclick="openFlowDetail(1)">Düzenle</button>
+            </div>
+          </div>
+          <div class="flow-pipeline">
+            <div class="flow-node trigger">
+              <span>⚡</span> Trendyol — Yeni Sipariş
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node action">
+              <span>🧾</span> Paraşüt — Fatura Oluştur
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node action2">
+              <span>📦</span> Aras Kargo — Barkod Al
+            </div>
+          </div>
+          <div class="flow-footer">
+            <div class="flow-last-run">
+              <span class="badge badge-success" style="font-size:10px">Aktif</span>
+              <span style="margin-left:8px">Trendyol'a yeni sipariş gelince Paraşüt'te e-fatura oluşturulur ve Aras Kargo'ya barkod talebi gönderilir.</span>
+            </div>
+            <div style="display:flex;gap:8px">
+              <span style="font-size:11px;color:var(--success)">✓ 1.271 başarılı</span>
+              <span style="font-size:11px;color:var(--danger)">✗ 13 hata</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flow 2 -->
+        <div class="flow-card active">
+          <div class="flow-header">
+            <div>
+              <div class="flow-name">İkas Siparişi → Kargo</div>
+              <div class="flow-run-count">Bugün 318 kez çalıştı · Son çalışma: 5 dk önce</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <label class="toggle">
+                <input type="checkbox" checked onchange="toggleFlow(this, 'İkas Siparişi → Kargo')">
+                <span class="toggle-slider"></span>
+              </label>
+              <button class="btn btn-ghost btn-sm" onclick="openFlowDetail(2)">Düzenle</button>
+            </div>
+          </div>
+          <div class="flow-pipeline">
+            <div class="flow-node trigger" style="background:#EEF2FF;color:#6366F1">
+              <span>⚡</span> İkas — Yeni Sipariş
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node action">
+              <span>📦</span> Aras Kargo — Barkod Al
+            </div>
+          </div>
+          <div class="flow-footer">
+            <div class="flow-last-run">
+              <span class="badge badge-success" style="font-size:10px">Aktif</span>
+              <span style="margin-left:8px">İkas sitesine sipariş gelince Aras Kargo'ya otomatik gönderi kaydı açılır.</span>
+            </div>
+            <div style="display:flex;gap:8px">
+              <span style="font-size:11px;color:var(--success)">✓ 318 başarılı</span>
+              <span style="font-size:11px;color:var(--danger)">✗ 0 hata</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flow 3 -->
+        <div class="flow-card active">
+          <div class="flow-header">
+            <div>
+              <div class="flow-name">Stok Azaldı → Çoklu Platform Güncelle</div>
+              <div class="flow-run-count">Bugün 1.245 kez çalıştı · Son çalışma: 1 dk önce</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <label class="toggle">
+                <input type="checkbox" checked onchange="toggleFlow(this, 'Stok Azaldı → Çoklu Platform')">
+                <span class="toggle-slider"></span>
+              </label>
+              <button class="btn btn-ghost btn-sm" onclick="openFlowDetail(3)">Düzenle</button>
+            </div>
+          </div>
+          <div class="flow-pipeline">
+            <div class="flow-node trigger" style="background:#FEF3C7;color:#D97706">
+              <span>⚡</span> Herhangi Kanal — Stok Değişimi
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node action2">
+              <span>🛒</span> Trendyol — Stok Güncelle
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node action">
+              <span>🛒</span> Hepsiburada — Stok Güncelle
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node" style="background:#EEF2FF;color:#6366F1">
+              <span>🛒</span> İkas — Stok Güncelle
+            </div>
+          </div>
+          <div class="flow-footer">
+            <div class="flow-last-run">
+              <span class="badge badge-success" style="font-size:10px">Aktif</span>
+              <span style="margin-left:8px">Herhangi bir platformda stok değişince tüm kanallara eş zamanlı güncelleme gönderilir.</span>
+            </div>
+            <div style="display:flex;gap:8px">
+              <span style="font-size:11px;color:var(--success)">✓ 1.245 başarılı</span>
+              <span style="font-size:11px;color:var(--danger)">✗ 0 hata</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Inactive flows -->
+      <div style="margin-bottom:12px;font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px">Pasif Akışlar</div>
+      <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:32px">
+
+        <div class="flow-card inactive">
+          <div class="flow-header">
+            <div>
+              <div class="flow-name">Hepsiburada Siparişi → E-Fatura</div>
+              <div class="flow-run-count">Hiç çalışmadı · Oluşturuldu: 10 Oca 2026</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <label class="toggle">
+                <input type="checkbox" onchange="toggleFlow(this, 'Hepsiburada Siparişi → E-Fatura')">
+                <span class="toggle-slider"></span>
+              </label>
+              <button class="btn btn-ghost btn-sm" onclick="openFlowDetail(4)">Düzenle</button>
+            </div>
+          </div>
+          <div class="flow-pipeline">
+            <div class="flow-node trigger" style="background:#FEE2E2;color:#DC2626;opacity:.7">
+              <span>⚡</span> Hepsiburada — Yeni Sipariş
+            </div>
+            <div class="flow-arrow" style="opacity:.5">→</div>
+            <div class="flow-node action" style="opacity:.6">
+              <span>🧾</span> Hepsiburada Faturam — E-Fatura
+            </div>
+          </div>
+          <div class="flow-footer">
+            <div class="flow-last-run">
+              <span class="badge badge-gray" style="font-size:10px">Pasif</span>
+              <span style="margin-left:8px;color:var(--text-muted)">Hepsiburada Faturam entegrasyonu tamamlanınca aktif edilebilir.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Suggested flows -->
+      <div style="margin-bottom:12px;font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px">Önerilen Akışlar</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
+
+        <div class="card" style="padding:18px;border:1.5px dashed var(--border);cursor:pointer;transition:var(--transition)" onmouseenter="this.style.borderColor='var(--primary)'" onmouseleave="this.style.borderColor='var(--border)'" onclick="openModal('newFlowModal')">
+          <div style="font-size:13px;font-weight:700;margin-bottom:6px">Trendyol İptal → Stok Geri Yükle</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Trendyol'da sipariş iptal edilince tüm platformlardaki stok otomatik güncellenir.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge badge-info" style="font-size:10px">Trendyol</span>
+            <span class="badge badge-info" style="font-size:10px">Hepsiburada</span>
+            <span class="badge badge-info" style="font-size:10px">İkas</span>
+          </div>
+          <div style="margin-top:12px;font-size:12px;color:var(--primary);font-weight:600">+ Bu akışı ekle →</div>
+        </div>
+
+        <div class="card" style="padding:18px;border:1.5px dashed var(--border);cursor:pointer;transition:var(--transition)" onmouseenter="this.style.borderColor='var(--primary)'" onmouseleave="this.style.borderColor='var(--border)'" onclick="openModal('newFlowModal')">
+          <div style="font-size:13px;font-weight:700;margin-bottom:6px">Sipariş Teslim → Muhasebe Kaydı</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Kargo teslim edilince Paraşüt'e tahsilat kaydı otomatik düşülür.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge badge-info" style="font-size:10px">Aras Kargo</span>
+            <span class="badge badge-info" style="font-size:10px">Paraşüt</span>
+          </div>
+          <div style="margin-top:12px;font-size:12px;color:var(--primary);font-weight:600">+ Bu akışı ekle →</div>
+        </div>
+
+        <div class="card" style="padding:18px;border:1.5px dashed var(--border);cursor:pointer;transition:var(--transition)" onmouseenter="this.style.borderColor='var(--primary)'" onmouseleave="this.style.borderColor='var(--border)'" onclick="openModal('newFlowModal')">
+          <div style="font-size:13px;font-weight:700;margin-bottom:6px">Fiyat Değişimi → Çoklu Kanal</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">İkas'ta ürün fiyatı değişince Trendyol ve Hepsiburada otomatik güncellenir.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge badge-info" style="font-size:10px">İkas</span>
+            <span class="badge badge-info" style="font-size:10px">Trendyol</span>
+            <span class="badge badge-info" style="font-size:10px">Hepsiburada</span>
+          </div>
+          <div style="margin-top:12px;font-size:12px;color:var(--primary);font-weight:600">+ Bu akışı ekle →</div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- New Flow Modal -->
+<div class="modal-overlay" id="newFlowModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title">Yeni Akış Oluştur</div>
+      <button class="modal-close" onclick="closeModal('newFlowModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Akış Adı</label>
+        <input class="form-control" type="text" placeholder="Örn: Yeni Sipariş → Fatura" id="newFlowName">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="form-group">
+          <label class="form-label">Tetikleyici Platform</label>
+          <select class="form-control" id="triggerPlatform">
+            <option>Trendyol</option>
+            <option>Hepsiburada</option>
+            <option>İkas</option>
+            <option>Ticimax</option>
+            <option>Shopify</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tetikleyici Olay</label>
+          <select class="form-control">
+            <option>Yeni Sipariş</option>
+            <option>Sipariş İptal</option>
+            <option>Stok Değişimi</option>
+            <option>Fiyat Değişimi</option>
+            <option>Kargo Güncellemesi</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Eylemler <span style="color:var(--text-muted);font-weight:400">(birden fazla seçebilirsiniz)</span></label>
+        <div style="display:flex;flex-direction:column;gap:8px;background:var(--bg);border-radius:var(--radius);padding:12px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox"> Paraşüt — Fatura Oluştur</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox"> Aras Kargo — Barkod Al</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox"> Trendyol — Stok Güncelle</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox"> Hepsiburada — Stok Güncelle</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox"> İkas — Stok Güncelle</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox"> Trendyol E-Faturam — E-Fatura Kes</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newFlowModal')">Vazgeç</button>
+      <button class="btn btn-primary" onclick="createFlow()">Akışı Oluştur</button>
+    </div>
+  </div>
+</div>
+
+<!-- Flow Detail Modal -->
+<div class="modal-overlay" id="flowDetailModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title" id="flowDetailTitle">Akış Detayı</div>
+      <button class="modal-close" onclick="closeModal('flowDetailModal')">×</button>
+    </div>
+    <div class="modal-body" id="flowDetailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('flowDetailModal')">Kapat</button>
+      <button class="btn" style="background:var(--danger-light);color:var(--danger);border:1px solid var(--danger)" onclick="closeModal('flowDetailModal');showToast('Akış Silindi','Akış başarıyla kaldırıldı.','error')">Sil</button>
+      <button class="btn btn-primary" onclick="closeModal('flowDetailModal');showToast('Kaydedildi','Akış ayarları güncellendi.','success')">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="../js/app.js"></script>
+<script>
+const FLOW_DETAILS = {
+  1: {
+    title: 'Yeni Sipariş → Fatura + Kargo',
+    body: `
+      <div class="detail-section">
+        <div class="detail-section-title">Tetikleyici</div>
+        <div class="flow-node trigger" style="display:inline-flex;margin-bottom:12px">⚡ Trendyol — Yeni Sipariş</div>
+        <div class="form-group">
+          <label class="form-label">Sipariş durumu filtresi</label>
+          <select class="form-control"><option selected>Tüm siparişler</option><option>Sadece ön ödemeli</option><option>Sadece kapıda ödemeli</option></select>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">Eylem 1 — Paraşüt</div>
+        <div class="form-group">
+          <label class="form-label">Belge türü</label>
+          <select class="form-control"><option selected>E-Arşiv Fatura</option><option>E-Fatura</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fatura tarihi</label>
+          <select class="form-control"><option selected>Sipariş tarihi</option><option>Bugün</option></select>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">Eylem 2 — Aras Kargo</div>
+        <div class="form-group">
+          <label class="form-label">Ürün tipi</label>
+          <select class="form-control"><option selected>Standart</option><option>Koli</option><option>Zarf</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bildirim gönder</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-top:4px"><input type="checkbox" checked> Müşteriye SMS gönder</label>
+        </div>
+      </div>
+    `
+  },
+  2: {
+    title: 'İkas Siparişi → Kargo',
+    body: `
+      <div class="detail-section">
+        <div class="detail-section-title">Tetikleyici</div>
+        <div class="flow-node trigger" style="display:inline-flex;margin-bottom:12px;background:#EEF2FF;color:#6366F1">⚡ İkas — Yeni Sipariş</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">Eylem — Aras Kargo</div>
+        <div class="form-group">
+          <label class="form-label">Ürün tipi</label>
+          <select class="form-control"><option selected>Standart</option><option>Koli</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bildirim gönder</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-top:4px"><input type="checkbox" checked> Müşteriye SMS gönder</label>
+        </div>
+      </div>
+    `
+  },
+  3: {
+    title: 'Stok Azaldı → Çoklu Platform Güncelle',
+    body: `
+      <div class="detail-section">
+        <div class="detail-section-title">Tetikleyici</div>
+        <div class="flow-node trigger" style="display:inline-flex;margin-bottom:12px;background:#FEF3C7;color:#D97706">⚡ Herhangi Kanal — Stok Değişimi</div>
+        <div class="form-group">
+          <label class="form-label">Tetikleme koşulu</label>
+          <select class="form-control"><option selected>Her stok değişiminde</option><option>Stok kritik seviyeye düşünce</option><option>Stok 0 olunca</option></select>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">Eylemler</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked> Trendyol — Stok Güncelle</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked> Hepsiburada — Stok Güncelle</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked> İkas — Stok Güncelle</label>
+        </div>
+      </div>
+    `
+  },
+  4: {
+    title: 'Hepsiburada Siparişi → E-Fatura',
+    body: `
+      <div style="background:var(--warning-light);border-radius:var(--radius-sm);padding:12px;font-size:13px;color:var(--warning);margin-bottom:16px">⚠ Bu akış Hepsiburada Faturam entegrasyonu bağlanmadan aktif edilemez.</div>
+      <div class="detail-section">
+        <div class="detail-section-title">Tetikleyici</div>
+        <div class="flow-node trigger" style="display:inline-flex;margin-bottom:12px;background:#FEE2E2;color:#DC2626">⚡ Hepsiburada — Yeni Sipariş</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">Eylem — Hepsiburada Faturam</div>
+        <div class="form-group">
+          <label class="form-label">Belge türü</label>
+          <select class="form-control"><option selected>E-Arşiv Fatura</option><option>E-Fatura</option></select>
+        </div>
+      </div>
+    `
+  },
+};
+
+function openFlowDetail(id) {
+  const d = FLOW_DETAILS[id];
+  if (!d) return;
+  document.getElementById('flowDetailTitle').textContent = d.title;
+  document.getElementById('flowDetailBody').innerHTML = d.body;
+  openModal('flowDetailModal');
+}
+
+function toggleFlow(checkbox, name) {
+  const active = checkbox.checked;
+  showToast(
+    active ? 'Akış Aktif' : 'Akış Durduruldu',
+    `"${name}" akışı ${active ? 'başlatıldı' : 'durduruldu'}.`,
+    active ? 'success' : 'warning'
+  );
+}
+
+function createFlow() {
+  const name = document.getElementById('newFlowName').value.trim();
+  if (!name) { showToast('Hata', 'Akış adı boş bırakılamaz.', 'error'); return; }
+  closeModal('newFlowModal');
+  showToast('Akış Oluşturuldu', `"${name}" akışı başarıyla oluşturuldu.`, 'success');
+}
+
+document.addEventListener('DOMContentLoaded', initSidebar);
+</script>
+</body>
+</html>

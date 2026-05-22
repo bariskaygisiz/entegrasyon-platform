@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Siparişler — Entegrasyon</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ---- PAGINATION ---- */
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .page-btn {
+      min-width: 34px;
+      height: 34px;
+      padding: 0 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text-secondary);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      font-family: var(--font);
+    }
+    .page-btn:hover:not(:disabled) {
+      background: var(--bg);
+      color: var(--text);
+      border-color: var(--text-secondary);
+    }
+    .page-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      font-weight: 700;
+    }
+    .page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .page-ellipsis {
+      min-width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* ---- CLICKABLE ROWS ---- */
+    tbody tr.order-row {
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    tbody tr.order-row:hover td {
+      background: #F5F3FF;
+    }
+    tbody tr.order-row:hover .order-id {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+
+    /* ---- EMPTY STATE ---- */
+    .empty-rows td {
+      padding: 48px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* ---- PAGE INFO ---- */
+    .page-info {
+      font-size: 13px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .page-info b { color: var(--text); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <div><div class="logo-text">Entegrasyon<span>Yönetici Paneli</span></div></div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">×</button>
+    </div>
+    <div class="sidebar-store">
+      <div class="store-avatar">T</div>
+      <div><div class="store-name">Teknoloji Mağazası</div><div class="store-plan">Pro Plan</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Genel</div>
+        <a href="dashboard.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h7v7H3zM3 17h7v4H3zM14 3h7v11h-7zM14 17h7v4h-7z"/></svg>
+          <span>Panel Özeti</span>
+        </a>
+        <a href="orders.html" class="nav-item active">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span>Siparişler</span>
+          <span class="nav-badge" id="newBadge">—</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Katalog</div>
+        <a href="products.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          <span>Ürünler</span>
+        </a>
+        <a href="inventory.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16M8 11h8M8 15h5"/></svg>
+          <span>Stok Yönetimi</span><span class="nav-badge warning">3</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Entegrasyonlar</div>
+        <a href="integrations.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <span>Pazaryerleri</span><span class="nav-badge info">1</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Diğer</div>
+        <a href="settings.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Ayarlar</span>
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="../index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span>Çıkış Yap</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="header">
+      <button class="hamburger" id="hamburger">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="header-title">Siparişler <span id="headerSubtitle">Yükleniyor...</span></div>
+      <div class="header-actions">
+        <button class="header-btn btn-sync" data-platform="Siparişler" title="Senkronize Et">
+          <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
+        <button class="header-btn" title="Bildirimler">
+          <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <div class="dot"></div>
+        </button>
+        <button class="header-user">
+          <div class="user-avatar">TM</div>
+          <span class="user-name">Teknoloji M.</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Sipariş Yönetimi</div>
+          <div class="page-subtitle">Tüm kanallardan gelen siparişleri tek ekranda yönetin</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" onclick="exportOrders()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Dışa Aktar
+          </button>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid" style="margin-bottom:20px;">
+        <div class="stat-card">
+          <div class="stat-icon info">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Yeni Siparişler</div>
+            <div class="stat-value" id="statNew">—</div>
+            <div class="stat-change up">Onay bekliyor</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon warning">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Hazırlanıyor</div>
+            <div class="stat-value" id="statPreparing">—</div>
+            <div class="stat-change">Kargoya hazır</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon primary">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Kargoda</div>
+            <div class="stat-value" id="statShipped">—</div>
+            <div class="stat-change">Yolda</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon success">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Teslim Edildi</div>
+            <div class="stat-value" id="statDelivered">—</div>
+            <div class="stat-change up">Toplam</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD -->
+      <div class="card">
+
+        <!-- STATUS TABS -->
+        <div class="status-tabs" id="statusTabs">
+          <button class="status-tab active" data-status="all">Tümü</button>
+          <button class="status-tab" data-status="new">
+            <span style="width:7px;height:7px;background:var(--info);border-radius:50%;display:inline-block;"></span>
+            Yeni
+          </button>
+          <button class="status-tab" data-status="preparing">
+            <span style="width:7px;height:7px;background:var(--warning);border-radius:50%;display:inline-block;"></span>
+            Hazırlanıyor
+          </button>
+          <button class="status-tab" data-status="shipped">
+            <span style="width:7px;height:7px;background:var(--primary);border-radius:50%;display:inline-block;"></span>
+            Kargoda
+          </button>
+          <button class="status-tab" data-status="delivered">
+            <span style="width:7px;height:7px;background:var(--success);border-radius:50%;display:inline-block;"></span>
+            Teslim Edildi
+          </button>
+          <button class="status-tab" data-status="cancelled">
+            <span style="width:7px;height:7px;background:var(--danger);border-radius:50%;display:inline-block;"></span>
+            İptal
+          </button>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="filter-bar">
+          <div class="search-wrap" style="flex:1;min-width:200px;">
+            <svg class="search-icon" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" class="form-control" id="searchInput" placeholder="Sipariş no, müşteri adı veya ürün ara...">
+          </div>
+          <select class="form-control" id="channelFilter" style="width:auto;">
+            <option value="">Tüm Kanallar</option>
+            <option value="trendyol">Trendyol</option>
+            <option value="hepsi">Hepsiburada</option>
+            <option value="n11">N11</option>
+            <option value="site">Mağaza Sitesi</option>
+          </select>
+          <select class="form-control" id="dateFilter" style="width:auto;">
+            <option value="">Tüm Zamanlar</option>
+            <option value="7">Son 7 Gün</option>
+            <option value="30">Son 30 Gün</option>
+          </select>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Sipariş No</th>
+                <th>Müşteri</th>
+                <th>Ürün</th>
+                <th>Kanal</th>
+                <th>Tarih</th>
+                <th>Tutar</th>
+                <th>Durum</th>
+                <th>Kargo</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+              <tr><td colspan="8" style="padding:48px;text-align:center;color:var(--text-muted);">Yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FOOTER: INFO + PAGINATION -->
+        <div class="card-footer" style="flex-wrap:wrap;gap:12px;">
+          <div class="page-info" id="pageInfo"></div>
+          <div class="pagination" id="pagination"></div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/mock-data.js"></script>
+<script src="../js/app.js"></script>
+<script>
+/* ---- STATE ---- */
+const PAGE_SIZE = 50;
+let currentPage = 1;
+let activeStatus = 'all';
+let searchQuery = '';
+let channelFilter = '';
+let dateFilter = '';
+
+/* ---- FILTER & PAGINATE ---- */
+function getFiltered() {
+  const now = new Date(2026, 4, 22);
+  return ORDERS_DATA.filter(o => {
+    if (activeStatus !== 'all' && o.status !== activeStatus) return false;
+    if (channelFilter && o.channel !== channelFilter) return false;
+    if (dateFilter) {
+      const days = parseInt(dateFilter);
+      const cutoff = new Date(now);
+      cutoff.setDate(cutoff.getDate() - days);
+      if (o.dateObj < cutoff) return false;
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const hit = String(o.id).includes(q) ||
+                  o.customer.toLowerCase().includes(q) ||
+                  o.productName.toLowerCase().includes(q) ||
+                  o.email.toLowerCase().includes(q);
+      if (!hit) return false;
+    }
+    return true;
+  });
+}
+
+/* ---- RENDER TABLE ---- */
+function renderTable() {
+  const filtered = getFiltered();
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const slice = filtered.slice(start, start + PAGE_SIZE);
+
+  const tbody = document.getElementById('ordersTableBody');
+
+  if (slice.length === 0) {
+    tbody.innerHTML = `<tr class="empty-rows"><td colspan="8">
+      <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;opacity:.25"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Filtreyle eşleşen sipariş bulunamadı.
+    </td></tr>`;
+  } else {
+    tbody.innerHTML = slice.map(o => buildRow(o)).join('');
+  }
+
+  renderPagination(filtered.length, totalPages);
+  updatePageInfo(filtered.length, start, Math.min(start + PAGE_SIZE, filtered.length));
+}
+
+function buildRow(o) {
+  const s = STATUS_LABELS[o.status];
+  const ch = CHANNEL_LABELS[o.channel];
+  const cargoCell = o.cargoCode
+    ? `<div style="font-size:12px;font-weight:600;">${o.cargoCode}</div><div style="font-size:11px;color:var(--text-muted);">${o.cargoCompany}</div>`
+    : `<span style="color:var(--text-muted);font-size:12px;">—</span>`;
+
+  return `<tr class="order-row" onclick="openOrder(${o.id})">
+    <td><span class="order-id fw-600" style="color:var(--primary);">#${o.id}</span></td>
+    <td>
+      <div style="font-weight:500;font-size:13px;">${o.customer}</div>
+      <div style="font-size:11px;color:var(--text-muted);">${o.email}</div>
+    </td>
+    <td>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:20px;">${o.productEmoji}</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${o.productName}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${o.qty} adet</div>
+        </div>
+      </div>
+    </td>
+    <td><div style="display:flex;align-items:center;gap:5px;"><span class="channel-icon ${ch.cls}">${ch.short}</span><span style="font-size:12px;color:var(--text-secondary);">${ch.label}</span></div></td>
+    <td><div style="font-size:13px;">${o.dateStr}</div></td>
+    <td><span class="fw-600">${formatMoney(o.amount)}</span></td>
+    <td><span class="badge ${s.cls}">${s.label}</span></td>
+    <td>${cargoCell}</td>
+  </tr>`;
+}
+
+function openOrder(id) {
+  window.location.href = `order-detail.html?id=${id}`;
+}
+
+/* ---- PAGINATION ---- */
+function renderPagination(total, totalPages) {
+  const el = document.getElementById('pagination');
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+
+  let html = '';
+
+  // Prev
+  html += `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  </button>`;
+
+  // Page numbers with ellipsis
+  const pages = buildPageRange(currentPage, totalPages);
+  pages.forEach(p => {
+    if (p === '...') {
+      html += `<div class="page-ellipsis">···</div>`;
+    } else {
+      html += `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
+    }
+  });
+
+  // Next
+  html += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+  </button>`;
+
+  el.innerHTML = html;
+}
+
+function buildPageRange(current, total) {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  const range = [];
+  // always show first
+  range.push(1);
+  if (current > 3) range.push('...');
+  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) {
+    range.push(p);
+  }
+  if (current < total - 2) range.push('...');
+  range.push(total);
+  return range;
+}
+
+function goPage(p) {
+  const filtered = getFiltered();
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderTable();
+  // scroll to top of table
+  document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ---- PAGE INFO ---- */
+function updatePageInfo(total, from, to) {
+  document.getElementById('pageInfo').innerHTML =
+    `<b>${from + 1}–${to}</b> / ${total} sipariş gösteriliyor`;
+}
+
+/* ---- STATUS TABS ---- */
+function initStatusTabs() {
+  document.querySelectorAll('#statusTabs .status-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#statusTabs .status-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeStatus = tab.dataset.status;
+      currentPage = 1;
+      renderTable();
+    });
+  });
+}
+
+/* ---- SEARCH & FILTERS ---- */
+let searchTimer;
+document.getElementById('searchInput').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = e.target.value.trim();
+    currentPage = 1;
+    renderTable();
+  }, 250);
+});
+
+document.getElementById('channelFilter').addEventListener('change', e => {
+  channelFilter = e.target.value;
+  currentPage = 1;
+  renderTable();
+});
+
+document.getElementById('dateFilter').addEventListener('change', e => {
+  dateFilter = e.target.value;
+  currentPage = 1;
+  renderTable();
+});
+
+/* ---- STATS ---- */
+function renderStats() {
+  const counts = { new: 0, preparing: 0, shipped: 0, delivered: 0, cancelled: 0 };
+  ORDERS_DATA.forEach(o => counts[o.status]++);
+
+  document.getElementById('statNew').textContent       = counts.new;
+  document.getElementById('statPreparing').textContent = counts.preparing;
+  document.getElementById('statShipped').textContent   = counts.shipped;
+  document.getElementById('statDelivered').textContent = counts.delivered;
+  document.getElementById('newBadge').textContent      = counts.new;
+  document.getElementById('headerSubtitle').textContent = `Toplam ${ORDERS_DATA.length} sipariş`;
+
+  // update tab counts
+  document.querySelectorAll('#statusTabs .status-tab').forEach(tab => {
+    const st = tab.dataset.status;
+    const n = st === 'all' ? ORDERS_DATA.length : (counts[st] || 0);
+    // remove old count span if exists
+    const old = tab.querySelector('.tab-count');
+    if (old) old.remove();
+    const span = document.createElement('span');
+    span.className = 'tab-count';
+    span.style.cssText = 'font-size:11px;opacity:.7;margin-left:3px;';
+    span.textContent = `(${n})`;
+    tab.appendChild(span);
+  });
+}
+
+/* ---- EXPORT ---- */
+function exportOrders() {
+  showToast('Dışa Aktarılıyor', 'Siparişler CSV olarak hazırlanıyor...', 'info');
+}
+
+/* ---- INIT ---- */
+initStatusTabs();
+renderStats();
+renderTable();
+</script>
+</body>
+</html>

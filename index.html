@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giriş Yap — Entegrasyon</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { background: #0F172A; min-height: 100vh; display: flex; flex-direction: column; }
+
+    .login-page {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh;
+    }
+
+    /* LEFT PANEL */
+    .login-left {
+      background: linear-gradient(145deg, #1E1B4B 0%, #312E81 50%, #4C1D95 100%);
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-left::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(79,70,229,0.3) 0%, transparent 70%);
+      top: -100px; left: -100px;
+      pointer-events: none;
+    }
+    .login-left::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%);
+      bottom: -50px; right: -50px;
+      pointer-events: none;
+    }
+
+    .login-brand { position: relative; z-index: 1; }
+    .login-brand .logo { display: flex; align-items: center; gap: 12px; }
+    .login-brand .logo-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #6366F1, #8B5CF6);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 900; color: white;
+      box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+    }
+    .login-brand .logo-name { font-size: 20px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+    .login-brand .logo-tagline { font-size: 12px; color: #A5B4FC; margin-top: 1px; }
+
+    .login-hero { position: relative; z-index: 1; }
+    .login-hero h1 {
+      font-size: 36px; font-weight: 800; color: white;
+      line-height: 1.2; letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .login-hero h1 span { color: #A5B4FC; }
+    .login-hero p { font-size: 15px; color: #C7D2FE; line-height: 1.7; max-width: 380px; }
+
+    .feature-list { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; }
+    .feature-item {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 13.5px; color: #C7D2FE;
+    }
+    .feature-check {
+      width: 22px; height: 22px;
+      background: rgba(99,102,241,0.3);
+      border: 1px solid rgba(165,180,252,0.3);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #A5B4FC; font-size: 12px; flex-shrink: 0;
+    }
+
+    .marketplace-pills {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 24px;
+    }
+    .marketplace-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      font-size: 12px; font-weight: 600; color: white;
+    }
+    .pill-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .login-stats {
+      display: flex; gap: 28px;
+      position: relative; z-index: 1;
+    }
+    .login-stat { }
+    .login-stat-val { font-size: 22px; font-weight: 800; color: white; }
+    .login-stat-lbl { font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* RIGHT PANEL */
+    .login-right {
+      background: white;
+      display: flex; align-items: center; justify-content: center;
+      padding: 48px 40px;
+    }
+
+    .login-form-wrap { width: 100%; max-width: 380px; }
+
+    .login-tabs {
+      display: flex;
+      background: #F1F5F9;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+    .login-tab {
+      flex: 1; padding: 9px;
+      border: none; background: none;
+      border-radius: 8px;
+      font-size: 13.5px; font-weight: 500;
+      color: #64748B;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .login-tab.active {
+      background: white;
+      color: #0F172A;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .login-title { font-size: 22px; font-weight: 800; color: #0F172A; margin-bottom: 4px; }
+    .login-subtitle { font-size: 13px; color: #64748B; margin-bottom: 24px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 5px; }
+    .form-control {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 8px;
+      font-size: 14px; color: #0F172A;
+      outline: none; transition: all 0.2s;
+      background: white;
+    }
+    .form-control:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+
+    .forgot-link {
+      font-size: 12.5px; color: #4F46E5; font-weight: 500;
+      float: right; margin-top: -2px;
+    }
+    .forgot-link:hover { text-decoration: underline; }
+
+    .btn-login {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      color: white; border: none;
+      border-radius: 8px; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+      margin-top: 4px;
+    }
+    .btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(79,70,229,0.4); }
+    .btn-login:active { transform: translateY(0); }
+
+    .divider-text {
+      display: flex; align-items: center; gap: 10px;
+      color: #94A3B8; font-size: 12px;
+      margin: 18px 0;
+    }
+    .divider-text::before, .divider-text::after {
+      content: ''; flex: 1; height: 1px; background: #E2E8F0;
+    }
+
+    .demo-accounts {
+      background: #F8FAFC;
+      border: 1.5px dashed #CBD5E1;
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .demo-accounts-title {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .5px;
+      color: #94A3B8; margin-bottom: 10px;
+    }
+    .demo-account {
+      display: flex; align-items: center;
+      padding: 8px 10px;
+      background: white; border: 1px solid #E2E8F0;
+      border-radius: 8px; cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 6px;
+      gap: 10px;
+    }
+    .demo-account:last-child { margin-bottom: 0; }
+    .demo-account:hover { border-color: #4F46E5; background: #F5F3FF; }
+    .demo-avatar {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: white; flex-shrink: 0;
+    }
+    .demo-info { flex: 1; }
+    .demo-name { font-size: 12.5px; font-weight: 600; color: #0F172A; }
+    .demo-role { font-size: 11px; color: #64748B; }
+    .demo-arrow { color: #94A3B8; font-size: 14px; }
+
+    .login-footer {
+      text-align: center; margin-top: 20px;
+      font-size: 12px; color: #94A3B8;
+    }
+    .login-footer a { color: #4F46E5; font-weight: 500; }
+
+    /* REGISTER FORM */
+    #registerForm { display: none; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .login-page { grid-template-columns: 1fr; }
+      .login-left { display: none; }
+      .login-right { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- LEFT: BRAND & FEATURES -->
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <div>
+          <div class="logo-name">Entegrasyon</div>
+          <div class="logo-tagline">Çok Kanallı E-Ticaret Platformu</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-hero">
+      <h1>Tüm pazaryerlerini<br><span>tek yerden</span> yönet</h1>
+      <p>Trendyol, Hepsiburada, N11 ve kendi mağazanı — ürün, stok, fiyat ve siparişleri tek panelde yönet.</p>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-check">✓</div>
+          Trendyol stok & fiyat otomatik senkronizasyonu
+        </div>
+        <div class="feature-item">
+          <div class="feature-check">✓</div>
+          Tüm kanallardan siparişleri tek panelde yönet
+        </div>
+        <div class="feature-item">
+          <div class="feature-check">✓</div>
+          Kritik stok uyarıları ve otomatik devre dışı bırakma
+        </div>
+        <div class="feature-item">
+          <div class="feature-check">✓</div>
+          Müşteri bazlı çok kiracılı mimari (SaaS)
+        </div>
+      </div>
+
+      <div class="marketplace-pills">
+        <div class="marketplace-pill"><div class="pill-dot" style="background:#F27A1A;"></div>Trendyol</div>
+        <div class="marketplace-pill"><div class="pill-dot" style="background:#FF6000;"></div>Hepsiburada</div>
+        <div class="marketplace-pill"><div class="pill-dot" style="background:#7B2D8B;"></div>N11</div>
+        <div class="marketplace-pill"><div class="pill-dot" style="background:#EF1A26;"></div>Çiçeksepeti</div>
+        <div class="marketplace-pill"><div class="pill-dot" style="background:#6366F1;"></div>Mağaza Sitesi</div>
+      </div>
+    </div>
+
+    <div class="login-stats">
+      <div class="login-stat">
+        <div class="login-stat-val">2.400+</div>
+        <div class="login-stat-lbl">Aktif Mağaza</div>
+      </div>
+      <div class="login-stat">
+        <div class="login-stat-val">₺840M</div>
+        <div class="login-stat-lbl">Aylık GMV</div>
+      </div>
+      <div class="login-stat">
+        <div class="login-stat-val">4</div>
+        <div class="login-stat-lbl">Pazaryeri</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: LOGIN FORM -->
+  <div class="login-right">
+    <div class="login-form-wrap">
+
+      <div class="login-tabs">
+        <button class="login-tab active" onclick="switchTab('login', this)">Giriş Yap</button>
+        <button class="login-tab" onclick="switchTab('register', this)">Hesap Oluştur</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="loginForm">
+        <div class="login-title">Tekrar Hoş Geldiniz</div>
+        <div class="login-subtitle">Panelinize giriş yapın</div>
+
+        <div class="form-group">
+          <label class="form-label">E-posta</label>
+          <input type="email" class="form-control" placeholder="ornek@email.com" id="emailInput" value="merchant@demo.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            Şifre
+            <a href="#" class="forgot-link">Şifremi Unuttum</a>
+          </label>
+          <input type="password" class="form-control" placeholder="••••••••" id="passwordInput" value="demo1234">
+        </div>
+
+        <button class="btn-login" onclick="doLogin()">Giriş Yap</button>
+
+        <div class="divider-text">Demo hesaplarıyla dene</div>
+
+        <div class="demo-accounts">
+          <div class="demo-accounts-title">Hızlı Giriş</div>
+          <div class="demo-account" onclick="loginAs('merchant')">
+            <div class="demo-avatar" style="background:linear-gradient(135deg,#F27A1A,#E06010);">T</div>
+            <div class="demo-info">
+              <div class="demo-name">Teknoloji Mağazası</div>
+              <div class="demo-role">Merchant Panel — Pro Plan</div>
+            </div>
+            <div class="demo-arrow">→</div>
+          </div>
+          <div class="demo-account" onclick="loginAs('admin')">
+            <div class="demo-avatar" style="background:linear-gradient(135deg,#4F46E5,#7C3AED);">A</div>
+            <div class="demo-info">
+              <div class="demo-name">Super Admin</div>
+              <div class="demo-role">Admin Panel — Tüm yetkiler</div>
+            </div>
+            <div class="demo-arrow">→</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="registerForm">
+        <div class="login-title">Mağazanı Aç</div>
+        <div class="login-subtitle">14 gün ücretsiz dene, kredi kartı gerekmez</div>
+
+        <div class="form-group">
+          <label class="form-label">Mağaza Adı</label>
+          <input type="text" class="form-control" placeholder="Mağazanızın adı">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ad Soyad</label>
+          <input type="text" class="form-control" placeholder="Adınız Soyadınız">
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-posta</label>
+          <input type="email" class="form-control" placeholder="ornek@email.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telefon</label>
+          <input type="tel" class="form-control" placeholder="+90 5xx xxx xx xx">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Şifre</label>
+          <input type="password" class="form-control" placeholder="En az 8 karakter">
+        </div>
+        <div style="font-size:12px;color:#64748B;margin-bottom:14px;line-height:1.5;">
+          Kaydolarak <a href="#" style="color:#4F46E5;">Kullanım Şartları</a> ve
+          <a href="#" style="color:#4F46E5;">Gizlilik Politikası</a>'nı kabul etmiş olursunuz.
+        </div>
+        <button class="btn-login" onclick="doRegister()">Ücretsiz Hesap Oluştur</button>
+      </div>
+
+      <div class="login-footer">
+        <a href="admin/dashboard.html">Admin Paneline Git</a>
+        &nbsp;·&nbsp;
+        <a href="merchant/dashboard.html">Merchant Paneline Git</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchTab(tab, el) {
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+function doLogin() {
+  const btn = document.querySelector('.btn-login');
+  const orig = btn.textContent;
+  btn.textContent = 'Giriş yapılıyor...';
+  btn.disabled = true;
+  setTimeout(() => {
+    window.location.href = 'merchant/dashboard.html';
+  }, 800);
+}
+
+function doRegister() {
+  const btn = document.querySelector('#registerForm .btn-login') || document.querySelector('.btn-login');
+  const orig = btn.textContent;
+  btn.textContent = 'Hesap oluşturuluyor...';
+  btn.disabled = true;
+  setTimeout(() => {
+    window.location.href = 'merchant/dashboard.html';
+  }, 1000);
+}
+
+function loginAs(role) {
+  if (role === 'merchant') {
+    window.location.href = 'merchant/dashboard.html';
+  } else {
+    window.location.href = 'admin/dashboard.html';
+  }
+}
+</script>
+</body>
+</html>

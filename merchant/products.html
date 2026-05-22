@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ürünler — Entegrasyon</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <div><div class="logo-text">Entegrasyon<span>Yönetici Paneli</span></div></div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">×</button>
+    </div>
+    <div class="sidebar-store">
+      <div class="store-avatar">T</div>
+      <div><div class="store-name">Teknoloji Mağazası</div><div class="store-plan">Pro Plan</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Genel</div>
+        <a href="dashboard.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h7v7H3zM3 17h7v4H3zM14 3h7v11h-7zM14 17h7v4h-7z"/></svg>
+          <span>Panel Özeti</span>
+        </a>
+        <a href="orders.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span>Siparişler</span><span class="nav-badge">14</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Katalog</div>
+        <a href="products.html" class="nav-item active">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          <span>Ürünler</span>
+        </a>
+        <a href="inventory.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16M8 11h8M8 15h5"/></svg>
+          <span>Stok Yönetimi</span><span class="nav-badge warning">3</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Entegrasyonlar</div>
+        <a href="integrations.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <span>Pazaryerleri</span><span class="nav-badge info">1</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Diğer</div>
+        <a href="settings.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Ayarlar</span>
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="../index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span>Çıkış Yap</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <button class="hamburger" id="hamburger"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <div class="header-title">Ürünler <span>324 ürün</span></div>
+      <div class="header-actions">
+        <button class="header-btn" title="Bildirimler">
+          <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <div class="dot"></div>
+        </button>
+        <button class="header-user">
+          <div class="user-avatar">TM</div>
+          <span class="user-name">Teknoloji M.</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Ürün Yönetimi</div>
+          <div class="page-subtitle">Ürünlerinizi ekleyin, düzenleyin ve pazaryerlerine gönderin</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" data-modal-open="importModal">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            İçe Aktar
+          </button>
+          <button class="btn btn-primary" data-modal-open="addProductModal">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Ürün Ekle
+          </button>
+        </div>
+      </div>
+
+      <!-- BULK BAR -->
+      <div id="bulkBar" style="display:none;align-items:center;gap:12px;background:var(--primary-light);border:1px solid var(--primary);padding:10px 16px;border-radius:var(--radius-sm);margin-bottom:16px;">
+        <span class="bulk-count" style="font-size:13px;font-weight:600;color:var(--primary)"></span>
+        <div style="display:flex;gap:8px;margin-left:auto;">
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Trendyol\'a Gönderildi','Seçili ürünler Trendyol\'a aktarıldı.','success')">Trendyol\'a Gönder</button>
+          <button class="btn btn-secondary btn-sm">Fiyat Güncelle</button>
+          <button class="btn btn-danger btn-sm">Sil</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <!-- TABS -->
+        <div class="tabs" data-tabs-container>
+          <button class="tab-btn active" data-tab="tab-all">Tüm Ürünler <span style="color:var(--text-muted)">324</span></button>
+          <button class="tab-btn" data-tab="tab-active">Aktif <span style="color:var(--text-muted)">298</span></button>
+          <button class="tab-btn" data-tab="tab-passive">Pasif <span style="color:var(--text-muted)">18</span></button>
+          <button class="tab-btn" data-tab="tab-nostock">Stok Yok <span style="color:var(--danger)">8</span></button>
+        </div>
+
+        <!-- FILTER BAR -->
+        <div class="filter-bar">
+          <div class="search-wrap" style="flex:1;min-width:200px;">
+            <svg class="search-icon" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" class="form-control" placeholder="Ürün adı veya SKU ara..." data-search-table="productsTable">
+          </div>
+          <select class="form-control" style="width:auto;">
+            <option>Tüm Kategoriler</option>
+            <option>Telefon</option>
+            <option>Bilgisayar</option>
+            <option>Aksesuar</option>
+            <option>Ses Sistemleri</option>
+          </select>
+          <select class="form-control" style="width:auto;">
+            <option>Tüm Kanallar</option>
+            <option>Trendyol</option>
+            <option>Hepsiburada</option>
+            <option>N11</option>
+            <option>Sadece Site</option>
+          </select>
+          <button class="btn btn-secondary btn-sm btn-sync" data-platform="Ürünler">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Senkronize Et
+          </button>
+        </div>
+
+        <!-- TABLE — ALL -->
+        <div id="tab-all" class="tab-content active">
+          <div class="table-wrap">
+            <table id="productsTable">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="checkAll"></th>
+                  <th>Ürün</th>
+                  <th>Kategori</th>
+                  <th>Fiyat</th>
+                  <th>Stok</th>
+                  <th>Kanallar</th>
+                  <th>Durum</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="checkbox" class="row-check"></td>
+                  <td>
+                    <div class="td-product">
+                      <div class="product-img">📱</div>
+                      <div class="product-info">
+                        <div class="product-name">Samsung Galaxy S24 Ultra</div>
+                        <div class="product-sku">SKU: SGS24U-BLK-256</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-gray">Telefon</span></td>
+                  <td>
+                    <div class="fw-600">₺44.999</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Maliyet: ₺38.000</div>
+                  </td>
+                  <td><span class="stock-count ok">42 adet</span></td>
+                  <td style="display:flex;gap:4px;align-items:center;padding-top:16px;">
+                    <span class="channel-icon trendyol" title="Trendyol">T</span>
+                    <span class="channel-icon hepsi" title="Hepsiburada">H</span>
+                    <span class="channel-icon site" title="Site">S</span>
+                  </td>
+                  <td><span class="badge badge-success">Aktif</span></td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="btn btn-ghost btn-icon" data-dropdown-toggle="menu1">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                      </button>
+                      <div class="dropdown-menu" id="menu1">
+                        <div class="dropdown-item" onclick="showToast('Düzenleme','Ürün düzenleme açıldı.','info')">Düzenle</div>
+                        <div class="dropdown-item" onclick="showToast('Trendyol','Trendyol\'a gönderildi.','success')">Trendyol'a Gönder</div>
+                        <div class="dropdown-item">Fiyat Geçmişi</div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item danger">Sil</div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="row-check"></td>
+                  <td>
+                    <div class="td-product">
+                      <div class="product-img">💻</div>
+                      <div class="product-info">
+                        <div class="product-name">MacBook Air 15" M3</div>
+                        <div class="product-sku">SKU: MBA15-M3-SLV</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-gray">Bilgisayar</span></td>
+                  <td>
+                    <div class="fw-600">₺54.999</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Maliyet: ₺46.000</div>
+                  </td>
+                  <td><span class="stock-count ok">8 adet</span></td>
+                  <td style="display:flex;gap:4px;align-items:center;padding-top:16px;">
+                    <span class="channel-icon trendyol" title="Trendyol">T</span>
+                    <span class="channel-icon site" title="Site">S</span>
+                  </td>
+                  <td><span class="badge badge-success">Aktif</span></td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="btn btn-ghost btn-icon" data-dropdown-toggle="menu2">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                      </button>
+                      <div class="dropdown-menu" id="menu2">
+                        <div class="dropdown-item">Düzenle</div>
+                        <div class="dropdown-item">Trendyol'a Gönder</div>
+                        <div class="dropdown-item">Fiyat Geçmişi</div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item danger">Sil</div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="row-check"></td>
+                  <td>
+                    <div class="td-product">
+                      <div class="product-img">🎧</div>
+                      <div class="product-info">
+                        <div class="product-name">Sony WH-1000XM5</div>
+                        <div class="product-sku">SKU: SONYWH-XM5-BLK</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-gray">Ses Sistemleri</span></td>
+                  <td>
+                    <div class="fw-600">₺8.299</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Maliyet: ₺6.100</div>
+                  </td>
+                  <td><span class="stock-count ok">24 adet</span></td>
+                  <td style="display:flex;gap:4px;align-items:center;padding-top:16px;">
+                    <span class="channel-icon trendyol">T</span>
+                    <span class="channel-icon hepsi">H</span>
+                    <span class="channel-icon n11">N</span>
+                    <span class="channel-icon site">S</span>
+                  </td>
+                  <td><span class="badge badge-success">Aktif</span></td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="btn btn-ghost btn-icon" data-dropdown-toggle="menu3">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                      </button>
+                      <div class="dropdown-menu" id="menu3">
+                        <div class="dropdown-item">Düzenle</div>
+                        <div class="dropdown-item">Trendyol'a Gönder</div>
+                        <div class="dropdown-item">Fiyat Geçmişi</div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item danger">Sil</div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="row-check"></td>
+                  <td>
+                    <div class="td-product">
+                      <div class="product-img">📱</div>
+                      <div class="product-info">
+                        <div class="product-name">iPhone 15 Pro — 256GB</div>
+                        <div class="product-sku">SKU: IPH15P-256-BLK</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-gray">Telefon</span></td>
+                  <td>
+                    <div class="fw-600">₺64.999</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Maliyet: ₺54.000</div>
+                  </td>
+                  <td><span class="stock-count low">2 adet</span></td>
+                  <td style="display:flex;gap:4px;align-items:center;padding-top:16px;">
+                    <span class="channel-icon trendyol">T</span>
+                    <span class="channel-icon site">S</span>
+                  </td>
+                  <td><span class="badge badge-warning">Düşük Stok</span></td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="btn btn-ghost btn-icon" data-dropdown-toggle="menu4">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                      </button>
+                      <div class="dropdown-menu" id="menu4">
+                        <div class="dropdown-item">Düzenle</div>
+                        <div class="dropdown-item">Stok Ekle</div>
+                        <div class="dropdown-item danger">Sil</div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="row-check"></td>
+                  <td>
+                    <div class="td-product">
+                      <div class="product-img">🖥️</div>
+                      <div class="product-info">
+                        <div class="product-name">LG 27" 4K IPS Monitor</div>
+                        <div class="product-sku">SKU: LG27-4K-BLK</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-gray">Monitör</span></td>
+                  <td>
+                    <div class="fw-600">₺9.399</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Maliyet: ₺7.200</div>
+                  </td>
+                  <td><span class="stock-count low">0 adet</span></td>
+                  <td style="display:flex;gap:4px;align-items:center;padding-top:16px;">
+                    <span class="channel-icon hepsi">H</span>
+                    <span class="channel-icon site">S</span>
+                  </td>
+                  <td><span class="badge badge-danger">Stok Yok</span></td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="btn btn-ghost btn-icon" data-dropdown-toggle="menu5">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                      </button>
+                      <div class="dropdown-menu" id="menu5">
+                        <div class="dropdown-item">Düzenle</div>
+                        <div class="dropdown-item">Stok Ekle</div>
+                        <div class="dropdown-item danger">Sil</div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <span class="text-muted">1-5 / 324 ürün gösteriliyor</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-secondary btn-sm">Önceki</button>
+              <button class="btn btn-primary btn-sm">Sonraki</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-active" class="tab-content">
+          <div class="empty-state">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <h3>298 aktif ürün var</h3>
+            <p>Filtrelenmiş görünüm — demo için sadece "Tüm Ürünler" sekmesi dolu</p>
+          </div>
+        </div>
+        <div id="tab-passive" class="tab-content">
+          <div class="empty-state">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <h3>18 pasif ürün</h3>
+            <p>Filtrelenmiş görünüm</p>
+          </div>
+        </div>
+        <div id="tab-nostock" class="tab-content">
+          <div class="empty-state">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            <h3>8 stoksuz ürün</h3>
+            <p>Stok eklemek için ürünlere tıklayın</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ADD PRODUCT MODAL -->
+<div class="modal-backdrop" id="addProductModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">Yeni Ürün Ekle</div>
+      <button class="modal-close" data-modal-close="addProductModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2" style="gap:16px;">
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Ürün Adı *</label>
+          <input type="text" class="form-control" placeholder="Ürün adını girin">
+        </div>
+        <div class="form-group">
+          <label class="form-label">SKU (Stok Kodu) *</label>
+          <input type="text" class="form-control" placeholder="Örn: PRD-001-BLK">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Barkod (GTIN)</label>
+          <input type="text" class="form-control" placeholder="Barkod numarası">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Satış Fiyatı (₺) *</label>
+          <input type="number" class="form-control" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Maliyet Fiyatı (₺)</label>
+          <input type="number" class="form-control" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Başlangıç Stoğu</label>
+          <input type="number" class="form-control" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kategori</label>
+          <select class="form-control">
+            <option>Kategori seçin</option>
+            <option>Telefon</option>
+            <option>Bilgisayar</option>
+            <option>Aksesuar</option>
+            <option>Ses Sistemleri</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Açıklama</label>
+          <textarea class="form-control" rows="3" placeholder="Ürün açıklaması..."></textarea>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="form-label" style="margin-bottom:12px;">Hangi kanallara eklensin?</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
+          <input type="checkbox" checked> <span style="font-size:13px;font-weight:500;">🟠 Trendyol</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
+          <input type="checkbox"> <span style="font-size:13px;font-weight:500;">🔴 Hepsiburada</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
+          <input type="checkbox"> <span style="font-size:13px;font-weight:500;">🟣 N11</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
+          <input type="checkbox" checked> <span style="font-size:13px;font-weight:500;">🔵 Mağaza Sitesi</span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-modal-close="addProductModal">İptal</button>
+      <button class="btn btn-primary" onclick="showToast('Ürün Eklendi','Ürün başarıyla oluşturuldu ve Trendyol\'a gönderildi.','success');closeModal('addProductModal')">Ürünü Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-backdrop" id="importModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">Toplu İçe Aktar</div>
+      <button class="modal-close" data-modal-close="importModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info" style="margin-bottom:16px;">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Excel (.xlsx) veya CSV formatında ürün şablonu yükleyin.
+      </div>
+      <div style="border:2px dashed var(--border);border-radius:var(--radius);padding:32px;text-align:center;cursor:pointer;" onclick="showToast('Dosya Seçildi','demo.xlsx yüklendi.','success')">
+        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;color:var(--text-muted)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <p style="font-size:13px;color:var(--text-secondary);">Dosyayı buraya sürükleyin<br>veya <span style="color:var(--primary);font-weight:600;">tıklayarak seçin</span></p>
+      </div>
+      <button class="btn btn-secondary btn-sm" style="margin-top:12px;width:100%;">Şablon İndir (.xlsx)</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-modal-close="importModal">İptal</button>
+      <button class="btn btn-primary">İçe Aktar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+</body>
+</html>

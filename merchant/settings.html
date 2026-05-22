@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ayarlar — Entegrasyon</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <div><div class="logo-text">Entegrasyon<span>Yönetici Paneli</span></div></div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">×</button>
+    </div>
+    <div class="sidebar-store">
+      <div class="store-avatar">T</div>
+      <div><div class="store-name">Teknoloji Mağazası</div><div class="store-plan">Pro Plan</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Genel</div>
+        <a href="dashboard.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h7v7H3zM3 17h7v4H3zM14 3h7v11h-7zM14 17h7v4h-7z"/></svg>
+          <span>Panel Özeti</span>
+        </a>
+        <a href="orders.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span>Siparişler</span><span class="nav-badge">14</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Katalog</div>
+        <a href="products.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          <span>Ürünler</span>
+        </a>
+        <a href="inventory.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16M8 11h8M8 15h5"/></svg>
+          <span>Stok Yönetimi</span><span class="nav-badge warning">3</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Entegrasyonlar</div>
+        <a href="integrations.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <span>Pazaryerleri</span><span class="nav-badge info">1</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Diğer</div>
+        <a href="settings.html" class="nav-item active">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Ayarlar</span>
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="../index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span>Çıkış Yap</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <button class="hamburger" id="hamburger"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <div class="header-title">Ayarlar</div>
+      <div class="header-actions">
+        <button class="header-btn" title="Bildirimler">
+          <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <div class="dot"></div>
+        </button>
+        <button class="header-user">
+          <div class="user-avatar">TM</div>
+          <span class="user-name">Teknoloji M.</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Mağaza Ayarları</div>
+          <div class="page-subtitle">Mağaza bilgilerinizi, aboneliğinizi ve ekip üyelerinizi yönetin</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:start;">
+
+        <!-- SETTINGS SIDEBAR NAV -->
+        <div class="card" style="position:sticky;top:88px;">
+          <div style="padding:8px;">
+            <a class="nav-item active" id="snav-store" onclick="showSettingsTab('store',this)" style="border-radius:var(--radius-sm);color:white;background:var(--primary);">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              <span>Mağaza Bilgileri</span>
+            </a>
+            <a class="nav-item" id="snav-plan" onclick="showSettingsTab('plan',this)" style="border-radius:var(--radius-sm);">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+              <span>Abonelik Planı</span>
+            </a>
+            <a class="nav-item" id="snav-team" onclick="showSettingsTab('team',this)" style="border-radius:var(--radius-sm);">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span>Ekip Üyeleri</span>
+            </a>
+            <a class="nav-item" id="snav-notifications" onclick="showSettingsTab('notifications',this)" style="border-radius:var(--radius-sm);">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              <span>Bildirimler</span>
+            </a>
+            <a class="nav-item" id="snav-security" onclick="showSettingsTab('security',this)" style="border-radius:var(--radius-sm);">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              <span>Güvenlik</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- SETTINGS CONTENT -->
+        <div>
+
+          <!-- STORE INFO -->
+          <div id="stab-store" class="card">
+            <div class="card-header"><div class="card-title">Mağaza Bilgileri</div></div>
+            <div class="card-body">
+              <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border);">
+                <div style="width:80px;height:80px;background:linear-gradient(135deg,var(--trendyol),#E06010);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:white;flex-shrink:0;">T</div>
+                <div>
+                  <div style="font-weight:600;font-size:15px;margin-bottom:4px;">Teknoloji Mağazası</div>
+                  <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">teknoloji-magaza.entegrasyon.com</div>
+                  <button class="btn btn-secondary btn-sm" onclick="showToast('Logo Güncellendi','Mağaza logosu değiştirildi.','success')">Logo Değiştir</button>
+                </div>
+              </div>
+              <div class="grid-2" style="gap:16px;">
+                <div class="form-group">
+                  <label class="form-label">Mağaza Adı</label>
+                  <input type="text" class="form-control" value="Teknoloji Mağazası">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Mağaza URL (Slug)</label>
+                  <div class="input-group">
+                    <span style="display:flex;align-items:center;padding:0 10px;background:var(--bg);border:1px solid var(--border);border-right:none;border-radius:var(--radius-sm) 0 0 var(--radius-sm);font-size:13px;color:var(--text-muted);white-space:nowrap;">entegrasyon.com/</span>
+                    <input type="text" class="form-control" value="teknoloji-magaza" style="border-radius:0 var(--radius-sm) var(--radius-sm) 0;">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">E-posta</label>
+                  <input type="email" class="form-control" value="info@teknoloji-magaza.com">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Telefon</label>
+                  <input type="tel" class="form-control" value="+90 212 555 0000">
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                  <label class="form-label">Adres</label>
+                  <textarea class="form-control" rows="2">Kadıköy, İstanbul, Türkiye</textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Para Birimi</label>
+                  <select class="form-control">
+                    <option selected>₺ Türk Lirası (TRY)</option>
+                    <option>$ ABD Doları (USD)</option>
+                    <option>€ Euro (EUR)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Vergi Numarası</label>
+                  <input type="text" class="form-control" value="1234567890">
+                </div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span class="text-muted">Son güncelleme: 3 Mayıs 2026</span>
+              <button class="btn btn-primary" onclick="showToast('Kaydedildi','Mağaza bilgileri güncellendi.','success')">Değişiklikleri Kaydet</button>
+            </div>
+          </div>
+
+          <!-- PLAN -->
+          <div id="stab-plan" class="card" style="display:none;">
+            <div class="card-header"><div class="card-title">Abonelik Planı</div></div>
+            <div class="card-body">
+              <div style="background:linear-gradient(135deg,var(--primary-light),#F5F3FF);border:2px solid var(--primary);border-radius:var(--radius);padding:20px;margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+                  <div>
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--primary);margin-bottom:4px;">Mevcut Plan</div>
+                    <div style="font-size:22px;font-weight:800;">Pro Plan</div>
+                    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">₺1.499 / ay · Sonraki yenileme: 1 Haziran 2026</div>
+                  </div>
+                  <span class="badge badge-primary" style="font-size:13px;padding:6px 16px;">Aktif</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px;">
+                  <div style="text-align:center;background:white;border-radius:var(--radius-sm);padding:12px;">
+                    <div style="font-size:18px;font-weight:800;color:var(--primary);">5.000</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">Ürün Limiti</div>
+                    <div style="font-size:11px;font-weight:600;color:var(--success);">324 kullanıldı</div>
+                  </div>
+                  <div style="text-align:center;background:white;border-radius:var(--radius-sm);padding:12px;">
+                    <div style="font-size:18px;font-weight:800;color:var(--primary);">4</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">Pazaryeri</div>
+                    <div style="font-size:11px;font-weight:600;color:var(--success);">1 aktif</div>
+                  </div>
+                  <div style="text-align:center;background:white;border-radius:var(--radius-sm);padding:12px;">
+                    <div style="font-size:18px;font-weight:800;color:var(--primary);">5</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">Ekip Üyesi</div>
+                    <div style="font-size:11px;font-weight:600;color:var(--success);">2 aktif</div>
+                  </div>
+                </div>
+              </div>
+              <div style="font-weight:600;margin-bottom:12px;">Diğer Planlar</div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+                <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;">
+                  <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Starter</div>
+                  <div style="font-size:20px;font-weight:800;color:var(--text);">₺499<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/ay</span></div>
+                  <div style="font-size:12px;color:var(--text-secondary);margin:8px 0;">500 ürün · 1 pazaryeri</div>
+                  <button class="btn btn-secondary btn-sm w-full">Downgrade</button>
+                </div>
+                <div style="border:2px solid var(--primary);border-radius:var(--radius);padding:16px;text-align:center;background:var(--primary-light);">
+                  <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:var(--primary);">Pro ✓</div>
+                  <div style="font-size:20px;font-weight:800;color:var(--primary);">₺1.499<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/ay</span></div>
+                  <div style="font-size:12px;color:var(--text-secondary);margin:8px 0;">5.000 ürün · 4 pazaryeri</div>
+                  <button class="btn btn-primary btn-sm w-full" disabled>Mevcut Plan</button>
+                </div>
+                <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;">
+                  <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Enterprise</div>
+                  <div style="font-size:20px;font-weight:800;color:var(--text);">₺4.999<span style="font-size:12px;font-weight:400;color:var(--text-muted);">/ay</span></div>
+                  <div style="font-size:12px;color:var(--text-secondary);margin:8px 0;">Sınırsız · Tüm pazaryerleri</div>
+                  <button class="btn btn-primary btn-sm w-full" onclick="showToast('Yükseltme','Satış ekibi sizi arayacak.','success')">Upgrade</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TEAM -->
+          <div id="stab-team" class="card" style="display:none;">
+            <div class="card-header">
+              <div class="card-title">Ekip Üyeleri</div>
+              <button class="btn btn-primary btn-sm" data-modal-open="inviteModal">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Üye Davet Et
+              </button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Üye</th><th>Rol</th><th>Son Giriş</th><th>Durum</th><th></th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:10px;">
+                        <div class="user-avatar" style="width:32px;height:32px;font-size:12px;">TM</div>
+                        <div><div style="font-weight:500;">Teknoloji Mağazası (Sen)</div><div style="font-size:11px;color:var(--text-muted);">info@teknoloji-magaza.com</div></div>
+                      </div>
+                    </td>
+                    <td><span class="badge badge-primary">Sahip</span></td>
+                    <td><span style="font-size:13px;">Şimdi</span></td>
+                    <td><span class="badge badge-success">Aktif</span></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:10px;">
+                        <div class="user-avatar" style="width:32px;height:32px;font-size:12px;background:linear-gradient(135deg,#10B981,#059669);">AY</div>
+                        <div><div style="font-weight:500;">Ayşe Yıldız</div><div style="font-size:11px;color:var(--text-muted);">ayse@teknoloji-magaza.com</div></div>
+                      </div>
+                    </td>
+                    <td><span class="badge badge-info">Editör</span></td>
+                    <td><span style="font-size:13px;">2 saat önce</span></td>
+                    <td><span class="badge badge-success">Aktif</span></td>
+                    <td>
+                      <div class="dropdown">
+                        <button class="btn btn-ghost btn-icon" data-dropdown-toggle="teamMenu1">
+                          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                        </button>
+                        <div class="dropdown-menu" id="teamMenu1">
+                          <div class="dropdown-item">Rol Değiştir</div>
+                          <div class="dropdown-divider"></div>
+                          <div class="dropdown-item danger" onclick="showToast('Üye Çıkarıldı','Ayşe Yıldız ekipten çıkarıldı.','warning')">Ekipten Çıkar</div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- NOTIFICATIONS -->
+          <div id="stab-notifications" class="card" style="display:none;">
+            <div class="card-header"><div class="card-title">Bildirim Ayarları</div></div>
+            <div class="card-body">
+              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:14px;">E-posta Bildirimleri</div>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+                  <div><div style="font-size:13.5px;font-weight:500;">Yeni Sipariş</div><div style="font-size:12px;color:var(--text-secondary);">Her yeni sipariş geldiğinde bildir</div></div>
+                  <label class="toggle"><input type="checkbox" checked class="toggle-action" data-action="Yeni sipariş bildirimi"><div class="toggle-slider"></div></label>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+                  <div><div style="font-size:13.5px;font-weight:500;">Düşük Stok Uyarısı</div><div style="font-size:12px;color:var(--text-secondary);">Stok kritik seviyeye düşünce bildir</div></div>
+                  <label class="toggle"><input type="checkbox" checked class="toggle-action" data-action="Stok uyarısı"><div class="toggle-slider"></div></label>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+                  <div><div style="font-size:13.5px;font-weight:500;">Sipariş İptali</div><div style="font-size:12px;color:var(--text-secondary);">Müşteri iptal ettiğinde bildir</div></div>
+                  <label class="toggle"><input type="checkbox" checked class="toggle-action" data-action="İptal bildirimi"><div class="toggle-slider"></div></label>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);">
+                  <div><div style="font-size:13.5px;font-weight:500;">Günlük Özet</div><div style="font-size:12px;color:var(--text-secondary);">Her gün saat 09:00'da günlük rapor</div></div>
+                  <label class="toggle"><input type="checkbox" class="toggle-action" data-action="Günlük özet"><div class="toggle-slider"></div></label>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;">
+                  <div><div style="font-size:13.5px;font-weight:500;">Trendyol Senkronizasyon Hatası</div><div style="font-size:12px;color:var(--text-secondary);">Entegrasyon hatası olduğunda hemen bildir</div></div>
+                  <label class="toggle"><input type="checkbox" checked class="toggle-action" data-action="Entegrasyon hatası"><div class="toggle-slider"></div></label>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span></span>
+              <button class="btn btn-primary" onclick="showToast('Kaydedildi','Bildirim ayarları güncellendi.','success')">Kaydet</button>
+            </div>
+          </div>
+
+          <!-- SECURITY -->
+          <div id="stab-security" class="card" style="display:none;">
+            <div class="card-header"><div class="card-title">Güvenlik Ayarları</div></div>
+            <div class="card-body">
+              <div style="margin-bottom:24px;">
+                <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:14px;">Şifre Değiştir</div>
+                <div style="display:flex;flex-direction:column;gap:12px;max-width:400px;">
+                  <div class="form-group"><label class="form-label">Mevcut Şifre</label><input type="password" class="form-control" placeholder="••••••••"></div>
+                  <div class="form-group"><label class="form-label">Yeni Şifre</label><input type="password" class="form-control" placeholder="En az 8 karakter"></div>
+                  <div class="form-group"><label class="form-label">Yeni Şifre (Tekrar)</label><input type="password" class="form-control" placeholder="••••••••"></div>
+                  <button class="btn btn-primary" style="align-self:flex-start;" onclick="showToast('Güncellendi','Şifreniz başarıyla değiştirildi.','success')">Şifreyi Güncelle</button>
+                </div>
+              </div>
+              <div class="divider"></div>
+              <div>
+                <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:14px;">İki Faktörlü Doğrulama (2FA)</div>
+                <div style="display:flex;align-items:center;gap:16px;">
+                  <label class="toggle"><input type="checkbox" class="toggle-action" data-action="2FA"><div class="toggle-slider"></div></label>
+                  <div>
+                    <div style="font-size:13.5px;font-weight:500;">2FA Aktif Değil</div>
+                    <div style="font-size:12px;color:var(--text-secondary);">Google Authenticator ile hesabınızı güvence altına alın</div>
+                  </div>
+                </div>
+              </div>
+              <div class="divider"></div>
+              <div>
+                <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:14px;">API Erişim Anahtarları</div>
+                <div style="background:var(--bg);border-radius:var(--radius-sm);padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                  <div>
+                    <div style="font-size:13px;font-weight:500;">Gizli API Anahtarı</div>
+                    <div style="font-family:monospace;font-size:12px;color:var(--text-muted);margin-top:2px;">ent_sk_live_••••••••••••••••••••</div>
+                  </div>
+                  <div style="display:flex;gap:8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="showToast('Kopyalandı','API anahtarı kopyalandı.','success')">Kopyala</button>
+                    <button class="btn btn-danger btn-sm" onclick="showToast('Yenilendi','Yeni API anahtarı oluşturuldu.','warning')">Yenile</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- INVITE MODAL -->
+<div class="modal-backdrop" id="inviteModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">Ekip Üyesi Davet Et</div>
+      <button class="modal-close" data-modal-close="inviteModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">E-posta Adresi</label>
+        <input type="email" class="form-control" placeholder="ornek@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rol</label>
+        <select class="form-control">
+          <option>Editör — Ürün ve sipariş yönetimi</option>
+          <option>Görüntüleyici — Sadece okuma</option>
+          <option>Yönetici — Tam erişim</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-modal-close="inviteModal">İptal</button>
+      <button class="btn btn-primary" onclick="showToast('Davet Gönderildi','Davet e-postası gönderildi.','success');closeModal('inviteModal')">Davet Gönder</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+function showSettingsTab(tab, el) {
+  document.querySelectorAll('[id^="stab-"]').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('[id^="snav-"]').forEach(n => {
+    n.classList.remove('active');
+    n.style.background = '';
+    n.style.color = '';
+  });
+  document.getElementById('stab-' + tab).style.display = 'block';
+  el.classList.add('active');
+  el.style.background = 'var(--primary)';
+  el.style.color = 'white';
+}
+</script>
+</body>
+</html>

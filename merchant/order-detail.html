@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sipariş Detayı — Entegrasyon</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ---- BREADCRUMB ---- */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+    .breadcrumb a { color: var(--text-secondary); transition: color .15s; }
+    .breadcrumb a:hover { color: var(--primary); }
+    .breadcrumb-sep { opacity: .4; }
+    .breadcrumb span { color: var(--text); font-weight: 500; }
+
+    /* ---- ORDER HEADER ---- */
+    .order-header-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .order-id-block { flex: 1; min-width: 200px; }
+    .order-id-block h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .order-meta {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .order-meta-item {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .order-meta-item b { color: var(--text); font-weight: 600; }
+    .order-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ---- DETAIL GRID ---- */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+      align-items: start;
+    }
+    .detail-left { display: flex; flex-direction: column; gap: 20px; }
+    .detail-right { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ---- INFO CARDS ---- */
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .info-card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--text-secondary);
+      padding: 14px 18px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-card-body { padding: 16px 18px; }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 5px 0;
+      font-size: 13px;
+    }
+    .info-row:not(:last-child) { border-bottom: 1px solid var(--border-light); padding-bottom: 8px; margin-bottom: 3px; }
+    .info-label { color: var(--text-secondary); flex-shrink: 0; }
+    .info-value { font-weight: 500; color: var(--text); text-align: right; }
+
+    /* ---- PRODUCTS TABLE ---- */
+    .products-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .product-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .product-row:last-child { border-bottom: none; }
+    .product-emoji-big {
+      width: 52px;
+      height: 52px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+    .product-details { flex: 1; min-width: 0; }
+    .product-title { font-size: 14px; font-weight: 600; }
+    .product-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .product-price-col { text-align: right; flex-shrink: 0; }
+    .product-price { font-size: 15px; font-weight: 700; }
+    .product-unit { font-size: 11px; color: var(--text-muted); }
+
+    /* ---- TOTALS ---- */
+    .totals-box {
+      padding: 14px 18px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 4px 0;
+      color: var(--text-secondary);
+    }
+    .total-row.final {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text);
+      padding-top: 10px;
+      margin-top: 6px;
+      border-top: 2px solid var(--border);
+    }
+
+    /* ---- TIMELINE ---- */
+    .timeline { padding: 18px; }
+    .timeline-item {
+      display: flex;
+      gap: 14px;
+      position: relative;
+      padding-bottom: 22px;
+    }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 32px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .timeline-item:last-child::before { display: none; }
+    .timeline-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 2px solid var(--border);
+      background: var(--card);
+      position: relative;
+      z-index: 1;
+    }
+    .timeline-dot.done {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+    .timeline-dot.current {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      box-shadow: 0 0 0 4px var(--primary-light);
+    }
+    .timeline-dot.pending { opacity: .4; }
+    .timeline-content { flex: 1; padding-top: 4px; }
+    .timeline-title { font-size: 13.5px; font-weight: 600; }
+    .timeline-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .timeline-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ---- NOTE CARD ---- */
+    .note-box {
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 13px;
+      color: #92400E;
+    }
+
+    /* ---- STATUS ACTION BUTTONS ---- */
+    .status-actions {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .status-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px 16px;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border-light);
+      cursor: pointer;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text);
+      text-align: left;
+      transition: background .15s;
+      font-family: var(--font);
+    }
+    .status-action-btn:last-child { border-bottom: none; border-radius: 0 0 var(--radius) var(--radius); }
+    .status-action-btn:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+    .status-action-btn:hover { background: var(--bg); }
+    .status-action-btn .btn-icon-circle {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ---- PRINT ---- */
+    @media print {
+      .sidebar, .header, .breadcrumb, .order-actions,
+      .status-actions, .btn { display: none !important; }
+      .main { margin-left: 0 !important; }
+      .detail-grid { grid-template-columns: 1fr !important; }
+      .detail-right { display: none !important; }
+    }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 960px) {
+      .detail-grid { grid-template-columns: 1fr; }
+      .detail-right { order: -1; }
+    }
+    @media (max-width: 640px) {
+      .order-header-card { flex-direction: column; align-items: flex-start; }
+      .order-meta { gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <div><div class="logo-text">Entegrasyon<span>Yönetici Paneli</span></div></div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">×</button>
+    </div>
+    <div class="sidebar-store">
+      <div class="store-avatar">T</div>
+      <div><div class="store-name">Teknoloji Mağazası</div><div class="store-plan">Pro Plan</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Genel</div>
+        <a href="dashboard.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h7v7H3zM3 17h7v4H3zM14 3h7v11h-7zM14 17h7v4h-7z"/></svg>
+          <span>Panel Özeti</span>
+        </a>
+        <a href="orders.html" class="nav-item active">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span>Siparişler</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Katalog</div>
+        <a href="products.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          <span>Ürünler</span>
+        </a>
+        <a href="inventory.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16M8 11h8M8 15h5"/></svg>
+          <span>Stok Yönetimi</span><span class="nav-badge warning">3</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Entegrasyonlar</div>
+        <a href="integrations.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <span>Pazaryerleri</span><span class="nav-badge info">1</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Diğer</div>
+        <a href="settings.html" class="nav-item">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Ayarlar</span>
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="../index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span>Çıkış Yap</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="header">
+      <button class="hamburger" id="hamburger">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="header-title" id="headerTitle">Sipariş Detayı</div>
+      <div class="header-actions">
+        <button class="header-btn" onclick="window.print()" title="Yazdır">
+          <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        </button>
+        <button class="header-btn" title="Bildirimler">
+          <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        </button>
+        <button class="header-user">
+          <div class="user-avatar">TM</div>
+          <span class="user-name">Teknoloji M.</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="page" id="pageContent">
+      <!-- Filled by JS -->
+      <div style="padding:60px;text-align:center;color:var(--text-muted);">Yükleniyor...</div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/mock-data.js"></script>
+<script src="../js/app.js"></script>
+<script>
+/* ---- READ ID FROM URL ---- */
+const params = new URLSearchParams(window.location.search);
+const orderId = parseInt(params.get('id'));
+
+const order = ORDERS_DATA.find(o => o.id === orderId);
+
+if (!order) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="text-align:center;padding:80px 24px;">
+      <svg width="56" height="56" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 16px;display:block;opacity:.2"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg>
+      <h2 style="font-size:18px;font-weight:700;color:var(--text);">Sipariş Bulunamadı</h2>
+      <p style="color:var(--text-secondary);margin:8px 0 20px;">#${orderId || '?'} numaralı sipariş mevcut değil.</p>
+      <a href="orders.html" class="btn btn-primary">Siparişlere Dön</a>
+    </div>`;
+} else {
+  renderDetail(order);
+}
+
+/* ---- RENDER ---- */
+function renderDetail(o) {
+  document.title = `Sipariş #${o.id} — Entegrasyon`;
+  document.getElementById('headerTitle').textContent = `Sipariş #${o.id}`;
+
+  const s = STATUS_LABELS[o.status];
+  const ch = CHANNEL_LABELS[o.channel];
+  const subtotal = o.productPrice * o.qty;
+  const shipping = subtotal > 500 ? 0 : 49.90;
+  const tax = Math.round(subtotal * 0.18);
+  const total = subtotal + shipping;
+
+  // Build action buttons based on status
+  const actionButtons = buildActionButtons(o);
+
+  // Build timeline
+  const timeline = buildTimeline(o);
+
+  document.getElementById('pageContent').innerHTML = `
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+      <a href="orders.html">
+        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:2px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Siparişler
+      </a>
+      <span class="breadcrumb-sep">/</span>
+      <span>#${o.id}</span>
+    </div>
+
+    <!-- ORDER HEADER CARD -->
+    <div class="order-header-card">
+      <div class="order-id-block">
+        <h1>
+          Sipariş #${o.id}
+          <span class="badge ${s.cls}" style="font-size:13px;padding:5px 14px;">${s.label}</span>
+        </h1>
+        <div class="order-meta">
+          <div class="order-meta-item">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <b>${o.dateStr}</b>
+          </div>
+          <div class="order-meta-item">
+            <span class="channel-icon ${ch.cls}" style="width:18px;height:18px;font-size:8px;">${ch.short}</span>
+            <b>${ch.label}</b>
+          </div>
+          <div class="order-meta-item">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            ${o.paymentMethod}
+          </div>
+          ${o.cargoCode ? `<div class="order-meta-item">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+            <b>${o.cargoCode}</b> · ${o.cargoCompany}
+          </div>` : ''}
+        </div>
+      </div>
+      <div class="order-actions">
+        ${actionButtons.header}
+        <button class="btn btn-secondary btn-sm" onclick="window.print()">
+          <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          Yazdır
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="detail-grid">
+
+      <!-- LEFT COLUMN -->
+      <div class="detail-left">
+
+        <!-- PRODUCTS -->
+        <div class="products-card">
+          <div class="info-card-title">Sipariş Kalemleri</div>
+          <div class="product-row">
+            <div class="product-emoji-big">${o.productEmoji}</div>
+            <div class="product-details">
+              <div class="product-title">${o.productName}</div>
+              <div class="product-sub">SKU: ${o.productSku} · ${o.productCategory}</div>
+              <div class="product-sub" style="margin-top:3px;">
+                ${formatMoney(o.productPrice)} × ${o.qty} adet
+              </div>
+            </div>
+            <div class="product-price-col">
+              <div class="product-price">${formatMoney(subtotal)}</div>
+              <div class="product-unit">${o.qty} adet</div>
+            </div>
+          </div>
+          <div class="totals-box">
+            <div class="total-row">
+              <span>Ürün Toplamı</span>
+              <span>${formatMoney(subtotal)}</span>
+            </div>
+            <div class="total-row">
+              <span>Kargo</span>
+              <span style="color:${shipping === 0 ? 'var(--success)' : 'inherit'}">
+                ${shipping === 0 ? 'Ücretsiz' : formatMoney(shipping)}
+              </span>
+            </div>
+            <div class="total-row">
+              <span>KDV (%18)</span>
+              <span style="color:var(--text-muted);font-size:12px;">Dahil</span>
+            </div>
+            <div class="total-row final">
+              <span>Genel Toplam</span>
+              <span>${formatMoney(total)}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIMELINE -->
+        <div class="info-card">
+          <div class="info-card-title">Sipariş Zaman Çizelgesi</div>
+          <div class="timeline">
+            ${timeline}
+          </div>
+        </div>
+
+        ${o.note ? `
+        <!-- NOTE -->
+        <div class="note-box">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+          <div><b>Müşteri Notu:</b> ${o.note}</div>
+        </div>` : ''}
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="detail-right">
+
+        <!-- STATUS ACTIONS -->
+        <div class="status-actions">
+          <div class="info-card-title" style="border-bottom:1px solid var(--border);padding:14px 16px 12px;">Sipariş İşlemleri</div>
+          ${actionButtons.sidebar}
+        </div>
+
+        <!-- CUSTOMER -->
+        <div class="info-card">
+          <div class="info-card-title">Müşteri Bilgileri</div>
+          <div class="info-card-body">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border-light);">
+              <div class="user-avatar" style="width:38px;height:38px;font-size:13px;background:linear-gradient(135deg,#4F46E5,#7C3AED);">
+                ${o.customer.split(' ').map(w=>w[0]).slice(0,2).join('')}
+              </div>
+              <div>
+                <div style="font-size:14px;font-weight:600;">${o.customer}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">${o.email}</div>
+              </div>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Telefon</span>
+              <span class="info-value">${o.phone}</span>
+            </div>
+            <div class="info-row" style="border:none;padding-bottom:0;margin-bottom:0;">
+              <span class="info-label">Şehir</span>
+              <span class="info-value">${o.city}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DELIVERY ADDRESS -->
+        <div class="info-card">
+          <div class="info-card-title">Teslimat Adresi</div>
+          <div class="info-card-body">
+            <div style="font-size:13.5px;font-weight:600;margin-bottom:4px;">${o.customer}</div>
+            <div style="font-size:13px;color:var(--text-secondary);line-height:1.7;">
+              ${o.address}<br>
+              ${o.district}, ${o.city}<br>
+              Türkiye
+            </div>
+            <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%;" onclick="showToast('Haritada Aç','Adres haritada gösteriliyor.','info')">
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              Haritada Gör
+            </button>
+          </div>
+        </div>
+
+        <!-- ORDER INFO -->
+        <div class="info-card">
+          <div class="info-card-title">Sipariş Bilgileri</div>
+          <div class="info-card-body">
+            <div class="info-row">
+              <span class="info-label">Sipariş No</span>
+              <span class="info-value fw-600">#${o.id}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Kanal</span>
+              <span class="info-value" style="display:flex;align-items:center;gap:5px;">
+                <span class="channel-icon ${ch.cls}" style="width:18px;height:18px;font-size:8px;">${ch.short}</span>
+                ${ch.label}
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Ödeme</span>
+              <span class="info-value">${o.paymentMethod}</span>
+            </div>
+            ${o.cargoCode ? `
+            <div class="info-row">
+              <span class="info-label">Kargo Firması</span>
+              <span class="info-value">${o.cargoCompany}</span>
+            </div>
+            <div class="info-row" style="border:none;padding-bottom:0;margin-bottom:0;">
+              <span class="info-label">Takip Kodu</span>
+              <span class="info-value" style="display:flex;align-items:center;gap:6px;">
+                <b style="color:var(--primary);">${o.cargoCode}</b>
+                <button onclick="showToast('Kopyalandı','Takip kodu kopyalandı.','success')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0;font-size:11px;">Kopyala</button>
+              </span>
+            </div>` : `
+            <div class="info-row" style="border:none;padding-bottom:0;margin-bottom:0;">
+              <span class="info-label">Kargo</span>
+              <span class="info-value" style="color:var(--text-muted);">Henüz atanmadı</span>
+            </div>`}
+          </div>
+        </div>
+
+        <!-- PREV / NEXT NAV -->
+        <div style="display:flex;gap:8px;">
+          <a href="order-detail.html?id=${o.id + 1}" class="btn btn-secondary btn-sm" style="flex:1;justify-content:center;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Önceki
+          </a>
+          <a href="order-detail.html?id=${o.id - 1}" class="btn btn-secondary btn-sm" style="flex:1;justify-content:center;">
+            Sonraki
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+/* ---- ACTION BUTTONS by STATUS ---- */
+function buildActionButtons(o) {
+  const actions = {
+    new: {
+      header: `
+        <button class="btn btn-primary btn-sm" onclick="changeStatus('preparing','Sipariş hazırlanmaya alındı.')">
+          <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Onayla & Hazırla
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="changeStatus('cancelled','Sipariş iptal edildi.')">İptal Et</button>`,
+      sidebar: `
+        <button class="status-action-btn" onclick="changeStatus('preparing','Sipariş hazırlanmaya alındı.')">
+          <span class="btn-icon-circle" style="background:var(--primary-light);color:var(--primary);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+          </span>
+          Hazırlanmaya Al
+        </button>
+        <button class="status-action-btn" onclick="showToast('Fatura','Fatura oluşturuldu.','success')">
+          <span class="btn-icon-circle" style="background:#F0FDF4;color:var(--success);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </span>
+          Fatura Oluştur
+        </button>
+        <button class="status-action-btn" onclick="changeStatus('cancelled','Sipariş iptal edildi.')" style="color:var(--danger);">
+          <span class="btn-icon-circle" style="background:var(--danger-light);color:var(--danger);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </span>
+          İptal Et
+        </button>`
+    },
+    preparing: {
+      header: `
+        <button class="btn btn-primary btn-sm" onclick="showCargoModal()">
+          <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+          Kargoya Ver
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="changeStatus('cancelled','Sipariş iptal edildi.')">İptal Et</button>`,
+      sidebar: `
+        <button class="status-action-btn" onclick="showCargoModal()">
+          <span class="btn-icon-circle" style="background:var(--primary-light);color:var(--primary);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+          </span>
+          Kargoya Ver
+        </button>
+        <button class="status-action-btn" onclick="showToast('Etiket','Kargo etiketi oluşturuldu.','success')">
+          <span class="btn-icon-circle" style="background:#F0FDF4;color:var(--success);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+          </span>
+          Kargo Etiketi Yazdır
+        </button>
+        <button class="status-action-btn" onclick="changeStatus('cancelled','Sipariş iptal edildi.')" style="color:var(--danger);">
+          <span class="btn-icon-circle" style="background:var(--danger-light);color:var(--danger);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </span>
+          İptal Et
+        </button>`
+    },
+    shipped: {
+      header: `
+        <button class="btn btn-success btn-sm" onclick="changeStatus('delivered','Sipariş teslim edildi olarak işaretlendi.')">
+          <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Teslim Edildi
+        </button>`,
+      sidebar: `
+        <button class="status-action-btn" onclick="changeStatus('delivered','Sipariş teslim edildi olarak işaretlendi.')">
+          <span class="btn-icon-circle" style="background:var(--success-light);color:var(--success);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </span>
+          Teslim Edildi Yap
+        </button>
+        <button class="status-action-btn" onclick="showToast('Kargo Takip','Kargo takip sayfası açılıyor...','info')">
+          <span class="btn-icon-circle" style="background:var(--primary-light);color:var(--primary);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </span>
+          Kargo Takip
+        </button>`
+    },
+    delivered: {
+      header: `
+        <button class="btn btn-secondary btn-sm" onclick="showToast('İade Başlatıldı','İade talebi oluşturuldu.','warning')">
+          İade Başlat
+        </button>`,
+      sidebar: `
+        <button class="status-action-btn" onclick="showToast('İade','İade talebi oluşturuldu.','warning')">
+          <span class="btn-icon-circle" style="background:var(--warning-light);color:var(--warning);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+          </span>
+          İade Başlat
+        </button>
+        <button class="status-action-btn" onclick="showToast('Fatura','Fatura yeniden gönderildi.','success')">
+          <span class="btn-icon-circle" style="background:var(--success-light);color:var(--success);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          </span>
+          Fatura E-postala
+        </button>`
+    },
+    cancelled: {
+      header: `
+        <button class="btn btn-primary btn-sm" onclick="changeStatus('new','Sipariş yeniden aktive edildi.')">
+          Yeniden Aktive Et
+        </button>`,
+      sidebar: `
+        <button class="status-action-btn" onclick="changeStatus('new','Sipariş yeniden aktive edildi.')">
+          <span class="btn-icon-circle" style="background:var(--primary-light);color:var(--primary);">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          </span>
+          Yeniden Aktive Et
+        </button>`
+    }
+  };
+
+  return actions[o.status] || { header: '', sidebar: '' };
+}
+
+/* ---- TIMELINE ---- */
+function buildTimeline(o) {
+  const steps = [
+    { key: 'received',   label: 'Sipariş Alındı',       icon: checkIcon(),  statuses: ['new','preparing','shipped','delivered','cancelled'] },
+    { key: 'paid',       label: 'Ödeme Onaylandı',       icon: cardIcon(),   statuses: ['new','preparing','shipped','delivered'] },
+    { key: 'preparing',  label: 'Hazırlanıyor',          icon: boxIcon(),    statuses: ['preparing','shipped','delivered'] },
+    { key: 'shipped',    label: 'Kargoya Verildi',        icon: truckIcon(),  statuses: ['shipped','delivered'] },
+    { key: 'delivered',  label: 'Teslim Edildi',         icon: checkIcon(),  statuses: ['delivered'] },
+  ];
+
+  if (o.status === 'cancelled') {
+    return `
+      <div class="timeline-item">
+        <div class="timeline-dot done">${checkIcon()}</div>
+        <div class="timeline-content">
+          <div class="timeline-title">Sipariş Alındı</div>
+          <div class="timeline-desc">Sipariş başarıyla oluşturuldu.</div>
+          <div class="timeline-time">${o.dateStr}</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot current" style="background:var(--danger);border-color:var(--danger);box-shadow:0 0 0 4px var(--danger-light);">${xIcon()}</div>
+        <div class="timeline-content">
+          <div class="timeline-title" style="color:var(--danger);">Sipariş İptal Edildi</div>
+          <div class="timeline-desc">Sipariş iptal işlemi gerçekleşti.</div>
+          <div class="timeline-time">${o.dateStr}</div>
+        </div>
+      </div>`;
+  }
+
+  const statusOrder = ['new', 'preparing', 'shipped', 'delivered'];
+  const currentIdx = statusOrder.indexOf(o.status);
+
+  return steps.map((step, i) => {
+    const isDone    = step.statuses.includes(o.status) && o.status !== step.key;
+    const isCurrent = o.status === step.key || (step.key === 'received' && o.status === 'new');
+    const isPending = !isDone && !isCurrent;
+
+    const dotClass = isDone ? 'done' : (isCurrent ? 'current' : 'pending');
+
+    // compute approximate timestamp
+    const d = new Date(o.dateObj);
+    if (step.key === 'paid')      d.setMinutes(d.getMinutes() + 2);
+    if (step.key === 'preparing') d.setHours(d.getHours() + 1);
+    if (step.key === 'shipped')   d.setDate(d.getDate() + 1);
+    if (step.key === 'delivered') d.setDate(d.getDate() + 3);
+
+    const pad = n => String(n).padStart(2,'0');
+    const timeStr = isDone || isCurrent
+      ? `${pad(d.getDate())} ${['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'][d.getMonth()]} ${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+      : 'Bekleniyor';
+
+    const descs = {
+      received:  'Sipariş başarıyla oluşturuldu.',
+      paid:      'Ödeme doğrulandı.',
+      preparing: 'Ürün paketleniyor.',
+      shipped:   `${o.cargoCompany || 'Kargo firması'} teslim aldı. Takip: ${o.cargoCode || '—'}`,
+      delivered: 'Müşteriye teslim edildi.',
+    };
+
+    return `<div class="timeline-item">
+      <div class="timeline-dot ${dotClass}">${step.icon}</div>
+      <div class="timeline-content">
+        <div class="timeline-title" style="${isPending ? 'color:var(--text-muted)' : ''}">${step.label}</div>
+        ${!isPending ? `<div class="timeline-desc">${descs[step.key]}</div>` : ''}
+        <div class="timeline-time">${timeStr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ---- ICON HELPERS ---- */
+function checkIcon() { return `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>`; }
+function xIcon()     { return `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>`; }
+function cardIcon()  { return `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>`; }
+function boxIcon()   { return `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`; }
+function truckIcon() { return `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>`; }
+
+/* ---- STATUS CHANGE ---- */
+function changeStatus(newStatus, msg) {
+  showToast('Durum Güncellendi', msg, 'success');
+  setTimeout(() => location.reload(), 1200);
+}
+
+/* ---- CARGO MODAL ---- */
+function showCargoModal() {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop open';
+  backdrop.id = 'cargoModalBackdrop';
+  backdrop.innerHTML = `
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <div class="modal-title">Kargo Bilgisi Gir</div>
+        <button class="modal-close" onclick="document.getElementById('cargoModalBackdrop').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Kargo Firması</label>
+          <select class="form-control">
+            <option>Yurtiçi Kargo</option>
+            <option>Aras Kargo</option>
+            <option>MNG Kargo</option>
+            <option>PTT Kargo</option>
+            <option>Sürat Kargo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Takip Numarası</label>
+          <input type="text" class="form-control" placeholder="Örn: TK9284733" id="cargoCodeInput">
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" checked>
+            Trendyol'a otomatik bildir
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('cargoModalBackdrop').remove()">İptal</button>
+        <button class="btn btn-primary" onclick="confirmCargo()">Kaydet & Kargoya Ver</button>
+      </div>
+    </div>`;
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+  document.body.appendChild(backdrop);
+}
+
+function confirmCargo() {
+  const code = document.getElementById('cargoCodeInput').value.trim() || 'TK' + Math.floor(Math.random()*9999999);
+  document.getElementById('cargoModalBackdrop').remove();
+  showToast('Kargoya Verildi', `Kargo kodu: ${code} — Trendyol'a bildirildi.`, 'success');
+  setTimeout(() => location.reload(), 1400);
+}
+</script>
+</body>
+</html>
