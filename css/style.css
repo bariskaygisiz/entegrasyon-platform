@@ -252,9 +252,27 @@ img { max-width: 100%; }
   display: inline-block;
 }
 
-.sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.12) transparent;
+}
+.sidebar-nav::-webkit-scrollbar { width: 3px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 2px; }
+
+.nav-scroll-area { flex: 1; padding: 12px 0 4px; }
+
+.nav-section-bottom {
+  padding: 8px 8px;
+  border-top: 1px solid var(--sidebar-border);
+  flex-shrink: 0;
+}
 
 .nav-section { padding: 0 8px 8px; }
+.nav-scroll-area .nav-section:first-child { padding-top: 4px; }
 
 .nav-label {
   font-size: 10px;
