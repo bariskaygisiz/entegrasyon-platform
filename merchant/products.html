@@ -77,11 +77,11 @@
 
       <div class="card">
         <!-- TABS -->
-        <div class="tabs">
-          <button class="tab-btn active" onclick="switchProductTab('all', this)">Tüm Ürünler <span id="cnt-all" style="color:var(--text-muted)"></span></button>
-          <button class="tab-btn" onclick="switchProductTab('active', this)">Aktif <span id="cnt-active" style="color:var(--text-muted)"></span></button>
-          <button class="tab-btn" onclick="switchProductTab('passive', this)">Pasif <span id="cnt-passive" style="color:var(--text-muted)"></span></button>
-          <button class="tab-btn" onclick="switchProductTab('nostock', this)">Stok Yok <span id="cnt-nostock" style="color:var(--danger)"></span></button>
+        <div class="tabs" data-tabs-container>
+          <button class="tab-btn active" data-tab="tab-all" onclick="switchProductTab('all', this)">Tüm Ürünler <span id="cnt-all" style="color:var(--text-muted)"></span></button>
+          <button class="tab-btn" data-tab="tab-all" onclick="switchProductTab('active', this)">Aktif <span id="cnt-active" style="color:var(--text-muted)"></span></button>
+          <button class="tab-btn" data-tab="tab-all" onclick="switchProductTab('passive', this)">Pasif <span id="cnt-passive" style="color:var(--text-muted)"></span></button>
+          <button class="tab-btn" data-tab="tab-all" onclick="switchProductTab('nostock', this)">Stok Yok <span id="cnt-nostock" style="color:var(--danger)"></span></button>
         </div>
 
         <!-- FILTER BAR -->
