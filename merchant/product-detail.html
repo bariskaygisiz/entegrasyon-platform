@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ürün Detayı — Entegrasyon</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pd-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+    @media(max-width:900px){ .pd-layout { grid-template-columns: 1fr; } }
+
+    .pd-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; }
+    .pd-card-title { font-size: 13px; font-weight: 700; padding: 14px 18px; border-bottom: 1px solid var(--border-light); }
+    .pd-card-body { padding: 18px; }
+
+    .pd-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); text-decoration: none; margin-bottom: 16px; transition: color .15s; }
+    .pd-back:hover { color: var(--text); }
+
+    .pd-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
+    .pd-header-left h1 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+
+    .media-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+    .media-thumb { aspect-ratio: 1; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; transition: border-color .15s; }
+    .media-thumb:hover { border-color: var(--primary); }
+    .media-thumb.add { border-style: dashed; color: var(--text-muted); flex-direction: column; gap: 4px; font-size: 22px; }
+    .media-thumb.add span { font-size: 11px; font-weight: 500; }
+
+    .price-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .price-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    .profit-bar { background: var(--bg); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 14px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+    .profit-val { font-weight: 700; color: var(--success); font-size: 13px; }
+
+    .channel-list { display: flex; flex-direction: column; gap: 8px; }
+    .channel-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); transition: border-color .15s; }
+    .channel-row.active { border-color: var(--success); background: #F0FDF4; }
+    .channel-row label { flex: 1; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .channel-row input[type=checkbox] { accent-color: var(--success); width: 15px; height: 15px; }
+
+    .status-select { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card); color: var(--text); outline: none; }
+    .status-select:focus { border-color: var(--primary); }
+
+    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .tag button { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 14px; line-height: 1; padding: 0; }
+
+    .variant-row { display: grid; grid-template-columns: 1fr 120px 120px 40px; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-light); }
+    .variant-row:last-child { border-bottom: none; }
+
+    .save-bar { position: sticky; bottom: 0; background: var(--card); border-top: 1px solid var(--border); padding: 12px 0; display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <div><div class="logo-text">Entegrasyon<span>Entegrasyon Platformu</span></div></div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">×</button>
+    </div>
+    <div class="sidebar-store">
+      <div class="store-avatar">T</div>
+      <div><div class="store-name">Teknoloji A.Ş.</div><div class="store-plan">Pro Plan · 6 aktif</div></div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <a href="../index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span>Çıkış Yap</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <button class="hamburger" id="hamburger"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <div class="header-title" id="headerTitle">Ürün Detayı</div>
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-sm" onclick="discardChanges()">Vazgeç</button>
+        <button class="btn btn-primary btn-sm" onclick="saveProduct()">Kaydet</button>
+      </div>
+    </header>
+
+    <div class="page" id="pageContent">
+      <div style="display:flex;align-items:center;justify-content:center;height:300px;color:var(--text-muted)">Yükleniyor…</div>
+    </div>
+  </main>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="../js/nav.js"></script>
+<script src="../js/mock-data.js"></script>
+<script src="../js/app.js"></script>
+<script>
+const CHANNEL_SETS_DETAIL = [
+  ['trendyol'], ['trendyol', 'ikas'], ['trendyol', 'hepsi'],
+  ['trendyol', 'hepsi', 'n11', 'ikas'], ['hepsi', 'ikas'], ['ikas'],
+  ['trendyol', 'n11'], ['hepsi', 'n11'], ['trendyol', 'shopify'],
+  ['shopify'], ['trendyol', 'hepsi', 'ticimax'], ['ticimax'],
+];
+const VARIANTS_LIST = ['', ' - Siyah', ' - Beyaz', ' - Gümüş', ' - Uzay Grisi', ' - Altın', ' - Mavi', ' - Kırmızı', ' - Yeşil', ' - Mor', ' - Sarı', ' - Pembe', ' - Turuncu', ' - Gri', ' - Kahverengi', ' - Lacivert'];
+const CHANNEL_META_D = {
+  trendyol: { title: 'Trendyol',     favicon: 'trendyol.com'    },
+  hepsi:    { title: 'Hepsiburada',  favicon: 'hepsiburada.com' },
+  n11:      { title: 'N11',          favicon: 'n11.com'         },
+  ikas:     { title: 'İkas',         favicon: 'ikas.com'        },
+  shopify:  { title: 'Shopify',      favicon: 'shopify.com'     },
+  ticimax:  { title: 'Ticimax',      favicon: 'ticimax.com'     },
+  ideasoft: { title: 'İdeasoft',     favicon: 'ideasoft.com'    },
+};
+const ALL_CHANNELS = Object.keys(CHANNEL_META_D);
+
+function generateBarcode(seed) {
+  let n = '';
+  for (let i = 0; i < 13; i++) n += rInt(seed * 7 + i, i + 30, 10);
+  return n;
+}
+
+function getProduct(id) {
+  const i = id - 1;
+  const s = id;
+  const base = PRODUCTS[i % PRODUCTS.length];
+  const variantIdx = Math.floor(i / PRODUCTS.length);
+  const variant = VARIANTS_LIST[variantIdx % VARIANTS_LIST.length];
+  const stockRaw = rInt(s, 22, 10);
+  let status, stock;
+  if (stockRaw === 0) { status = 'nostock'; stock = 0; }
+  else if (stockRaw <= 2) { status = 'passive'; stock = rInt(s, 23, 40) + 5; }
+  else if (stockRaw <= 3) { status = 'low'; stock = rInt(s, 23, 3) + 1; }
+  else { status = 'active'; stock = rInt(s, 23, 80) + 10; }
+  const priceAdj = 1 + (rInt(s, 24, 21) - 10) / 100;
+  const price = Math.round(base.price * priceAdj / 100) * 100 || base.price;
+  const cost = Math.round(price * (0.72 + rInt(s, 25, 16) / 100) / 100) * 100;
+  const discountRates = [0, 0, 0, 5, 10, 10, 15, 20, 25, 30];
+  const discountRate = discountRates[rInt(s, 27, discountRates.length)];
+  const discountedPrice = discountRate > 0 ? Math.round(price * (1 - discountRate / 100) / 100) * 100 : null;
+  const channels = CHANNEL_SETS_DETAIL[rInt(s, 26, CHANNEL_SETS_DETAIL.length)];
+  const weight = (0.1 + rInt(s, 28, 50) / 10).toFixed(1);
+  const tags = [base.category, base.name.split(' ')[0]];
+
+  return {
+    id, name: base.name + variant, sku: base.sku + (variant ? '-' + (variantIdx + 1) : ''),
+    barcode: generateBarcode(s), emoji: base.emoji, category: base.category,
+    price, cost, discountRate, discountedPrice, stock, status, channels, weight, tags,
+    description: `${base.name}${variant} — yüksek performanslı ${base.category.toLowerCase()} kategorisinde öne çıkan ürün. Orijinal kutusuyla birlikte gelir, 2 yıl resmi garanti kapsamındadır.`,
+  };
+}
+
+function statusLabel(s) {
+  const map = { active: 'Aktif', passive: 'Pasif', low: 'Düşük Stok', nostock: 'Stok Yok' };
+  return map[s] || s;
+}
+
+function renderProduct(p) {
+  const margin = p.cost > 0 ? Math.round(((p.price - p.cost) / p.price) * 100) : 0;
+  const allChannels = ALL_CHANNELS;
+
+  document.getElementById('headerTitle').textContent = p.name;
+  document.title = p.name + ' — Entegrasyon';
+
+  document.getElementById('pageContent').innerHTML = `
+    <a href="products.html" class="pd-back">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Ürünler
+    </a>
+
+    <div class="pd-header">
+      <div class="pd-header-left">
+        <h1 id="pdTitle">${p.name}</h1>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <span class="badge ${p.status === 'active' ? 'badge-success' : p.status === 'nostock' ? 'badge-danger' : 'badge-warning'}">${statusLabel(p.status)}</span>
+          <span class="badge badge-gray">${p.category}</span>
+          <span style="font-size:12px;color:var(--text-muted);">SKU: ${p.sku}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="discardChanges()">Vazgeç</button>
+        <button class="btn btn-primary btn-sm" onclick="saveProduct()">Kaydet</button>
+      </div>
+    </div>
+
+    <div class="pd-layout">
+      <!-- SOL SÜTUN -->
+      <div>
+
+        <!-- Ürün Bilgisi -->
+        <div class="pd-card">
+          <div class="pd-card-title">Ürün Bilgisi</div>
+          <div class="pd-card-body">
+            <div class="form-group">
+              <label class="form-label">Ürün Adı</label>
+              <input class="form-control" type="text" id="fName" value="${p.name}">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Açıklama</label>
+              <textarea class="form-control" id="fDesc" rows="4" style="resize:vertical;">${p.description}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Medya -->
+        <div class="pd-card">
+          <div class="pd-card-title">Medya</div>
+          <div class="pd-card-body">
+            <div class="media-grid">
+              <div class="media-thumb" style="font-size:36px;">${p.emoji}</div>
+              <div class="media-thumb" style="font-size:36px;opacity:.4;">${p.emoji}</div>
+              <div class="media-thumb" style="font-size:36px;opacity:.2;">${p.emoji}</div>
+              <div class="media-thumb add" onclick="showToast('Medya','Dosya yükleme açıldı.','info')">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Ekle</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fiyatlandırma -->
+        <div class="pd-card">
+          <div class="pd-card-title">Fiyatlandırma</div>
+          <div class="pd-card-body">
+            <div class="price-row">
+              <div class="form-group">
+                <label class="form-label">Satış Fiyatı (₺)</label>
+                <input class="form-control" type="number" id="fPrice" value="${p.price}" oninput="recalcProfit()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">İndirimli Fiyat (₺) <span style="color:var(--text-muted);font-weight:400;">opsiyonel</span></label>
+                <input class="form-control" type="number" id="fDiscounted" value="${p.discountedPrice || ''}" placeholder="—" oninput="recalcProfit()">
+                <div class="price-hint">Dolu ise satış fiyatı üstü çizili gösterilir</div>
+              </div>
+            </div>
+            <div class="price-row" style="margin-top:4px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Maliyet (₺) <span style="color:var(--text-muted);font-weight:400;">müşteriye gösterilmez</span></label>
+                <input class="form-control" type="number" id="fCost" value="${p.cost}" oninput="recalcProfit()">
+              </div>
+            </div>
+            <div class="profit-bar" id="profitBar">
+              <span style="color:var(--text-muted);">Tahmini kâr marjı</span>
+              <span class="profit-val" id="profitVal">${margin}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Envanter -->
+        <div class="pd-card">
+          <div class="pd-card-title">Envanter</div>
+          <div class="pd-card-body">
+            <div class="price-row">
+              <div class="form-group">
+                <label class="form-label">SKU (Stok Kodu)</label>
+                <input class="form-control" type="text" id="fSku" value="${p.sku}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Barkod (GTIN / EAN)</label>
+                <input class="form-control" type="text" id="fBarcode" value="${p.barcode}">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Stok Miktarı</label>
+              <input class="form-control" type="number" id="fStock" value="${p.stock}" style="max-width:160px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Kargo -->
+        <div class="pd-card">
+          <div class="pd-card-title">Kargo</div>
+          <div class="pd-card-body">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Ağırlık (kg)</label>
+              <input class="form-control" type="number" step="0.1" id="fWeight" value="${p.weight}" style="max-width:160px;">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SAĞ SÜTUN -->
+      <div>
+
+        <!-- Durum -->
+        <div class="pd-card">
+          <div class="pd-card-title">Durum</div>
+          <div class="pd-card-body">
+            <select class="status-select" id="fStatus">
+              <option value="active"  ${p.status === 'active'  ? 'selected' : ''}>Aktif</option>
+              <option value="low"     ${p.status === 'low'     ? 'selected' : ''}>Düşük Stok</option>
+              <option value="passive" ${p.status === 'passive' ? 'selected' : ''}>Pasif</option>
+              <option value="nostock" ${p.status === 'nostock' ? 'selected' : ''}>Stok Yok</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Satış Kanalları -->
+        <div class="pd-card">
+          <div class="pd-card-title">Satış Kanalları</div>
+          <div class="pd-card-body">
+            <div class="channel-list">
+              ${allChannels.map(c => {
+                const meta = CHANNEL_META_D[c];
+                const checked = p.channels.includes(c);
+                return `<div class="channel-row ${checked ? 'active' : ''}" id="crow-${c}">
+                  <label style="flex:1;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleChannel('${c}',this)" style="accent-color:var(--success);width:15px;height:15px;">
+                    <img src="https://www.google.com/s2/favicons?domain=${meta.favicon}&sz=32" width="18" height="18" style="border-radius:3px;">
+                    <span style="font-size:13px;font-weight:500;">${meta.title}</span>
+                  </label>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Organizasyon -->
+        <div class="pd-card">
+          <div class="pd-card-title">Organizasyon</div>
+          <div class="pd-card-body">
+            <div class="form-group">
+              <label class="form-label">Kategori</label>
+              <select class="form-control" id="fCategory">
+                ${['Telefon','Bilgisayar','Tablet','Aksesuar','Ses Sistemleri','Monitör','Televizyon','Ev Elektroniği','Fotoğraf'].map(cat =>
+                  `<option ${cat === p.category ? 'selected' : ''}>${cat}</option>`
+                ).join('')}
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Etiketler</label>
+              <div class="tag-list" id="tagList">
+                ${p.tags.map(t => `<span class="tag">${t}<button onclick="removeTag(this,'${t}')">×</button></span>`).join('')}
+              </div>
+              <input class="form-control" type="text" placeholder="Etiket ekle…" style="margin-top:8px;" onkeydown="addTag(event,this)">
+              <div class="price-hint">Enter ile ekle</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="save-bar">
+      <button class="btn btn-ghost btn-sm" onclick="discardChanges()">Vazgeç</button>
+      <button class="btn btn-primary btn-sm" onclick="saveProduct()">Kaydet</button>
+    </div>
+  `;
+}
+
+function recalcProfit() {
+  const price = parseFloat(document.getElementById('fPrice').value) || 0;
+  const cost  = parseFloat(document.getElementById('fCost').value) || 0;
+  const margin = price > 0 && cost > 0 ? Math.round(((price - cost) / price) * 100) : 0;
+  const el = document.getElementById('profitVal');
+  if (el) { el.textContent = margin + '%'; el.style.color = margin >= 20 ? 'var(--success)' : margin >= 10 ? 'var(--warning)' : 'var(--danger)'; }
+}
+
+function toggleChannel(c, el) {
+  const row = document.getElementById('crow-' + c);
+  if (el.checked) row.classList.add('active'); else row.classList.remove('active');
+}
+
+function addTag(e, input) {
+  if (e.key !== 'Enter') return;
+  const val = input.value.trim();
+  if (!val) return;
+  const list = document.getElementById('tagList');
+  const span = document.createElement('span');
+  span.className = 'tag';
+  span.innerHTML = `${val}<button onclick="removeTag(this,'${val}')">×</button>`;
+  list.appendChild(span);
+  input.value = '';
+}
+
+function removeTag(btn) { btn.parentElement.remove(); }
+
+function saveProduct() {
+  showToast('Kaydedildi', 'Ürün başarıyla güncellendi.', 'success');
+}
+
+function discardChanges() {
+  window.location.href = 'products.html';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initSidebar();
+  const params = new URLSearchParams(window.location.search);
+  const id = parseInt(params.get('id')) || 1;
+  const product = getProduct(id);
+  renderProduct(product);
+});
+</script>
+</body>
+</html>

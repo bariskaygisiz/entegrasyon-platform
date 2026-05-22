@@ -417,8 +417,8 @@ function renderTable() {
   const page = filteredProducts.slice(start, end);
 
   document.getElementById('productsTableBody').innerHTML = page.map(p => `
-    <tr data-status="${p.status}">
-      <td><input type="checkbox" class="row-check"></td>
+    <tr data-status="${p.status}" style="cursor:pointer;" onclick="if(event.target.type!=='checkbox')window.location.href='product-detail.html?id=${p.id}'">
+      <td onclick="event.stopPropagation()"><input type="checkbox" class="row-check"></td>
       <td>
         <div class="td-product">
           <div class="product-img">${p.emoji}</div>
