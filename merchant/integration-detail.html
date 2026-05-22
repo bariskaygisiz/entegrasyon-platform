@@ -346,7 +346,7 @@ function renderPage(slug) {
     : '';
 
   const statsHtml = meta.connected
-    ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px">
+    ? `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
         <div class="card" style="padding:16px;text-align:center">
           <div style="font-size:22px;font-weight:800;color:var(--success)">${(meta.syncCount||0).toLocaleString('tr-TR')}</div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Bugün Senkron</div>
