@@ -88,27 +88,20 @@
         <div class="filter-bar">
           <div class="search-wrap" style="flex:1;min-width:200px;">
             <svg class="search-icon" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35"/></svg>
-            <input type="text" class="form-control" placeholder="Ürün adı veya SKU ara..." data-search-table="productsTable">
+            <input type="text" class="form-control" placeholder="Ürün adı, SKU veya barkod ara..." data-search-table="productsTable">
           </div>
-          <select class="form-control" style="width:auto;">
-            <option>Tüm Kategoriler</option>
-            <option>Telefon</option>
-            <option>Bilgisayar</option>
-            <option>Aksesuar</option>
-            <option>Ses Sistemleri</option>
-          </select>
-          <select class="form-control" style="width:auto;">
-            <option>Tüm Kanallar</option>
-            <option>Trendyol</option>
-            <option>Hepsiburada</option>
-            <option>N11</option>
-            <option>Sadece Site</option>
-          </select>
+          <button class="btn btn-secondary btn-sm" id="filterBtn" onclick="openModal('filterModal')" style="display:flex;align-items:center;gap:6px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M7 8h10M11 12h2M9 16h6"/></svg>
+            Filtrele
+            <span id="filterBadge" style="display:none;background:var(--primary);color:#fff;border-radius:10px;padding:0 6px;font-size:10px;font-weight:700;"></span>
+          </button>
           <button class="btn btn-secondary btn-sm btn-sync" data-platform="Ürünler">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             Senkronize Et
           </button>
         </div>
+        <!-- AKTİF FİLTRE ETIKETLERI -->
+        <div id="activeFilterTags" style="display:none;padding:8px 0 4px;display:flex;flex-wrap:wrap;gap:6px;"></div>
 
         <!-- TABLE — ALL -->
         <div id="tab-all" class="tab-content active">
@@ -160,6 +153,91 @@
     </div>
   </main>
 </div>
+
+<!-- FILTER MODAL -->
+<div class="modal-backdrop" id="filterModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M7 8h10M11 12h2M9 16h6"/></svg>
+        Ürün Filtrele
+      </div>
+      <button class="modal-close" onclick="closeModal('filterModal')">×</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+        <!-- Kategori -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Kategori</div>
+          <div id="filterCategories" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+
+        <!-- Kanallar -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Kanal</div>
+          <div id="filterChannels" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+
+        <!-- Durum -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Stok Durumu</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label class="filter-check"><input type="checkbox" name="fStatus" value="active"> <span>Aktif</span></label>
+            <label class="filter-check"><input type="checkbox" name="fStatus" value="low"> <span>Düşük Stok</span></label>
+            <label class="filter-check"><input type="checkbox" name="fStatus" value="passive"> <span>Pasif</span></label>
+            <label class="filter-check"><input type="checkbox" name="fStatus" value="nostock"> <span>Stok Yok</span></label>
+          </div>
+        </div>
+
+        <!-- İndirim -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">İndirim</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label class="filter-check"><input type="checkbox" name="fDiscount" value="yes"> <span>İndirimli ürünler</span></label>
+            <label class="filter-check"><input type="checkbox" name="fDiscount" value="no"> <span>İndirimsiz ürünler</span></label>
+          </div>
+        </div>
+
+        <!-- Fiyat Aralığı -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Fiyat Aralığı (₺)</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="number" id="fPriceMin" class="form-control" placeholder="Min" style="flex:1;">
+            <span style="color:var(--text-muted);">—</span>
+            <input type="number" id="fPriceMax" class="form-control" placeholder="Max" style="flex:1;">
+          </div>
+        </div>
+
+        <!-- Stok Aralığı -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Stok Miktarı</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="number" id="fStockMin" class="form-control" placeholder="Min" style="flex:1;">
+            <span style="color:var(--text-muted);">—</span>
+            <input type="number" id="fStockMax" class="form-control" placeholder="Max" style="flex:1;">
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="clearFilters()">Filtreleri Temizle</button>
+      <button class="btn btn-secondary" onclick="closeModal('filterModal')">İptal</button>
+      <button class="btn btn-primary" onclick="applyFilters()">Uygula</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.filter-check {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; cursor: pointer; padding: 4px 6px;
+  border-radius: 6px; transition: background .15s;
+}
+.filter-check:hover { background: var(--bg); }
+.filter-check input { accent-color: var(--primary); width: 14px; height: 14px; }
+</style>
 
 <!-- ADD PRODUCT MODAL -->
 <div class="modal-backdrop" id="addProductModal">
@@ -443,18 +521,97 @@ function goPage(p) {
   document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+let activeFilters = {};
+let searchQuery = '';
+
+function buildFilteredList() {
+  return allProducts.filter(p => {
+    if (searchQuery && !p.name.toLowerCase().includes(searchQuery) && !p.sku.toLowerCase().includes(searchQuery) && !p.barcode.includes(searchQuery)) return false;
+    if (activeFilters.categories?.length && !activeFilters.categories.includes(p.category)) return false;
+    if (activeFilters.channels?.length && !activeFilters.channels.some(c => p.channels.includes(c))) return false;
+    if (activeFilters.statuses?.length && !activeFilters.statuses.includes(p.status)) return false;
+    if (activeFilters.discount === 'yes' && !p.discountedPrice) return false;
+    if (activeFilters.discount === 'no' && p.discountedPrice) return false;
+    const effectivePrice = p.discountedPrice || p.price;
+    if (activeFilters.priceMin != null && effectivePrice < activeFilters.priceMin) return false;
+    if (activeFilters.priceMax != null && effectivePrice > activeFilters.priceMax) return false;
+    if (activeFilters.stockMin != null && p.stock < activeFilters.stockMin) return false;
+    if (activeFilters.stockMax != null && p.stock > activeFilters.stockMax) return false;
+    return true;
+  });
+}
+
+function applyFilters() {
+  activeFilters.categories = [...document.querySelectorAll('[name="fCategory"]:checked')].map(el => el.value);
+  activeFilters.channels   = [...document.querySelectorAll('[name="fChannel"]:checked')].map(el => el.value);
+  activeFilters.statuses   = [...document.querySelectorAll('[name="fStatus"]:checked')].map(el => el.value);
+  const discountChecked    = [...document.querySelectorAll('[name="fDiscount"]:checked')].map(el => el.value);
+  activeFilters.discount   = discountChecked.length === 1 ? discountChecked[0] : null;
+  const pMin = document.getElementById('fPriceMin').value;
+  const pMax = document.getElementById('fPriceMax').value;
+  const sMin = document.getElementById('fStockMin').value;
+  const sMax = document.getElementById('fStockMax').value;
+  activeFilters.priceMin = pMin !== '' ? Number(pMin) : null;
+  activeFilters.priceMax = pMax !== '' ? Number(pMax) : null;
+  activeFilters.stockMin = sMin !== '' ? Number(sMin) : null;
+  activeFilters.stockMax = sMax !== '' ? Number(sMax) : null;
+
+  filteredProducts = buildFilteredList();
+  currentPage = 1;
+  renderTable();
+  updateFilterBadge();
+  closeModal('filterModal');
+}
+
+function clearFilters() {
+  activeFilters = {};
+  document.querySelectorAll('#filterModal input[type="checkbox"]').forEach(el => el.checked = false);
+  ['fPriceMin','fPriceMax','fStockMin','fStockMax'].forEach(id => document.getElementById(id).value = '');
+  filteredProducts = buildFilteredList();
+  currentPage = 1;
+  renderTable();
+  updateFilterBadge();
+  closeModal('filterModal');
+}
+
+function updateFilterBadge() {
+  let count = 0;
+  if (activeFilters.categories?.length) count++;
+  if (activeFilters.channels?.length) count++;
+  if (activeFilters.statuses?.length) count++;
+  if (activeFilters.discount) count++;
+  if (activeFilters.priceMin != null || activeFilters.priceMax != null) count++;
+  if (activeFilters.stockMin != null || activeFilters.stockMax != null) count++;
+  const badge = document.getElementById('filterBadge');
+  if (count > 0) { badge.textContent = count; badge.style.display = 'inline'; }
+  else { badge.style.display = 'none'; }
+}
+
+function initFilterModal() {
+  const categories = [...new Set(allProducts.map(p => p.category))].sort();
+  const channelKeys = Object.keys(CHANNEL_META);
+  const channelTitles = Object.fromEntries(Object.entries(CHANNEL_META).map(([k,v]) => [k, v.title]));
+
+  document.getElementById('filterCategories').innerHTML = categories.map(cat =>
+    `<label class="filter-check"><input type="checkbox" name="fCategory" value="${cat}"> <span>${cat}</span></label>`
+  ).join('');
+
+  document.getElementById('filterChannels').innerHTML = channelKeys.map(key =>
+    `<label class="filter-check"><input type="checkbox" name="fChannel" value="${key}"> <span>${channelTitles[key]}</span></label>`
+  ).join('');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   allProducts = generateAllProducts(324);
   filteredProducts = allProducts;
   renderTable();
+  initFilterModal();
 
   const searchInput = document.querySelector('[data-search-table="productsTable"]');
   if (searchInput) {
     searchInput.addEventListener('input', () => {
-      const q = searchInput.value.toLowerCase();
-      filteredProducts = q
-        ? allProducts.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.barcode.includes(q))
-        : allProducts;
+      searchQuery = searchInput.value.toLowerCase();
+      filteredProducts = buildFilteredList();
       currentPage = 1;
       renderTable();
     });
