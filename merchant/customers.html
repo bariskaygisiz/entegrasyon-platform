@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Müşteriler — Entegrasyon</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pagination { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+    .page-btn {
+      min-width:34px; height:34px; padding:0 8px; border:1px solid var(--border);
+      background:var(--card); color:var(--text-secondary); border-radius:var(--radius-sm);
+      font-size:13px; font-weight:500; cursor:pointer; display:flex; align-items:center;
+      justify-content:center; transition:var(--transition); font-family:var(--font);
+    }
+    .page-btn:hover:not(:disabled) { background:var(--bg); color:var(--text); border-color:var(--text-secondary); }
+    .page-btn.active { background:var(--primary); color:white; border-color:var(--primary); font-weight:700; }
+    .page-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .page-info { font-size:13px; color:var(--text-secondary); white-space:nowrap; }
+    .page-info b { color:var(--text); }
+
+    tbody tr.cust-row { cursor:pointer; transition:background .15s; }
+    tbody tr.cust-row:hover td { background:#F5F3FF; }
+
+    .avatar-circle {
+      width:34px; height:34px; border-radius:50%; display:flex; align-items:center;
+      justify-content:center; font-weight:700; font-size:13px; color:white; flex-shrink:0;
+    }
+    .cust-name-cell { display:flex; align-items:center; gap:10px; }
+    .cust-name { font-weight:500; color:var(--text); }
+    .cust-email { font-size:12px; color:var(--text-muted); }
+
+    .segment-badge {
+      font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px;
+    }
+    .seg-vip { background:#EDE9FE; color:#6D28D9; }
+    .seg-regular { background:#DBEAFE; color:#1D4ED8; }
+    .seg-new { background:#D1FAE5; color:#065F46; }
+    .seg-risk { background:#FEE2E2; color:#991B1B; }
+
+    /* Modal */
+    .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:center;justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--card);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.2);width:600px;max-width:95vw;max-height:90vh;overflow-y:auto; }
+    .modal-header { padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between; }
+    .modal-header h3 { font-size:16px;font-weight:600; }
+    .modal-close { width:32px;height:32px;border:none;background:none;cursor:pointer;font-size:20px;color:var(--text-secondary);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center; }
+    .modal-close:hover { background:var(--bg); }
+    .modal-body { padding:24px; }
+    .detail-kv { display:grid; grid-template-columns:160px 1fr; gap:8px 16px; font-size:13px; }
+    .detail-kv dt { color:var(--text-muted); font-weight:500; }
+    .detail-kv dd { color:var(--text); margin:0; }
+    .order-mini { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:6px; font-size:12px; }
+    .order-mini-id { font-weight:600; color:var(--primary); }
+    .order-mini-info { flex:1; color:var(--text-secondary); }
+    .order-mini-amount { font-weight:600; color:var(--text); }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <div><div class="logo-text">Entegrasyon<span>Yönetici Paneli</span></div></div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">×</button>
+    </div>
+    <div class="sidebar-store">
+      <div class="store-avatar">T</div>
+      <div><div class="store-name">Teknoloji A.Ş.</div><div class="store-plan">Pro Plan · 6 aktif</div></div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <a href="../index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span>Çıkış Yap</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <button class="hamburger" id="hamburger"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <div class="header-title">Müşteriler <span id="headerSubtitle">Yükleniyor...</span></div>
+      <div class="header-actions">
+        <div class="search-box" style="width:240px">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+          <input type="text" class="search-input" id="searchInput" placeholder="İsim, e-posta ara..." oninput="renderTable()">
+        </div>
+        <button class="header-btn" title="Bildirimler">
+          <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <div class="dot"></div>
+        </button>
+        <button class="header-user">
+          <div class="user-avatar">TA</div>
+          <span class="user-name">Teknoloji A.Ş.</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Müşteri Yönetimi</div>
+          <div class="page-subtitle">Tüm kanallardan gelen müşterilerinizi tek ekranda görün</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" onclick="exportCustomers()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Dışa Aktar
+          </button>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid" style="margin-bottom:20px;">
+        <div class="stat-card">
+          <div class="stat-icon primary">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Toplam Müşteri</div>
+            <div class="stat-value" id="statTotal">—</div>
+            <div class="stat-change up">Tüm kanallar</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon success">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Bu Ay Yeni</div>
+            <div class="stat-value">+284</div>
+            <div class="stat-change up">↑ %12 geçen aya göre</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon warning">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">VIP Müşteri</div>
+            <div class="stat-value">89</div>
+            <div class="stat-change up">↑ 4 bu ay</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon info">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Ort. Sipariş Değeri</div>
+            <div class="stat-value">₺847</div>
+            <div class="stat-change up">↑ %8 büyüme</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap;">
+        <div class="filter-tabs" style="margin-bottom:0">
+          <button class="filter-tab active" onclick="filterSeg(this,'all')">Tümü</button>
+          <button class="filter-tab" onclick="filterSeg(this,'VIP')">VIP</button>
+          <button class="filter-tab" onclick="filterSeg(this,'Düzenli')">Düzenli</button>
+          <button class="filter-tab" onclick="filterSeg(this,'Yeni')">Yeni</button>
+          <button class="filter-tab" onclick="filterSeg(this,'Risk')">Kayıp Riski</button>
+        </div>
+        <select class="form-select" style="width:160px;font-size:13px;padding:6px 10px;" onchange="filterChannel(this.value)">
+          <option value="">Tüm Kanallar</option>
+          <option>Trendyol</option>
+          <option>Hepsiburada</option>
+          <option>Amazon</option>
+          <option>Mağaza</option>
+        </select>
+        <select class="form-select" style="width:180px;font-size:13px;padding:6px 10px;" onchange="sortBy(this.value)">
+          <option value="name">İsme Göre</option>
+          <option value="orders">Sipariş Sayısına Göre</option>
+          <option value="spent">Harcamaya Göre</option>
+          <option value="date">Kayıt Tarihine Göre</option>
+        </select>
+      </div>
+
+      <!-- TABLE -->
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Müşteri</th>
+              <th>Segment</th>
+              <th>Kanal</th>
+              <th>Sipariş Sayısı</th>
+              <th>Toplam Harcama</th>
+              <th>Son Sipariş</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody id="custTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- PAGINATION -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:12px;">
+        <div class="page-info" id="pageInfo">—</div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- CUSTOMER DETAIL MODAL -->
+<div class="modal-overlay" id="custModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="custModalName">Müşteri Detayı</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="custModalBody"></div>
+  </div>
+</div>
+
+<script src="../js/nav.js"></script>
+<script src="../js/app.js"></script>
+<script>
+const COLORS = ['#7C3AED','#2563EB','#059669','#D97706','#DC2626','#0891B2'];
+const FIRSTS = ['Ali','Ayşe','Mehmet','Fatma','Ahmet','Zeynep','Mustafa','Elif','Hasan','Merve','İbrahim','Selin','Emre','Canan','Burak','Deniz','Sercan','Ecem','Onur','Gizem'];
+const LASTS  = ['Yılmaz','Kaya','Demir','Çelik','Şahin','Yıldız','Öztürk','Aydın','Arslan','Doğan','Koç','Kurt','Acar','Çetin','Erdoğan'];
+const CHANNELS = ['Trendyol','Hepsiburada','Amazon','Mağaza'];
+const SEGS = ['VIP','Düzenli','Yeni','Kayıp Riski','Düzenli','Düzenli','Yeni','Yeni'];
+const CITIES = ['İstanbul','Ankara','İzmir','Bursa','Antalya','Adana','Konya','Mersin'];
+
+function seeded(n){ let x=Math.sin(n+1)*10000; return x-Math.floor(x); }
+
+const CUSTOMERS = Array.from({length:200},(_,i)=>{
+  const fn = FIRSTS[Math.floor(seeded(i*3)*FIRSTS.length)];
+  const ln = LASTS[Math.floor(seeded(i*7)*LASTS.length)];
+  const ch = CHANNELS[Math.floor(seeded(i*11)*CHANNELS.length)];
+  const seg = SEGS[Math.floor(seeded(i*13)*SEGS.length)];
+  const orders = Math.floor(seeded(i*17)*40)+1;
+  const spent = Math.floor(seeded(i*19)*15000)+200;
+  const daysAgo = Math.floor(seeded(i*23)*180);
+  const d = new Date(2026,4,22);
+  d.setDate(d.getDate()-daysAgo);
+  const regDaysAgo = Math.floor(seeded(i*29)*730)+daysAgo;
+  const rd = new Date(2026,4,22);
+  rd.setDate(rd.getDate()-regDaysAgo);
+  return { id:i+1, firstName:fn, lastName:ln, channel:ch, segment:seg,
+           orders, spent, lastOrder:d.toLocaleDateString('tr-TR'),
+           registered:rd.toLocaleDateString('tr-TR'),
+           city:CITIES[Math.floor(seeded(i*31)*CITIES.length)],
+           email:`${fn.toLowerCase()}.${ln.toLowerCase()}${i}@mail.com`,
+           color:COLORS[Math.floor(seeded(i*37)*COLORS.length)] };
+});
+
+const PAGE_SIZE = 25;
+let page = 1;
+let filtered = [...CUSTOMERS];
+let activeSeg = 'all';
+let activeChannel = '';
+let activeSortBy = 'name';
+
+function segClass(seg){
+  if(seg==='VIP') return 'seg-vip';
+  if(seg==='Düzenli') return 'seg-regular';
+  if(seg==='Yeni') return 'seg-new';
+  return 'seg-risk';
+}
+
+function applyFilters(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  filtered = CUSTOMERS.filter(c=>{
+    const name = (c.firstName+' '+c.lastName).toLowerCase();
+    if(q && !name.includes(q) && !c.email.includes(q)) return false;
+    if(activeSeg!=='all' && c.segment!==activeSeg) return false;
+    if(activeChannel && c.channel!==activeChannel) return false;
+    return true;
+  });
+  if(activeSortBy==='orders') filtered.sort((a,b)=>b.orders-a.orders);
+  else if(activeSortBy==='spent') filtered.sort((a,b)=>b.spent-a.spent);
+  else if(activeSortBy==='date') filtered.sort((a,b)=>new Date(b.registered)-new Date(a.registered));
+  else filtered.sort((a,b)=>(a.firstName+a.lastName).localeCompare(b.firstName+b.lastName,'tr'));
+  page=1;
+  renderTable();
+}
+
+function renderTable(){
+  applyFilters();
+  const start=(page-1)*PAGE_SIZE, end=Math.min(start+PAGE_SIZE,filtered.length);
+  const slice = filtered.slice(start,end);
+  document.getElementById('headerSubtitle').textContent = `${filtered.length.toLocaleString('tr')} müşteri`;
+  document.getElementById('statTotal').textContent = CUSTOMERS.length.toLocaleString('tr');
+  document.getElementById('pageInfo').innerHTML = `<b>${start+1}–${end}</b> / ${filtered.length.toLocaleString('tr')} müşteri`;
+
+  document.getElementById('custTableBody').innerHTML = slice.map(c=>`
+    <tr class="cust-row" onclick="openDetail(${c.id})">
+      <td>
+        <div class="cust-name-cell">
+          <div class="avatar-circle" style="background:${c.color}">${c.firstName[0]}${c.lastName[0]}</div>
+          <div>
+            <div class="cust-name">${c.firstName} ${c.lastName}</div>
+            <div class="cust-email">${c.email}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="segment-badge ${segClass(c.segment)}">${c.segment}</span></td>
+      <td><span style="font-size:12px;color:var(--text-secondary)">${c.channel}</span></td>
+      <td style="font-weight:600">${c.orders}</td>
+      <td style="font-weight:600">₺${c.spent.toLocaleString('tr')}</td>
+      <td style="color:var(--text-secondary);font-size:13px">${c.lastOrder}</td>
+      <td><span class="badge badge-${c.orders>5?'success':'default'}">${c.orders>5?'Aktif':'Pasif'}</span></td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="padding:48px;text-align:center;color:var(--text-muted)">Müşteri bulunamadı</td></tr>';
+
+  renderPagination();
+}
+
+function renderPagination(){
+  const total=Math.ceil(filtered.length/PAGE_SIZE);
+  let h='';
+  h+=`<button class="page-btn" onclick="goPage(${page-1})" ${page===1?'disabled':''}>‹</button>`;
+  for(let i=1;i<=total;i++){
+    if(i===1||i===total||Math.abs(i-page)<=1) h+=`<button class="page-btn ${i===page?'active':''}" onclick="goPage(${i})">${i}</button>`;
+    else if(Math.abs(i-page)===2) h+=`<span style="padding:0 4px;color:var(--text-muted)">…</span>`;
+  }
+  h+=`<button class="page-btn" onclick="goPage(${page+1})" ${page===total?'disabled':''}>›</button>`;
+  document.getElementById('pagination').innerHTML = h;
+}
+
+function goPage(p){ if(p<1||p>Math.ceil(filtered.length/PAGE_SIZE)) return; page=p; renderTable(); }
+function filterSeg(btn,seg){
+  document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); activeSeg=seg; renderTable();
+}
+function filterChannel(v){ activeChannel=v; renderTable(); }
+function sortBy(v){ activeSortBy=v; renderTable(); }
+function exportCustomers(){ alert('Dışa aktarma başlatıldı (demo)'); }
+
+function openDetail(id){
+  const c = CUSTOMERS.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('custModalName').textContent = c.firstName+' '+c.lastName;
+  document.getElementById('custModalBody').innerHTML = `
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:20px;">
+      <div class="avatar-circle" style="width:56px;height:56px;font-size:20px;background:${c.color}">${c.firstName[0]}${c.lastName[0]}</div>
+      <div>
+        <div style="font-weight:600;font-size:16px">${c.firstName} ${c.lastName}</div>
+        <div style="color:var(--text-muted);font-size:13px">${c.email}</div>
+        <span class="segment-badge ${segClass(c.segment)}" style="margin-top:4px;display:inline-block">${c.segment}</span>
+      </div>
+    </div>
+    <dl class="detail-kv" style="margin-bottom:20px;">
+      <dt>Kayıt Tarihi</dt><dd>${c.registered}</dd>
+      <dt>Son Sipariş</dt><dd>${c.lastOrder}</dd>
+      <dt>Sipariş Sayısı</dt><dd><b>${c.orders}</b></dd>
+      <dt>Toplam Harcama</dt><dd><b>₺${c.spent.toLocaleString('tr')}</b></dd>
+      <dt>Kanal</dt><dd>${c.channel}</dd>
+      <dt>Şehir</dt><dd>${c.city}</dd>
+    </dl>
+    <div style="font-weight:600;font-size:13px;margin-bottom:10px;">Son Siparişler</div>
+    ${[1,2,3].map(n=>`
+      <div class="order-mini">
+        <span class="order-mini-id">#${10000+c.id*10+n}</span>
+        <span class="order-mini-info">${c.channel} · ${n} gün önce</span>
+        <span class="order-mini-amount">₺${Math.floor(c.spent/c.orders).toLocaleString('tr')}</span>
+        <span class="badge badge-success" style="font-size:11px">Teslim</span>
+      </div>
+    `).join('')}
+  `;
+  document.getElementById('custModal').classList.add('open');
+}
+function closeModal(){ document.getElementById('custModal').classList.remove('open'); }
+document.getElementById('custModal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal(); });
+
+renderTable();
+</script>
+</body>
+</html>

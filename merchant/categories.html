@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kategoriler — Entegrasyon</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .cat-tree { display:flex; flex-direction:column; gap:2px; }
+    .cat-row {
+      display:grid;
+      grid-template-columns: 32px 1fr 120px 90px 90px 110px 100px;
+      align-items:center;
+      gap:12px;
+      padding:10px 16px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius-sm);
+      font-size:13px;
+      transition:var(--transition);
+    }
+    .cat-row:hover { border-color:var(--primary); background:#FDFCFF; }
+    .cat-row.child { margin-left:28px; background:var(--bg); }
+    .cat-row.child:hover { background:#F5F3FF; }
+    .cat-toggle {
+      width:24px; height:24px; border:none; background:none;
+      cursor:pointer; border-radius:4px; display:flex; align-items:center; justify-content:center;
+      color:var(--text-secondary); transition:var(--transition);
+    }
+    .cat-toggle:hover { background:var(--border); color:var(--text); }
+    .cat-toggle svg { transition:transform .2s; }
+    .cat-toggle.open svg { transform:rotate(90deg); }
+    .cat-name { font-weight:500; color:var(--text); display:flex; align-items:center; gap:8px; }
+    .cat-slug { font-size:11px; color:var(--text-muted); font-family:monospace; background:var(--bg); padding:2px 6px; border-radius:4px; }
+    .cat-header-row {
+      display:grid;
+      grid-template-columns: 32px 1fr 120px 90px 90px 110px 100px;
+      gap:12px;
+      padding:8px 16px;
+      font-size:11px;
+      font-weight:600;
+      color:var(--text-muted);
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+    .platform-badges { display:flex; gap:4px; flex-wrap:wrap; }
+    .platform-badge {
+      font-size:10px; font-weight:600; padding:2px 7px;
+      border-radius:10px; background:var(--primary-light); color:var(--primary);
+    }
+    .cat-actions { display:flex; gap:4px; justify-content:flex-end; }
+    .cat-action-btn {
+      width:28px; height:28px; border:1px solid var(--border);
+      background:var(--card); border-radius:var(--radius-sm);
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      color:var(--text-secondary); transition:var(--transition);
+    }
+    .cat-action-btn:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
+    .cat-action-btn.danger:hover { border-color:#EF4444; color:#EF4444; background:#FEF2F2; }
+    .match-badge {
+      font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px;
+    }
+    .match-ok { background:#D1FAE5; color:#065F46; }
+    .match-warn { background:#FEF3C7; color:#92400E; }
+    .match-none { background:#F3F4F6; color:#6B7280; }
+
+    /* Modal */
+    .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:center;justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--card);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.2);width:520px;max-width:95vw;max-height:90vh;overflow-y:auto; }
+    .modal-header { padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between; }
+    .modal-header h3 { font-size:16px;font-weight:600; }
+    .modal-close { width:32px;height:32px;border:none;background:none;cursor:pointer;font-size:20px;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm); }
+    .modal-close:hover { background:var(--bg); }
+    .modal-body { padding:24px; }
+    .modal-footer { padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px; }
+    .form-group { margin-bottom:16px; }
+    .form-label { font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;display:block; }
+    .form-input, .form-select {
+      width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);
+      font-size:13px;font-family:var(--font);color:var(--text);background:var(--card);
+      transition:var(--transition);box-sizing:border-box;
+    }
+    .form-input:focus, .form-select:focus { outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light); }
+    .mapping-row { display:flex;align-items:center;gap:10px;margin-bottom:8px; }
+    .mapping-arrow { color:var(--text-muted);font-size:16px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <div><div class="logo-text">Entegrasyon<span>Yönetici Paneli</span></div></div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">×</button>
+    </div>
+    <div class="sidebar-store">
+      <div class="store-avatar">T</div>
+      <div><div class="store-name">Teknoloji A.Ş.</div><div class="store-plan">Pro Plan · 6 aktif</div></div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <a href="../index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span>Çıkış Yap</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <button class="hamburger" id="hamburger"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <div class="header-title">Kategoriler <span>Kategori yönetimi & eşleştirme</span></div>
+      <div class="header-actions">
+        <div class="search-box" style="width:240px">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+          <input type="text" class="search-input" id="searchInput" placeholder="Kategori ara..." oninput="filterCategories()">
+        </div>
+        <button class="header-btn" title="Bildirimler">
+          <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <div class="dot"></div>
+        </button>
+        <button class="header-user">
+          <div class="user-avatar">TA</div>
+          <span class="user-name">Teknoloji A.Ş.</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Kategori Yönetimi</div>
+          <div class="page-subtitle">Kategorilerinizi ve platform eşleştirmelerini yönetin</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" onclick="openMapModal()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+            Toplu Eşleştir
+          </button>
+          <button class="btn btn-primary" onclick="openAddModal()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Kategori Ekle
+          </button>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid" style="margin-bottom:20px;">
+        <div class="stat-card">
+          <div class="stat-icon primary">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Toplam Kategori</div>
+            <div class="stat-value">24</div>
+            <div class="stat-change up">↑ 2 bu ay eklendi</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon success">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Eşleştirilmiş</div>
+            <div class="stat-value">19</div>
+            <div class="stat-change up">%79 tamamlandı</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon warning">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Eşleştirilmemiş</div>
+            <div class="stat-value">5</div>
+            <div class="stat-change">İşlem gerekiyor</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon info">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">Toplam Ürün</div>
+            <div class="stat-value">1.248</div>
+            <div class="stat-change up">Kategorize edilmiş</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTER TABS -->
+      <div class="filter-tabs" style="margin-bottom:16px;">
+        <button class="filter-tab active" onclick="filterTab(this,'all')">Tümü <span class="filter-tab-count">24</span></button>
+        <button class="filter-tab" onclick="filterTab(this,'matched')">Eşleştirilmiş <span class="filter-tab-count">19</span></button>
+        <button class="filter-tab" onclick="filterTab(this,'unmatched')">Bekleyen <span class="filter-tab-count">5</span></button>
+      </div>
+
+      <!-- TABLE -->
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="cat-header-row">
+          <div></div>
+          <div>Kategori Adı</div>
+          <div>Platformlar</div>
+          <div>Ürün Sayısı</div>
+          <div>Alt Kategori</div>
+          <div>Eşleştirme</div>
+          <div style="text-align:right">İşlemler</div>
+        </div>
+        <div class="cat-tree" id="catTree"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Yeni Kategori Ekle</h3>
+      <button class="modal-close" onclick="closeModal('addModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Kategori Adı</label>
+        <input type="text" class="form-input" placeholder="ör. Elektronik">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Üst Kategori (opsiyonel)</label>
+        <select class="form-select">
+          <option value="">— Ana kategori —</option>
+          <option>Elektronik</option>
+          <option>Giyim</option>
+          <option>Ev & Yaşam</option>
+          <option>Spor</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Slug (URL)</label>
+        <input type="text" class="form-input" placeholder="ör. elektronik">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Açıklama</label>
+        <textarea class="form-input" rows="3" placeholder="Kategori açıklaması..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addModal')">İptal</button>
+      <button class="btn btn-primary">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAP MODAL -->
+<div class="modal-overlay" id="mapModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Toplu Kategori Eşleştirme</h3>
+      <button class="modal-close" onclick="closeModal('mapModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+        Mağazanızdaki kategorileri platform kategorileriyle eşleştirin. Bu sayede ürünler doğru kategorilerde listelenir.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Platform Seçin</label>
+        <select class="form-select">
+          <option>Trendyol</option>
+          <option>Hepsiburada</option>
+          <option>Amazon</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+        <div style="display:grid;grid-template-columns:1fr 32px 1fr;gap:8px;font-size:12px;font-weight:600;color:var(--text-muted);padding:0 4px;">
+          <div>Mağaza Kategorisi</div><div></div><div>Platform Kategorisi</div>
+        </div>
+        <div class="mapping-row">
+          <select class="form-select" style="font-size:12px"><option>Elektronik</option></select>
+          <span class="mapping-arrow">→</span>
+          <select class="form-select" style="font-size:12px"><option>Elektronik & Teknoloji</option></select>
+        </div>
+        <div class="mapping-row">
+          <select class="form-select" style="font-size:12px"><option>Giyim</option></select>
+          <span class="mapping-arrow">→</span>
+          <select class="form-select" style="font-size:12px"><option>Moda / Giyim</option></select>
+        </div>
+        <div class="mapping-row">
+          <select class="form-select" style="font-size:12px"><option>Ev & Yaşam</option></select>
+          <span class="mapping-arrow">→</span>
+          <select class="form-select" style="font-size:12px"><option>Eşleştirme yok</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('mapModal')">İptal</button>
+      <button class="btn btn-primary">Eşleştirmeleri Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/nav.js"></script>
+<script src="../js/app.js"></script>
+<script>
+const CATS = [
+  { id:1, name:'Elektronik', slug:'elektronik', products:412, platforms:['Trendyol','Hepsiburada'], matched:true, children:[
+    { id:11, name:'Telefon & Aksesuar', slug:'telefon', products:184, platforms:['Trendyol','Hepsiburada'], matched:true },
+    { id:12, name:'Bilgisayar & Tablet', slug:'bilgisayar', products:97, platforms:['Trendyol'], matched:true },
+    { id:13, name:'TV & Ses Sistemleri', slug:'tv', products:131, platforms:['Hepsiburada'], matched:true },
+  ]},
+  { id:2, name:'Giyim', slug:'giyim', products:287, platforms:['Trendyol'], matched:true, children:[
+    { id:21, name:'Erkek Giyim', slug:'erkek-giyim', products:142, platforms:['Trendyol'], matched:true },
+    { id:22, name:'Kadın Giyim', slug:'kadin-giyim', products:145, platforms:['Trendyol'], matched:true },
+  ]},
+  { id:3, name:'Ev & Yaşam', slug:'ev-yasam', products:198, platforms:[], matched:false, children:[
+    { id:31, name:'Mutfak', slug:'mutfak', products:88, platforms:[], matched:false },
+    { id:32, name:'Dekorasyon', slug:'dekorasyon', products:110, platforms:[], matched:false },
+  ]},
+  { id:4, name:'Spor', slug:'spor', products:156, platforms:['Hepsiburada'], matched:true, children:[
+    { id:41, name:'Fitness', slug:'fitness', products:84, platforms:['Hepsiburada'], matched:true },
+    { id:42, name:'Outdoor', slug:'outdoor', products:72, platforms:[], matched:false },
+  ]},
+  { id:5, name:'Kitap & Kırtasiye', slug:'kitap', products:195, platforms:['Trendyol','Hepsiburada'], matched:true, children:[] },
+];
+
+let openIds = new Set([1,2,3,4]);
+let currentFilter = 'all';
+
+function renderTree() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const tree = document.getElementById('catTree');
+  let html = '';
+
+  CATS.forEach(cat => {
+    if(currentFilter==='matched' && !cat.matched) return;
+    if(currentFilter==='unmatched' && cat.matched) return;
+    if(q && !cat.name.toLowerCase().includes(q)) return;
+
+    const hasChildren = cat.children && cat.children.length>0;
+    const isOpen = openIds.has(cat.id);
+    const matchClass = cat.matched ? 'match-ok' : 'match-none';
+    const matchText = cat.matched ? 'Eşleştirildi' : 'Bekliyor';
+    const platformHTML = cat.platforms.map(p=>`<span class="platform-badge">${p}</span>`).join('');
+
+    html += `<div class="cat-row" data-id="${cat.id}">
+      <button class="cat-toggle${isOpen?' open':''}" onclick="toggleCat(${cat.id})" style="${hasChildren?'':'visibility:hidden'}">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+      </button>
+      <div class="cat-name">
+        ${cat.name}
+        <span class="cat-slug">${cat.slug}</span>
+      </div>
+      <div class="platform-badges">${platformHTML || '<span style="color:var(--text-muted);font-size:12px">—</span>'}</div>
+      <div style="color:var(--text);font-size:13px">${cat.products.toLocaleString('tr')}</div>
+      <div style="color:var(--text-secondary);font-size:13px">${cat.children?.length || 0} alt kategori</div>
+      <div><span class="match-badge ${matchClass}">${matchText}</span></div>
+      <div class="cat-actions">
+        <button class="cat-action-btn" title="Eşleştir" onclick="openMapModal()"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg></button>
+        <button class="cat-action-btn" title="Düzenle" onclick="openAddModal()"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+        <button class="cat-action-btn danger" title="Sil"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+      </div>
+    </div>`;
+
+    if(hasChildren && isOpen) {
+      cat.children.forEach(child => {
+        if(currentFilter==='matched' && !child.matched) return;
+        if(currentFilter==='unmatched' && child.matched) return;
+        const cMatch = child.matched ? 'match-ok' : 'match-none';
+        const cText = child.matched ? 'Eşleştirildi' : 'Bekliyor';
+        const cPlatforms = child.platforms.map(p=>`<span class="platform-badge">${p}</span>`).join('');
+        html += `<div class="cat-row child">
+          <div></div>
+          <div class="cat-name" style="padding-left:4px">
+            <svg width="14" height="14" fill="none" stroke="var(--text-muted)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            ${child.name}
+            <span class="cat-slug">${child.slug}</span>
+          </div>
+          <div class="platform-badges">${cPlatforms || '<span style="color:var(--text-muted);font-size:12px">—</span>'}</div>
+          <div style="color:var(--text);font-size:13px">${child.products.toLocaleString('tr')}</div>
+          <div style="color:var(--text-secondary);font-size:13px">—</div>
+          <div><span class="match-badge ${cMatch}">${cText}</span></div>
+          <div class="cat-actions">
+            <button class="cat-action-btn" title="Eşleştir" onclick="openMapModal()"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg></button>
+            <button class="cat-action-btn" title="Düzenle" onclick="openAddModal()"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+            <button class="cat-action-btn danger" title="Sil"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+          </div>
+        </div>`;
+      });
+    }
+  });
+  tree.innerHTML = html || '<div style="padding:48px;text-align:center;color:var(--text-muted);font-size:13px">Kategori bulunamadı</div>';
+}
+
+function toggleCat(id) {
+  if(openIds.has(id)) openIds.delete(id); else openIds.add(id);
+  renderTree();
+}
+
+function filterTab(btn, filter) {
+  document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = filter;
+  renderTree();
+}
+
+function filterCategories() { renderTree(); }
+
+function openAddModal() {
+  document.getElementById('addModal').classList.add('open');
+}
+function openMapModal() {
+  document.getElementById('mapModal').classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+renderTree();
+</script>
+</body>
+</html>

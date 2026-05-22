@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Destek — Entegrasyon</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .support-grid { display:grid; grid-template-columns:1fr 380px; gap:24px; align-items:start; }
+    @media(max-width:900px){ .support-grid { grid-template-columns:1fr; } }
+
+    .channel-card {
+      border:1px solid var(--border); border-radius:var(--radius); padding:20px;
+      background:var(--card); display:flex; gap:14px; align-items:flex-start;
+      transition:var(--transition); cursor:pointer;
+    }
+    .channel-card:hover { border-color:var(--primary); box-shadow:var(--shadow); }
+    .channel-icon {
+      width:44px; height:44px; border-radius:var(--radius-sm); flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .channel-info { flex:1; }
+    .channel-name { font-weight:600; font-size:14px; margin-bottom:4px; }
+    .channel-desc { font-size:12px; color:var(--text-secondary); line-height:1.5; margin-bottom:8px; }
+    .channel-meta { font-size:11px; color:var(--text-muted); display:flex; gap:12px; }
+    .channel-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; background:var(--success-light); color:var(--success); }
+
+    .faq-item {
+      border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden;
+      margin-bottom:8px;
+    }
+    .faq-q {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:14px 16px; cursor:pointer; font-weight:500; font-size:13px;
+      background:var(--card); transition:var(--transition);
+    }
+    .faq-q:hover { background:var(--bg); }
+    .faq-q.open { color:var(--primary); border-bottom:1px solid var(--border); }
+    .faq-q svg { flex-shrink:0; transition:transform .2s; color:var(--text-muted); }
+    .faq-q.open svg { transform:rotate(180deg); color:var(--primary); }
+    .faq-a { padding:14px 16px; font-size:13px; color:var(--text-secondary); line-height:1.6; display:none; background:var(--bg); }
+    .faq-a.open { display:block; }
+
+    .ticket-row {
+      display:flex; align-items:flex-start; gap:12px; padding:14px 0;
+      border-bottom:1px solid var(--border);
+    }
+    .ticket-row:last-child { border-bottom:none; }
+    .ticket-icon { width:36px; height:36px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:16px; }
+    .ticket-info { flex:1; min-width:0; }
+    .ticket-subject { font-weight:500; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ticket-preview { font-size:12px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ticket-meta { display:flex; gap:8px; align-items:center; margin-top:4px; }
+    .ticket-date { font-size:11px; color:var(--text-muted); flex:1; text-align:right; }
+
+    /* NEW TICKET FORM */
+    .form-group { margin-bottom:14px; }
+    .form-label { font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:.04em; }
+    .form-input, .form-select, .form-textarea {
+      width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:var(--radius-sm);
+      font-size:13px; font-family:var(--font); color:var(--text); background:var(--card);
+      transition:var(--transition); box-sizing:border-box;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-light); }
+    .form-textarea { resize:vertical; }
+
+    /* STATUS COLORS */
+    .st-open { background:#FEF3C7; color:#92400E; }
+    .st-progress { background:var(--primary-light); color:var(--primary); }
+    .st-closed { background:#D1FAE5; color:#065F46; }
+    .st-wait { background:#FEE2E2; color:#991B1B; }
+
+    /* LIVE CHAT */
+    .chat-window {
+      border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+      background:var(--card);
+    }
+    .chat-header {
+      padding:14px 16px; background:var(--primary); color:white;
+      display:flex; align-items:center; gap:10px;
+    }
+    .chat-status { width:8px; height:8px; border-radius:50%; background:#4ADE80; flex-shrink:0; }
+    .chat-messages { height:260px; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; background:var(--bg); }
+    .chat-msg { max-width:80%; padding:9px 12px; border-radius:12px; font-size:13px; line-height:1.5; }
+    .chat-msg.agent { background:var(--card); border:1px solid var(--border); align-self:flex-start; border-bottom-left-radius:3px; }
+    .chat-msg.user { background:var(--primary); color:white; align-self:flex-end; border-bottom-right-radius:3px; }
+    .chat-msg-meta { font-size:10px; color:var(--text-muted); margin-top:2px; }
+    .chat-msg.user .chat-msg-meta { color:rgba(255,255,255,.6); text-align:right; }
+    .chat-input-row { display:flex; gap:8px; padding:12px 14px; border-top:1px solid var(--border); }
+    .chat-input { flex:1; padding:8px 12px; border:1px solid var(--border); border-radius:20px; font-size:13px; font-family:var(--font); background:var(--card); }
+    .chat-input:focus { outline:none; border-color:var(--primary); }
+    .chat-send { width:36px; height:36px; background:var(--primary); border:none; border-radius:50%; cursor:pointer; color:white; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .chat-send:hover { background:var(--primary-dark); }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">E</div>
+        <div><div class="logo-text">Entegrasyon<span>Yönetici Paneli</span></div></div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">×</button>
+    </div>
+    <div class="sidebar-store">
+      <div class="store-avatar">T</div>
+      <div><div class="store-name">Teknoloji A.Ş.</div><div class="store-plan">Pro Plan · 6 aktif</div></div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <a href="../index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span>Çıkış Yap</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <button class="hamburger" id="hamburger"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <div class="header-title">Destek <span>Yardım merkezi</span></div>
+      <div class="header-actions">
+        <button class="header-btn" title="Bildirimler">
+          <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <div class="dot"></div>
+        </button>
+        <button class="header-user">
+          <div class="user-avatar">TA</div>
+          <span class="user-name">Teknoloji A.Ş.</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="page">
+      <div class="page-header" style="margin-bottom:24px;">
+        <div>
+          <div class="page-title">Destek Merkezi</div>
+          <div class="page-subtitle">Size nasıl yardımcı olabiliriz?</div>
+        </div>
+      </div>
+
+      <div class="support-grid">
+
+        <!-- LEFT COLUMN -->
+        <div>
+          <!-- SUPPORT CHANNELS -->
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">İletişim Kanalları</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
+            <div class="channel-card" onclick="scrollToTicket()">
+              <div class="channel-icon" style="background:#EDE9FE">
+                <svg width="22" height="22" fill="none" stroke="var(--primary)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+              </div>
+              <div class="channel-info">
+                <div class="channel-name">Destek Talebi Aç</div>
+                <div class="channel-desc">Sorunuzu detaylı açıklayın, ekibimiz en kısa sürede yanıtlasın.</div>
+                <div class="channel-meta">
+                  <span>⏱ Ort. yanıt: 2 saat</span>
+                  <span class="channel-badge">Öncelikli (Pro)</span>
+                </div>
+              </div>
+            </div>
+            <div class="channel-card" onclick="scrollToChat()">
+              <div class="channel-icon" style="background:#D1FAE5">
+                <svg width="22" height="22" fill="none" stroke="var(--success)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              </div>
+              <div class="channel-info">
+                <div class="channel-name">Canlı Sohbet</div>
+                <div class="channel-desc">Destek ekibimizle anlık olarak iletişime geçin.</div>
+                <div class="channel-meta">
+                  <span>🟢 Çevrimiçi</span>
+                  <span>Yanıt süresi: &lt;5 dk</span>
+                </div>
+              </div>
+            </div>
+            <div class="channel-card">
+              <div class="channel-icon" style="background:#DBEAFE">
+                <svg width="22" height="22" fill="none" stroke="#2563EB" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              </div>
+              <div class="channel-info">
+                <div class="channel-name">E-posta</div>
+                <div class="channel-desc">destek@entegrasyon.io adresine yazın.</div>
+                <div class="channel-meta">
+                  <span>⏱ Yanıt: 24 saat</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FAQ -->
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">Sık Sorulan Sorular</div>
+          <div id="faqList">
+            ${[
+              ['Entegrasyon nasıl bağlanır?', 'Sol menüden Entegrasyonlar → İlgili kategori → Entegrasyona tıklayın. API bilgilerinizi girin ve "Bağlan" butonuna basın. Sistem otomatik olarak bağlantıyı test eder ve doğrular.'],
+              ['Senkronizasyon ne sıklıkla çalışır?', 'Pro planda senkronizasyon her 15 dakikada bir çalışır. Enterprise planda anlık (webhook) senkronizasyon mevcuttur. Başlangıç planında her 1 saatte bir güncellenir.'],
+              ['Bir hata oluştuğunda ne yapmalıyım?', 'Sol menüden Loglar sayfasını açın. İlgili hatayı bulun ve "Detay" butonuna tıklayın. Hata kodunu ve mesajını kopyalayıp destek talebine ekleyin.'],
+              ['Birden fazla mağazayı yönetebilir miyim?', 'Evet, her mağaza için ayrı bir hesap oluşturabilirsiniz. Enterprise planında çoklu mağaza yönetimi tek panel üzerinden yapılabilir.'],
+              ['Faturamı nasıl indirebilirim?', 'Hesabım → Fatura Geçmişi bölümünden tüm faturalarınıza PDF olarak ulaşabilirsiniz.'],
+              ['Flow nedir ve nasıl kullanılır?', 'Flow, entegrasyonlar arası otomatik iş akışları oluşturmanızı sağlar. Örneğin "Trendyol sipariş geldi → Paraşüt fatura oluştur → Aras Kargo etiket bas" gibi akışlar tanımlayabilirsiniz.'],
+              ['API anahtarım sızdı, ne yapmalıyım?', 'Hemen Hesabım → API & Webhook bölümüne gidin ve "Yeni Anahtar Oluştur" butonuna basın. Eski anahtar geçersiz olur ve tüm entegrasyonlarınızda yeni anahtarı güncellemeniz gerekir.'],
+            ].map(([q,a],i)=>`
+              <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)" id="faq-q-${i}">
+                  ${q}
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="faq-a" id="faq-a-${i}">${a}</div>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- NEW TICKET FORM -->
+          <div id="ticketSection" style="margin-top:28px;">
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">Yeni Destek Talebi</div>
+            <div class="card" style="padding:24px;">
+              <div class="form-group">
+                <label class="form-label">Konu</label>
+                <select class="form-select">
+                  <option>Entegrasyon sorunu</option>
+                  <option>Senkronizasyon hatası</option>
+                  <option>Fatura / Ödeme</option>
+                  <option>Hesap erişimi</option>
+                  <option>Özellik isteği</option>
+                  <option>Diğer</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Başlık</label>
+                <input type="text" class="form-input" placeholder="Sorununuzu kısaca özetleyin">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Açıklama</label>
+                <textarea class="form-textarea" rows="5" placeholder="Sorunu detaylı açıklayın. Hata mesajı varsa ekleyin..."></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Öncelik</label>
+                <select class="form-select">
+                  <option>Normal</option>
+                  <option>Yüksek</option>
+                  <option>Kritik</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
+                <button class="btn btn-secondary">İptal</button>
+                <button class="btn btn-primary" onclick="submitTicket(this)">Talep Gönder</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div>
+          <!-- LIVE CHAT -->
+          <div id="chatSection" style="margin-bottom:20px;">
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">Canlı Sohbet</div>
+            <div class="chat-window">
+              <div class="chat-header">
+                <div class="chat-status"></div>
+                <div>
+                  <div style="font-weight:600;font-size:13px">Destek Ekibi</div>
+                  <div style="font-size:11px;opacity:.8">Çevrimiçi · Hemen yanıt verir</div>
+                </div>
+              </div>
+              <div class="chat-messages" id="chatMessages">
+                <div class="chat-msg agent">
+                  Merhaba! Entegrasyon destek ekibine hoş geldiniz. Size nasıl yardımcı olabilirim?
+                  <div class="chat-msg-meta">Destek Ekibi · 10:24</div>
+                </div>
+                <div class="chat-msg user">
+                  Trendyol entegrasyonu bağlanırken hata alıyorum.
+                  <div class="chat-msg-meta">Siz · 10:25</div>
+                </div>
+                <div class="chat-msg agent">
+                  Tabii, yardımcı olabilirim. Aldığınız hata mesajını paylaşabilir misiniz?
+                  <div class="chat-msg-meta">Destek Ekibi · 10:25</div>
+                </div>
+              </div>
+              <div class="chat-input-row">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Mesaj yazın..." onkeydown="if(event.key==='Enter')sendChat()">
+                <button class="chat-send" onclick="sendChat()">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- OPEN TICKETS -->
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">Açık Taleplerim</div>
+            <div class="card" style="padding:16px 20px;">
+              ${[
+                { num:'#T-4821', icon:'🔌', subject:'Trendyol bağlantısı kesildi', preview:'API token süresi dolmuş olabilir...', status:'İşlemde', stClass:'st-progress', date:'2 saat önce' },
+                { num:'#T-4798', icon:'🧾', subject:'E-fatura oluşturulmuyor', preview:'Hepsiburada siparişlerinde...', status:'Bekliyor', stClass:'st-wait', date:'1 gün önce' },
+                { num:'#T-4754', icon:'📦', subject:'Aras Kargo etiket hatası', preview:'Kargo etiketi basmaya...', status:'Çözüldü', stClass:'st-closed', date:'3 gün önce' },
+              ].map(t=>`
+                <div class="ticket-row">
+                  <div class="ticket-icon" style="background:var(--bg)">${t.icon}</div>
+                  <div class="ticket-info">
+                    <div class="ticket-subject">${t.num} · ${t.subject}</div>
+                    <div class="ticket-preview">${t.preview}</div>
+                    <div class="ticket-meta">
+                      <span class="badge ${t.stClass}" style="font-size:10px">${t.status}</span>
+                    </div>
+                  </div>
+                  <div class="ticket-date">${t.date}</div>
+                </div>
+              `).join('')}
+              <div style="text-align:center;margin-top:10px;">
+                <button class="btn btn-secondary btn-sm">Tüm Talepler</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- STATUS PAGE -->
+          <div style="margin-top:20px;">
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">Sistem Durumu</div>
+            <div class="card" style="padding:16px 20px;">
+              ${[
+                ['API Servisi','Çalışıyor','success'],
+                ['Webhook Servisi','Çalışıyor','success'],
+                ['Trendyol Bağlantısı','Yavaş','warning'],
+                ['Hepsiburada Bağlantısı','Çalışıyor','success'],
+                ['E-Fatura Servisi','Çalışıyor','success'],
+              ].map(([name,status,cls])=>`
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+                  <span style="font-size:13px">${name}</span>
+                  <span class="badge badge-${cls}" style="font-size:11px">${status}</span>
+                </div>
+              `).join('')}
+              <div style="margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;">
+                Son güncelleme: 22 Mayıs 2026, 10:30
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/nav.js"></script>
+<script src="../js/app.js"></script>
+<script>
+function toggleFaq(qEl) {
+  const idx = qEl.id.replace('faq-q-','');
+  const aEl = document.getElementById('faq-a-'+idx);
+  const open = qEl.classList.contains('open');
+  // close all
+  document.querySelectorAll('.faq-q').forEach(q=>q.classList.remove('open'));
+  document.querySelectorAll('.faq-a').forEach(a=>a.classList.remove('open'));
+  if(!open) { qEl.classList.add('open'); aEl.classList.add('open'); }
+}
+
+function scrollToTicket() {
+  document.getElementById('ticketSection').scrollIntoView({behavior:'smooth'});
+}
+function scrollToChat() {
+  document.getElementById('chatSection').scrollIntoView({behavior:'smooth'});
+  document.getElementById('chatInput').focus();
+}
+
+function sendChat() {
+  const inp = document.getElementById('chatInput');
+  const msg = inp.value.trim();
+  if(!msg) return;
+  const msgs = document.getElementById('chatMessages');
+  const now = new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+  msgs.innerHTML += `<div class="chat-msg user">${msg}<div class="chat-msg-meta">Siz · ${now}</div></div>`;
+  inp.value = '';
+  msgs.scrollTop = msgs.scrollHeight;
+  setTimeout(()=>{
+    msgs.innerHTML += `<div class="chat-msg agent">Mesajınız alındı, ekibimiz en kısa sürede yanıt verecek.<div class="chat-msg-meta">Destek Ekibi · ${now}</div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 1200);
+}
+
+function submitTicket(btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '✓ Talep Gönderildi';
+  btn.style.background = 'var(--success)';
+  btn.disabled = true;
+  setTimeout(()=>{ btn.innerHTML=orig; btn.style.background=''; btn.disabled=false; }, 3000);
+}
+</script>
+</body>
+</html>
