@@ -328,32 +328,28 @@ function stockCell(p) {
   return `<span class="stock-count ok">${p.stock} adet</span>`;
 }
 
-const CHANNEL_SVGS = {
-  trendyol: `<svg viewBox="0 0 32 32" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M16 4C9.373 4 4 9.373 4 16s5.373 12 12 12 12-5.373 12-12S22.627 4 16 4z" fill="#F27A1A"/>
-    <path d="M11 11h10M16 11v10" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M12.5 17.5l3.5 3.5 3.5-3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>`,
-  hepsi: `<svg viewBox="0 0 32 32" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="32" height="32" rx="6" fill="#FF6000"/>
-    <path d="M9 9v14M9 16h14M23 9v14" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-  </svg>`,
-  n11: `<svg viewBox="0 0 32 32" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="32" height="32" rx="6" fill="#7B2D8B"/>
-    <text x="4" y="22" font-size="13" font-weight="800" fill="white" font-family="Arial">n11</text>
-  </svg>`,
-  site: `<svg viewBox="0 0 32 32" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="32" height="32" rx="6" fill="#4F46E5"/>
-    <circle cx="16" cy="16" r="8" stroke="white" stroke-width="2"/>
-    <path d="M8 16h16M16 8c-2 3-3 5-3 8s1 5 3 8M16 8c2 3 3 5 3 8s-1 5-3 8" stroke="white" stroke-width="1.5"/>
-  </svg>`,
+const CHANNEL_META = {
+  trendyol: { title: 'Trendyol',     favicon: 'trendyol.com',     bg: '#FFF4EB' },
+  hepsi:    { title: 'Hepsiburada',  favicon: 'hepsiburada.com',  bg: '#FFF0EB' },
+  n11:      { title: 'N11',          favicon: 'n11.com',          bg: '#F5F0FF' },
+  site:     { title: 'Mağaza Sitesi',favicon: null,               bg: '#EEF2FF' },
 };
 
+const SITE_SVG = `<svg viewBox="0 0 18 18" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="9" cy="9" r="7.5" stroke="#4F46E5" stroke-width="1.5"/>
+  <path d="M9 1.5C9 1.5 6 5.5 6 9s3 7.5 3 7.5M9 1.5C9 1.5 12 5.5 12 9s-3 7.5-3 7.5" stroke="#4F46E5" stroke-width="1.2"/>
+  <path d="M1.5 9h15" stroke="#4F46E5" stroke-width="1.5" stroke-linecap="round"/>
+</svg>`;
+
 function channelIcons(channels) {
-  const titles = { trendyol: 'Trendyol', hepsi: 'Hepsiburada', n11: 'N11', site: 'Site' };
-  return channels.map(c =>
-    `<span class="channel-icon ${c}" title="${titles[c]}" style="background:transparent;padding:0;">${CHANNEL_SVGS[c] || c}</span>`
-  ).join('');
+  return channels.map(c => {
+    const meta = CHANNEL_META[c];
+    if (!meta) return '';
+    const inner = meta.favicon
+      ? `<img src="https://www.google.com/s2/favicons?domain=${meta.favicon}&sz=32" width="16" height="16" style="border-radius:2px;" onerror="this.style.display='none'">`
+      : SITE_SVG;
+    return `<span class="channel-icon ${c}" title="${meta.title}" style="background:${meta.bg};width:26px;height:26px;">${inner}</span>`;
+  }).join('');
 }
 
 function renderTable() {
