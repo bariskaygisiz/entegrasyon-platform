@@ -132,6 +132,27 @@
             </div>
           </div>
 
+          <!-- Varyantlar -->
+          <div class="pd-card">
+            <div class="pd-card-title" style="display:flex;align-items:center;justify-content:space-between;">
+              <span>Varyantlar</span>
+              <label style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:400;color:var(--text-secondary);cursor:pointer;">
+                <input type="checkbox" id="hasVariants" onchange="toggleVariants(this)" style="accent-color:var(--primary);width:14px;height:14px;">
+                Bu ürünün farklı seçenekleri var
+              </label>
+            </div>
+            <div id="variantsBody" style="display:none;">
+              <div class="pd-card-body" style="border-top:1px solid var(--border-light);">
+                <div id="optionsList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
+                <button class="btn btn-ghost btn-sm" id="addOptBtn" onclick="addVariantOption()" style="font-size:12px;display:inline-flex;align-items:center;gap:5px;">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  Seçenek ekle
+                </button>
+                <div id="variantsTable" style="margin-top:14px;"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- Fiyatlandırma -->
           <div class="pd-card">
             <div class="pd-card-title">Fiyatlandırma</div>
@@ -190,27 +211,6 @@
               <div class="form-group" style="margin-bottom:0;">
                 <label class="form-label">Ağırlık (kg)</label>
                 <input class="form-control" type="number" step="0.1" id="fWeight" placeholder="0.0" style="max-width:160px;">
-              </div>
-            </div>
-          </div>
-
-          <!-- Varyantlar -->
-          <div class="pd-card">
-            <div class="pd-card-title" style="display:flex;align-items:center;justify-content:space-between;">
-              <span>Varyantlar</span>
-              <label style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:400;color:var(--text-secondary);cursor:pointer;">
-                <input type="checkbox" id="hasVariants" onchange="toggleVariants(this)" style="accent-color:var(--primary);width:14px;height:14px;">
-                Bu ürünün farklı seçenekleri var
-              </label>
-            </div>
-            <div id="variantsBody" style="display:none;">
-              <div class="pd-card-body" style="border-top:1px solid var(--border-light);">
-                <div id="optionsList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
-                <button class="btn btn-ghost btn-sm" id="addOptBtn" onclick="addVariantOption()" style="font-size:12px;display:inline-flex;align-items:center;gap:5px;">
-                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  Seçenek ekle
-                </button>
-                <div id="variantsTable" style="margin-top:14px;"></div>
               </div>
             </div>
           </div>

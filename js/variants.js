@@ -123,6 +123,7 @@ function renderVariantsTable() {
             <th>İndirimli (₺)</th>
             <th>Stok</th>
             <th>SKU</th>
+            <th>Barkod</th>
           </tr>
         </thead>
         <tbody>
@@ -130,15 +131,17 @@ function renderVariantsTable() {
             const saved = variantData[combo] || {};
             return `<tr>
               <td><span style="font-size:13px;font-weight:600;">${combo}</span></td>
-              <td><input class="form-control" type="number" style="width:110px;" placeholder="${basePrice || '0'}"
+              <td><input class="form-control" type="number" style="width:100px;" placeholder="${basePrice || '0'}"
                 value="${saved.price || ''}" onchange="saveVD('${combo}','price',this.value)"></td>
-              <td><input class="form-control" type="number" style="width:110px;" placeholder="—"
+              <td><input class="form-control" type="number" style="width:100px;" placeholder="—"
                 value="${saved.disc || ''}" onchange="saveVD('${combo}','disc',this.value)"></td>
-              <td><input class="form-control" type="number" style="width:90px;" placeholder="0"
+              <td><input class="form-control" type="number" style="width:80px;" placeholder="0"
                 value="${saved.stock || ''}" onchange="saveVD('${combo}','stock',this.value)"></td>
-              <td><input class="form-control" type="text" style="width:150px;"
+              <td><input class="form-control" type="text" style="width:120px;"
                 placeholder="${baseSku ? baseSku + '-' + (i + 1) : 'SKU-' + (i + 1)}"
                 value="${saved.sku || ''}" onchange="saveVD('${combo}','sku',this.value)"></td>
+              <td><input class="form-control" type="text" style="width:140px;" placeholder="8680000000000"
+                value="${saved.barcode || ''}" onchange="saveVD('${combo}','barcode',this.value)"></td>
             </tr>`;
           }).join('')}
         </tbody>
