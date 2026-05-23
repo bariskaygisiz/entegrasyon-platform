@@ -136,9 +136,8 @@ function renderVariantsTable() {
   const baseSku   = document.getElementById('fSku')?.value   || '';
 
   tableEl.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-top:4px;border-top:1px solid var(--border-light);">
+    <div style="margin-bottom:10px;padding-top:4px;border-top:1px solid var(--border-light);">
       <span style="font-size:12px;font-weight:700;color:var(--text-muted);">${combos.length} VARYANT OLUŞTURULDU</span>
-      <button class="btn btn-ghost btn-sm" onclick="fillAllPrices()" style="font-size:11px;">Ana fiyatı uygula</button>
     </div>
     <div class="table-wrap" style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
       <table id="variantDataTable" style="margin:0;">
