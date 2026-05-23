@@ -25,7 +25,9 @@
     .media-thumb.selected { border-color:var(--primary); background:var(--primary-light,#EEF2FF); }
     .media-thumb.add { border-style:dashed; color:var(--text-muted); flex-direction:column; gap:4px; font-size:20px; overflow:visible; }
     .media-thumb.add:hover { border-color:var(--primary); background:var(--primary-light,#EEF2FF); }
-    .media-cb { position:absolute; top:5px; left:5px; width:16px; height:16px; accent-color:var(--primary); cursor:pointer; z-index:2; }
+    .media-cb { position:absolute; top:5px; left:5px; width:16px; height:16px; accent-color:var(--primary); cursor:pointer; z-index:2; opacity:0; transition:opacity .15s; }
+    .media-thumb:hover .media-cb,
+    .media-thumb.selected .media-cb { opacity:1; }
 
     .media-upload { border: 2px dashed var(--border); border-radius: var(--radius); padding: 36px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; display:block; }
     .media-upload:hover { border-color: var(--primary); background: var(--primary-light); }

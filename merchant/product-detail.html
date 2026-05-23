@@ -26,7 +26,9 @@
     .media-thumb.add { border-style:dashed; color:var(--text-muted); flex-direction:column; gap:4px; font-size:20px; overflow:visible; }
     .media-thumb.add span { font-size:11px; font-weight:500; }
     .media-thumb.add:hover { border-color:var(--primary); background:var(--primary-light,#EEF2FF); }
-    .media-cb { position:absolute; top:5px; left:5px; width:16px; height:16px; accent-color:var(--primary); cursor:pointer; z-index:2; }
+    .media-cb { position:absolute; top:5px; left:5px; width:16px; height:16px; accent-color:var(--primary); cursor:pointer; z-index:2; opacity:0; transition:opacity .15s; }
+    .media-thumb:hover .media-cb,
+    .media-thumb.selected .media-cb { opacity:1; }
 
     .price-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .price-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
