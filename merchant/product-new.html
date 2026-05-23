@@ -517,24 +517,28 @@ function createProduct() {
   if (!validate()) { showToast('Hata', 'Zorunlu alanları doldurun.', 'error'); return; }
 
   const newId = 'new_' + Date.now();
+  const hasVariantsChecked = document.getElementById('hasVariants')?.checked || false;
   const newProduct = {
-    id:       newId,
-    name:     document.getElementById('fName').value.trim(),
-    desc:     document.getElementById('fDesc')?.value       || '',
-    price:    parseFloat(document.getElementById('fPrice').value) || 0,
-    discounted: parseFloat(document.getElementById('fDiscounted')?.value) || null,
-    cost:     parseFloat(document.getElementById('fCost')?.value) || 0,
-    sku:      document.getElementById('fSku').value.trim(),
-    barcode:  document.getElementById('fBarcode')?.value    || '',
-    stock:    parseInt(document.getElementById('fStock')?.value) || 0,
-    weight:   parseFloat(document.getElementById('fWeight')?.value) || 0,
-    status:   document.getElementById('fStatus')?.value     || 'draft',
-    category: document.getElementById('fCategory')?.value   || 'Diğer',
-    media:    mediaItems.map(m => ({ id: m.id, src: m.src || null })),
-    channels: [...document.querySelectorAll('#channelList input[type=checkbox]:checked')]
-                .map(cb => cb.closest('[id^=crow-]')?.id?.replace('crow-','')).filter(Boolean),
-    isNew: true,
-    createdAt: new Date().toLocaleDateString('tr-TR'),
+    id:             newId,
+    name:           document.getElementById('fName').value.trim(),
+    desc:           document.getElementById('fDesc')?.value       || '',
+    price:          parseFloat(document.getElementById('fPrice')?.value) || 0,
+    discounted:     parseFloat(document.getElementById('fDiscounted')?.value) || null,
+    cost:           parseFloat(document.getElementById('fCost')?.value) || 0,
+    sku:            document.getElementById('fSku')?.value.trim()  || '',
+    barcode:        document.getElementById('fBarcode')?.value     || '',
+    stock:          parseInt(document.getElementById('fStock')?.value) || 0,
+    weight:         parseFloat(document.getElementById('fWeight')?.value) || 0,
+    status:         document.getElementById('fStatus')?.value      || 'draft',
+    category:       document.getElementById('fCategory')?.value    || 'Telefon',
+    media:          mediaItems.map(m => ({ id: m.id, src: m.src || null })),
+    channels:       [...document.querySelectorAll('#channelList input[type=checkbox]:checked')]
+                      .map(cb => cb.closest('[id^=crow-]')?.id?.replace('crow-','')).filter(Boolean),
+    hasVariants:    hasVariantsChecked,
+    variantOptions: hasVariantsChecked ? variantOptions.map(o => ({ ...o, values: [...o.values] })) : [],
+    variantData:    hasVariantsChecked ? { ...variantData } : {},
+    isNew:          true,
+    createdAt:      new Date().toLocaleDateString('tr-TR'),
   };
 
   try {

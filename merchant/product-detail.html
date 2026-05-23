@@ -395,10 +395,14 @@ function saveProduct() {
     stock:      document.getElementById('fStock')?.value      || '',
     weight:     document.getElementById('fWeight')?.value     || '',
     status:     document.getElementById('fStatus')?.value     || 'active',
-    category:   document.getElementById('fCategory')?.value   || '',
-    channels:   [...document.querySelectorAll('#channelList input[type=checkbox]:checked')]
-                  .map(cb => cb.closest('[id^=crow-]')?.id?.replace('crow-', '')).filter(Boolean),
-    media:      mediaItems.map(m => ({ id: m.id, src: m.src || null, emoji: m.emoji || null, opacity: m.opacity || 1 })),
+    category:       document.getElementById('fCategory')?.value   || '',
+    channels:       [...document.querySelectorAll('#channelList input[type=checkbox]:checked')]
+                      .map(cb => cb.closest('[id^=crow-]')?.id?.replace('crow-', '')).filter(Boolean),
+    media:          mediaItems.map(m => ({ id: m.id, src: m.src || null, emoji: m.emoji || null, opacity: m.opacity || 1 })),
+    hasVariants:    document.getElementById('hasVariants')?.checked || false,
+    variantOptions: (document.getElementById('hasVariants')?.checked)
+                      ? variantOptions.map(o => ({ ...o, values: [...o.values] })) : [],
+    variantData:    (document.getElementById('hasVariants')?.checked) ? { ...variantData } : {},
   };
   try {
     localStorage.setItem('pd_' + id, JSON.stringify(data));
@@ -732,6 +736,25 @@ document.addEventListener('DOMContentLoaded', () => {
       renderMediaGrid();
     }
     recalcProfit();
+
+    // Varyant durumunu geri yükle
+    if (saved.hasVariants !== undefined) {
+      variantOptions = saved.hasVariants ? (saved.variantOptions || []) : [];
+      variantData    = saved.hasVariants ? (saved.variantData    || {}) : {};
+      const cb   = document.getElementById('hasVariants');
+      const body = document.getElementById('variantsBody');
+      if (cb) cb.checked = saved.hasVariants;
+      if (body) body.style.display = saved.hasVariants ? 'block' : 'none';
+      ['pricingCard', 'inventoryCard', 'shippingCard'].forEach(cardId => {
+        const el = document.getElementById(cardId);
+        if (el) el.style.display = saved.hasVariants ? 'none' : '';
+      });
+      if (saved.hasVariants) {
+        renderVariantOptions();
+        updateAddOptBtn();
+        renderVariantsTable();
+      }
+    }
   }
 });
 </script>
