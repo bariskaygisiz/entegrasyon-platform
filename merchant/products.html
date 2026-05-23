@@ -433,7 +433,9 @@ function renderTable() {
       <td onclick="event.stopPropagation()"><input type="checkbox" class="row-check"></td>
       <td>
         <div class="td-product">
-          <div class="product-img">${p.emoji}</div>
+          <div class="product-img" style="${p.mediaSrc ? 'padding:0;overflow:hidden;' : ''}">
+            ${p.mediaSrc ? `<img src="${p.mediaSrc}" style="width:100%;height:100%;object-fit:contain;">` : p.emoji}
+          </div>
           <div class="product-info">
             <div class="product-name">${p.name}</div>
             <div class="product-sku">SKU: ${p.sku}</div>
@@ -619,6 +621,30 @@ function initFilterModal() {
 
 document.addEventListener('DOMContentLoaded', () => {
   allProducts = generateAllProducts(324);
+
+  // localStorage'daki yeni ürünleri en başa ekle
+  try {
+    const newProds = JSON.parse(localStorage.getItem('newProducts') || '[]');
+    newProds.forEach(np => {
+      allProducts.unshift({
+        id:             np.id,
+        name:           np.name,
+        sku:            np.sku,
+        barcode:        np.barcode || '',
+        emoji:          np.media?.[0]?.src ? null : '📦',
+        mediaSrc:       np.media?.[0]?.src || null,
+        category:       np.category || 'Diğer',
+        price:          np.price,
+        discountRate:   np.discounted ? Math.round((1 - np.discounted / np.price) * 100) : 0,
+        discountedPrice: np.discounted || null,
+        stock:          np.stock,
+        status:         np.status || 'draft',
+        channels:       np.channels?.length ? np.channels : ['ikas'],
+        isNew:          true,
+      });
+    });
+  } catch (e) {}
+
   filteredProducts = allProducts;
   renderTable();
   updateTabCounts();

@@ -433,6 +433,43 @@ function validate() {
 
 function createProduct() {
   if (!validate()) { showToast('Hata', 'Zorunlu alanları doldurun.', 'error'); return; }
+
+  const newId = 'new_' + Date.now();
+  const newProduct = {
+    id:       newId,
+    name:     document.getElementById('fName').value.trim(),
+    desc:     document.getElementById('fDesc')?.value       || '',
+    price:    parseFloat(document.getElementById('fPrice').value) || 0,
+    discounted: parseFloat(document.getElementById('fDiscounted')?.value) || null,
+    cost:     parseFloat(document.getElementById('fCost')?.value) || 0,
+    sku:      document.getElementById('fSku').value.trim(),
+    barcode:  document.getElementById('fBarcode')?.value    || '',
+    stock:    parseInt(document.getElementById('fStock')?.value) || 0,
+    weight:   parseFloat(document.getElementById('fWeight')?.value) || 0,
+    status:   document.getElementById('fStatus')?.value     || 'draft',
+    category: document.getElementById('fCategory')?.value   || 'Diğer',
+    media:    mediaItems.map(m => ({ id: m.id, src: m.src || null })),
+    channels: [...document.querySelectorAll('#channelList input[type=checkbox]:checked')]
+                .map(cb => cb.closest('[id^=crow-]')?.id?.replace('crow-','')).filter(Boolean),
+    isNew: true,
+    createdAt: new Date().toLocaleDateString('tr-TR'),
+  };
+
+  try {
+    const existing = JSON.parse(localStorage.getItem('newProducts') || '[]');
+    existing.unshift(newProduct);
+    localStorage.setItem('newProducts', JSON.stringify(existing));
+    // Medyayı ayrıca kaydet
+    localStorage.setItem('pd_' + newId, JSON.stringify({ ...newProduct, media: newProduct.media }));
+  } catch (e) {
+    // Kota aşıldı — görselsiz kaydet
+    try {
+      const existing = JSON.parse(localStorage.getItem('newProducts') || '[]');
+      existing.unshift({ ...newProduct, media: [] });
+      localStorage.setItem('newProducts', JSON.stringify(existing));
+    } catch (e2) {}
+  }
+
   showToast('Ürün Oluşturuldu', 'Yeni ürün başarıyla eklendi.', 'success');
   setTimeout(() => window.location.href = 'products.html', 1200);
 }

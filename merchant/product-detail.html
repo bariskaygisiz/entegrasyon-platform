@@ -289,7 +289,33 @@ function addMediaFiles(input) {
 }
 
 function saveProduct() {
-  showToast('Kaydedildi', 'Ürün bilgileri başarıyla güncellendi.', 'success');
+  const id = parseInt(new URLSearchParams(location.search).get('id')) || 1;
+  const data = {
+    name:       document.getElementById('fName')?.value       || '',
+    desc:       document.getElementById('fDesc')?.value       || '',
+    price:      document.getElementById('fPrice')?.value      || '',
+    discounted: document.getElementById('fDiscounted')?.value || '',
+    cost:       document.getElementById('fCost')?.value       || '',
+    sku:        document.getElementById('fSku')?.value        || '',
+    barcode:    document.getElementById('fBarcode')?.value    || '',
+    stock:      document.getElementById('fStock')?.value      || '',
+    weight:     document.getElementById('fWeight')?.value     || '',
+    status:     document.getElementById('fStatus')?.value     || 'active',
+    media:      mediaItems.map(m => ({ id: m.id, src: m.src || null, emoji: m.emoji || null, opacity: m.opacity || 1 })),
+  };
+  try {
+    localStorage.setItem('pd_' + id, JSON.stringify(data));
+    showToast('Kaydedildi', 'Ürün bilgileri başarıyla güncellendi.', 'success');
+  } catch (e) {
+    // Kota aşıldı (büyük görseller) — görselsiz kaydet
+    try {
+      data.media = [];
+      localStorage.setItem('pd_' + id, JSON.stringify(data));
+      showToast('Kaydedildi', 'Bilgiler kaydedildi. Görseller depolama kotası nedeniyle saklanamadı.', 'warning');
+    } catch (e2) {
+      showToast('Hata', 'Kaydedilemedi: tarayıcı depolama alanı dolu.', 'error');
+    }
+  }
 }
 
 function deleteProduct() {
@@ -569,6 +595,27 @@ document.addEventListener('DOMContentLoaded', () => {
   renderProduct(p);
   initMedia(p.emoji);
   initProductVariants(p);
+
+  // Kaydedilmiş verileri localStorage'dan yükle
+  const saved = JSON.parse(localStorage.getItem('pd_' + id) || 'null');
+  if (saved) {
+    const sv = (elId, val) => { const el = document.getElementById(elId); if (el && val != null && val !== '') el.value = val; };
+    sv('fName', saved.name);
+    sv('fDesc', saved.desc);
+    sv('fPrice', saved.price);
+    sv('fDiscounted', saved.discounted);
+    sv('fCost', saved.cost);
+    sv('fSku', saved.sku);
+    sv('fBarcode', saved.barcode);
+    sv('fStock', saved.stock);
+    sv('fWeight', saved.weight);
+    sv('fStatus', saved.status);
+    if (saved.media?.length) {
+      mediaItems = saved.media;
+      renderMediaGrid();
+    }
+    recalcProfit();
+  }
 });
 </script>
 </body>
