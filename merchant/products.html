@@ -178,6 +178,15 @@
           </div>
         </div>
 
+        <!-- Ürün Tipi -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Ürün Tipi</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label class="filter-check"><input type="checkbox" name="fType" value="simple"> <span>Basit</span></label>
+            <label class="filter-check"><input type="checkbox" name="fType" value="variant"> <span>Varyant</span></label>
+          </div>
+        </div>
+
         <!-- İndirim -->
         <div>
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">İndirim</div>
@@ -446,8 +455,6 @@ function renderTable() {
           </div>
           <div class="product-info">
             <div class="product-name">${p.name}</div>
-            <div class="product-sku">SKU: ${p.sku}</div>
-            <div class="product-sku">Barkod: ${p.barcode}</div>
           </div>
         </div>
       </td>
@@ -546,6 +553,7 @@ function buildFilteredList() {
     if (activeFilters.categories?.length && !activeFilters.categories.includes(p.category)) return false;
     if (activeFilters.channels?.length && !activeFilters.channels.some(c => p.channels.includes(c))) return false;
     if (activeFilters.statuses?.length && !activeFilters.statuses.includes(p.status)) return false;
+    if (activeFilters.types?.length   && !activeFilters.types.includes(p.type))     return false;
     if (activeFilters.nostock && p.stock !== 0) return false;
     if (activeFilters.discount === 'yes' && !p.discountedPrice) return false;
     if (activeFilters.discount === 'no' && p.discountedPrice) return false;
@@ -570,6 +578,7 @@ function applyFilters() {
   activeFilters.categories = [...document.querySelectorAll('[name="fCategory"]:checked')].map(el => el.value);
   activeFilters.channels   = [...document.querySelectorAll('[name="fChannel"]:checked')].map(el => el.value);
   activeFilters.statuses   = [...document.querySelectorAll('[name="fStatus"]:checked')].map(el => el.value);
+  activeFilters.types      = [...document.querySelectorAll('[name="fType"]:checked')].map(el => el.value);
   activeFilters.nostock    = !!document.querySelector('[name="fNostock"]:checked');
   const discountChecked    = [...document.querySelectorAll('[name="fDiscount"]:checked')].map(el => el.value);
   activeFilters.discount   = discountChecked.length === 1 ? discountChecked[0] : null;
@@ -605,6 +614,7 @@ function updateFilterBadge() {
   if (activeFilters.categories?.length) count++;
   if (activeFilters.channels?.length) count++;
   if (activeFilters.statuses?.length) count++;
+  if (activeFilters.types?.length)   count++;
   if (activeFilters.nostock) count++;
   if (activeFilters.discount) count++;
   if (activeFilters.priceMin != null || activeFilters.priceMax != null) count++;
