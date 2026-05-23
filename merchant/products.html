@@ -414,6 +414,13 @@ function typeBadge(p) {
     : '<span class="badge badge-gray">Basit</span>';
 }
 
+function calcVariantStock(variantData) {
+  const entries = Object.values(variantData || {});
+  if (!entries.length) return null;
+  const total = entries.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+  return total;
+}
+
 function calcVariantPrices(variantData) {
   const entries = Object.values(variantData || {});
   const prices  = entries.map(v => parseFloat(v.price)).filter(n => n > 0);
@@ -661,6 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const newProds = JSON.parse(localStorage.getItem('newProducts') || '[]');
     newProds.forEach(np => {
       const vpNew = (np.hasVariants && np.variantData) ? calcVariantPrices(np.variantData) : null;
+      const vsNew = (np.hasVariants && np.variantData) ? calcVariantStock(np.variantData)  : null;
       const npPrice      = vpNew ? vpNew.price          : (parseFloat(np.price) || 0);
       const npDiscounted = vpNew ? vpNew.discountedPrice : (np.discounted ? parseFloat(np.discounted) : null);
       allProducts.unshift({
@@ -675,7 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
         discountRate:   npDiscounted && npPrice ? Math.round((1 - npDiscounted / npPrice) * 100) : 0,
         discountedPrice: npDiscounted || null,
         variantPricing:  vpNew !== null,
-        stock:          np.stock,
+        stock:          vsNew !== null ? vsNew : (np.stock || 0),
         status:         np.status || 'draft',
         type:           np.hasVariants ? 'variant' : 'simple',
         channels:       np.channels?.length ? np.channels : ['ikas'],
@@ -689,10 +697,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const saved = JSON.parse(localStorage.getItem('pd_' + p.id) || 'null');
     if (!saved) return p;
     const vpSaved  = (saved.hasVariants && saved.variantData) ? calcVariantPrices(saved.variantData) : null;
+    const vsSaved  = (saved.hasVariants && saved.variantData) ? calcVariantStock(saved.variantData)  : null;
     const price    = vpSaved ? vpSaved.price : (parseFloat(saved.price) || p.price);
     const discounted = vpSaved ? vpSaved.discountedPrice
                                : (saved.discounted ? parseFloat(saved.discounted) : p.discountedPrice);
-    const stock      = (saved.stock !== undefined && saved.stock !== '') ? parseInt(saved.stock) : p.stock;
+    const stock    = vsSaved !== null ? vsSaved
+                   : (saved.stock !== undefined && saved.stock !== '') ? parseInt(saved.stock) : p.stock;
     return {
       ...p,
       name:           saved.name    || p.name,
