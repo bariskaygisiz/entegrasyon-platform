@@ -446,8 +446,8 @@ function priceCell(p) {
 }
 
 function stockCell(p) {
-  const label = p.type === 'variant'
-    ? `<div style="font-size:10px;color:var(--text-muted);margin-top:1px;">varyasyon stoğu</div>`
+  const label = (p.type === 'variant' && p.variantCount > 0)
+    ? `<div style="font-size:10px;color:var(--text-muted);margin-top:1px;">${p.variantCount} varyasyon için</div>`
     : '';
   if (p.stock === 0) return `<span class="stock-count low">0 adet</span>${label}`;
   if (p.stock <= 3)  return `<span class="stock-count low">${p.stock} adet</span>${label}`;
@@ -687,6 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
         discountedPrice: npDiscounted || null,
         variantPricing:  vpNew !== null,
         stock:          vsNew !== null ? vsNew : (np.stock || 0),
+        variantCount:   np.hasVariants ? Object.keys(np.variantData || {}).length : null,
         status:         np.status || 'draft',
         type:           np.hasVariants ? 'variant' : 'simple',
         channels:       np.channels?.length ? np.channels : ['ikas'],
@@ -713,6 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
       discountedPrice: discounted   || null,
       discountRate:   discounted && price ? Math.round((1 - discounted / price) * 100) : 0,
       variantPricing:  vpSaved !== null,
+      variantCount:   saved.hasVariants ? Object.keys(saved.variantData || {}).length : p.variantCount ?? null,
       sku:            saved.sku     || p.sku,
       barcode:        saved.barcode || p.barcode,
       stock,
