@@ -8,13 +8,17 @@ let variantData    = {};
 const OPTION_PRESETS = ['Renk', 'Beden', 'Kapasite', 'Malzeme', 'Stil', 'Model'];
 
 function toggleVariants(el) {
-  const body        = document.getElementById('variantsBody');
-  const pricingCard = document.getElementById('pricingCard');
+  const body          = document.getElementById('variantsBody');
+  const pricingCard   = document.getElementById('pricingCard');
+  const inventoryCard = document.getElementById('inventoryCard');
+  const shippingCard  = document.getElementById('shippingCard');
 
   body.style.display = el.checked ? 'block' : 'none';
 
-  // Varyant aktifken ana fiyat kartını gizle; varyant kapatılınca geri göster
-  if (pricingCard) pricingCard.style.display = el.checked ? 'none' : '';
+  // Varyant aktifken Fiyatlandırma, Envanter ve Kargo kartlarını gizle
+  [pricingCard, inventoryCard, shippingCard].forEach(card => {
+    if (card) card.style.display = el.checked ? 'none' : '';
+  });
 
   if (el.checked && variantOptions.length === 0) addVariantOption();
 }
@@ -147,6 +151,7 @@ function renderVariantsTable() {
             <th>Stok</th>
             <th>SKU</th>
             <th>Barkod</th>
+            <th>Ağırlık (kg)</th>
           </tr>
         </thead>
         <tbody>
@@ -179,6 +184,8 @@ function renderVariantsTable() {
                 value="${saved.sku || ''}" onchange="saveVD('${esc}','sku',this.value)"></td>
               <td><input class="form-control" type="text" style="width:130px;" placeholder="8680000000000"
                 value="${saved.barcode || ''}" onchange="saveVD('${esc}','barcode',this.value)"></td>
+              <td><input class="form-control" type="number" step="0.1" style="width:90px;" placeholder="0.0"
+                value="${saved.weight || ''}" onchange="saveVD('${esc}','weight',this.value)"></td>
             </tr>`;
           }).join('')}
         </tbody>

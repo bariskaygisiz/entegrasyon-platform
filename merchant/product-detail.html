@@ -339,7 +339,7 @@ function renderProduct(p) {
         </div>
 
         <!-- Envanter -->
-        <div class="pd-card">
+        <div class="pd-card" id="inventoryCard">
           <div class="pd-card-title">Envanter</div>
           <div class="pd-card-body">
             <div class="price-row">
@@ -360,7 +360,7 @@ function renderProduct(p) {
         </div>
 
         <!-- Kargo -->
-        <div class="pd-card">
+        <div class="pd-card" id="shippingCard">
           <div class="pd-card-title">Kargo</div>
           <div class="pd-card-body">
             <div class="form-group" style="margin-bottom:0;">
@@ -473,9 +473,11 @@ function initProductVariants(p) {
     variantOptions.push({ id: Date.now(), name: 'Renk', values: [p.variantColor] });
     if (cb)   cb.checked = true;
     if (body) body.style.display = 'block';
-    // Varyant fiyatları geçerli → ana fiyat kartını gizle
-    const pricingCard = document.getElementById('pricingCard');
-    if (pricingCard) pricingCard.style.display = 'none';
+    // Varyant değerleri geçerli → Fiyatlandırma, Envanter, Kargo kartlarını gizle
+    ['pricingCard','inventoryCard','shippingCard'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
     renderVariantOptions();
     updateAddOptBtn();
     renderVariantsTable();
