@@ -311,7 +311,7 @@ function renderProduct(p) {
         </div>
 
         <!-- Fiyatlandırma -->
-        <div class="pd-card">
+        <div class="pd-card" id="pricingCard">
           <div class="pd-card-title">Fiyatlandırma</div>
           <div class="pd-card-body">
             <div class="price-row">
@@ -473,6 +473,9 @@ function initProductVariants(p) {
     variantOptions.push({ id: Date.now(), name: 'Renk', values: [p.variantColor] });
     if (cb)   cb.checked = true;
     if (body) body.style.display = 'block';
+    // Varyant fiyatları geçerli → ana fiyat kartını gizle
+    const pricingCard = document.getElementById('pricingCard');
+    if (pricingCard) pricingCard.style.display = 'none';
     renderVariantOptions();
     updateAddOptBtn();
     renderVariantsTable();

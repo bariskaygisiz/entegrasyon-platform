@@ -8,8 +8,14 @@ let variantData    = {};
 const OPTION_PRESETS = ['Renk', 'Beden', 'Kapasite', 'Malzeme', 'Stil', 'Model'];
 
 function toggleVariants(el) {
-  const body = document.getElementById('variantsBody');
+  const body        = document.getElementById('variantsBody');
+  const pricingCard = document.getElementById('pricingCard');
+
   body.style.display = el.checked ? 'block' : 'none';
+
+  // Varyant aktifken ana fiyat kartını gizle; varyant kapatılınca geri göster
+  if (pricingCard) pricingCard.style.display = el.checked ? 'none' : '';
+
   if (el.checked && variantOptions.length === 0) addVariantOption();
 }
 
