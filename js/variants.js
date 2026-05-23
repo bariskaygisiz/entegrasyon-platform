@@ -189,8 +189,9 @@ function saveVD(combo, field, value) {
 function fillAllPrices() {
   const price = document.getElementById('fPrice')?.value || '';
   if (!price) { showToast('Uyarı', 'Önce ana fiyatı girin.', 'warning'); return; }
+  // cells[0]=Görsel, cells[1]=Varyant, cells[2]=Fiyat
   document.querySelectorAll('#variantDataTable tbody tr').forEach(row => {
-    const inp = row.cells[1]?.querySelector('input');
+    const inp = row.cells[2]?.querySelector('input');
     if (inp && !inp.value) inp.value = price;
   });
   showToast('Güncellendi', 'Boş fiyat alanları ana fiyatla dolduruldu.', 'success');

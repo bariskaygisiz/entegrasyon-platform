@@ -465,12 +465,15 @@ function initProductVariants(p) {
   variantOptions = [];
   variantData    = {};
 
-  if (!p.variantColor) return; // no variants for this product
+  if (p.variantColor) {
+    // Pre-populate Renk option with the product's existing color variant
+    variantOptions.push({ id: Date.now(), name: 'Renk', values: [p.variantColor] });
+  } else {
+    // No existing variant — add one blank option row so the section is usable immediately
+    variantOptions.push({ id: Date.now(), name: '', values: [] });
+  }
 
-  // Pre-populate Renk option with the product's own color
-  variantOptions.push({ id: Date.now(), name: 'Renk', values: [p.variantColor] });
-
-  // Check the toggle and show the section
+  // Always open the variants section
   const cb   = document.getElementById('hasVariants');
   const body = document.getElementById('variantsBody');
   if (cb)   cb.checked = true;
