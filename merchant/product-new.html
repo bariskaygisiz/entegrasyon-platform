@@ -10,7 +10,7 @@
     @media(max-width:900px){ .pd-layout { grid-template-columns: 1fr; } }
 
     .pd-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; }
-    .pd-card-title { font-size: 13px; font-weight: 700; padding: 14px 18px; border-bottom: 1px solid var(--border-light); }
+    .pd-card-title { font-size: 13px; font-weight: 700; padding: 14px 18px; border-bottom: 1px solid var(--border-light); display:flex; align-items:center; justify-content:space-between; }
     .pd-card-body { padding: 18px; }
 
     .pd-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); text-decoration: none; margin-bottom: 16px; transition: color .15s; }
@@ -19,7 +19,15 @@
     .pd-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
     .pd-header-left h1 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
 
-    .media-upload { border: 2px dashed var(--border); border-radius: var(--radius); padding: 36px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; }
+    .media-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 12px; }
+    .media-thumb { aspect-ratio:1; background:var(--bg); border:1.5px solid var(--border); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .15s, background .15s; position:relative; overflow:hidden; }
+    .media-thumb:hover { border-color:var(--primary); }
+    .media-thumb.selected { border-color:var(--primary); background:var(--primary-light,#EEF2FF); }
+    .media-thumb.add { border-style:dashed; color:var(--text-muted); flex-direction:column; gap:4px; font-size:20px; overflow:visible; }
+    .media-thumb.add:hover { border-color:var(--primary); background:var(--primary-light,#EEF2FF); }
+    .media-cb { position:absolute; top:5px; left:5px; width:16px; height:16px; accent-color:var(--primary); cursor:pointer; z-index:2; }
+
+    .media-upload { border: 2px dashed var(--border); border-radius: var(--radius); padding: 36px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; display:block; }
     .media-upload:hover { border-color: var(--primary); background: var(--primary-light); }
     .media-upload svg { color: var(--text-muted); margin-bottom: 10px; }
 
@@ -122,13 +130,21 @@
 
           <!-- Medya -->
           <div class="pd-card">
-            <div class="pd-card-title">Medya</div>
+            <div class="pd-card-title">
+              <span>Medya</span>
+              <button id="mediaDeleteBtn" onclick="deleteSelectedMedia()"
+                style="display:none;background:var(--danger-light);color:var(--danger);border:1px solid var(--danger);border-radius:var(--radius-sm);padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;">
+                Seçilenleri sil
+              </button>
+            </div>
             <div class="pd-card-body">
-              <div class="media-upload" onclick="showToast('Medya','Dosya yükleme başlatıldı.','info')">
+              <div class="media-grid" id="mediaGrid" style="display:none;"></div>
+              <label class="media-upload" id="mediaUploadArea">
+                <input type="file" accept="image/*" multiple style="display:none;" id="mediaFileInput" onchange="addMediaFiles(this)">
                 <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                 <p style="font-size:13px;font-weight:600;color:var(--text);">Dosyaları sürükleyin veya tıklayın</p>
                 <p style="font-size:12px;color:var(--text-muted);margin-top:4px;">PNG, JPG, WEBP — Maks. 20 MB</p>
-              </div>
+              </label>
             </div>
           </div>
 
@@ -309,6 +325,66 @@ function initChannels() {
 function toggleChannel(c, el) {
   const row = document.getElementById('crow-' + c);
   if (el.checked) row.classList.add('active'); else row.classList.remove('active');
+}
+
+/* ---- Medya Yönetimi ---- */
+let mediaItems  = [];
+let mediaNextId = 1;
+
+function renderMediaGrid() {
+  const grid      = document.getElementById('mediaGrid');
+  const btn       = document.getElementById('mediaDeleteBtn');
+  const uploadArea = document.getElementById('mediaUploadArea');
+  if (!grid) return;
+  const selCount = mediaItems.filter(m => m.selected).length;
+  if (btn) {
+    btn.style.display = selCount ? 'inline-block' : 'none';
+    if (selCount) btn.textContent = selCount + ' görseli sil';
+  }
+  if (!mediaItems.length) {
+    grid.style.display = 'none';
+    if (uploadArea) uploadArea.style.display = 'block';
+    return;
+  }
+  grid.style.display = 'grid';
+  grid.innerHTML = mediaItems.map(item => `
+    <div class="media-thumb${item.selected ? ' selected' : ''}" onclick="toggleMediaSelect(${item.id})">
+      <img src="${item.src}" style="width:100%;height:100%;object-fit:cover;border-radius:calc(var(--radius-sm) - 2px);">
+      <input class="media-cb" type="checkbox" ${item.selected ? 'checked' : ''}
+        onclick="event.stopPropagation();" onchange="toggleMediaSelect(${item.id})">
+    </div>
+  `).join('') + `
+    <label class="media-thumb add" title="Görsel ekle">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      <span style="font-size:11px;font-weight:500;">Ekle</span>
+      <input type="file" accept="image/*" multiple style="display:none;" onchange="addMediaFiles(this)">
+    </label>
+  `;
+  if (uploadArea) uploadArea.style.display = 'none';
+}
+
+function toggleMediaSelect(id) {
+  const item = mediaItems.find(m => m.id === id);
+  if (item) { item.selected = !item.selected; renderMediaGrid(); }
+}
+
+function deleteSelectedMedia() {
+  const count = mediaItems.filter(m => m.selected).length;
+  mediaItems = mediaItems.filter(m => !m.selected);
+  renderMediaGrid();
+  showToast('Silindi', count + ' görsel kaldırıldı.', 'success');
+}
+
+function addMediaFiles(input) {
+  [...input.files].forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      mediaItems.push({ id: mediaNextId++, src: e.target.result, selected: false });
+      renderMediaGrid();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
 }
 
 function recalcProfit() {
