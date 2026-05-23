@@ -171,12 +171,18 @@ function getProduct(id) {
   const createdStr = `${created.getDate()} ${months[created.getMonth()]} ${created.getFullYear()}`;
   const updatedStr = `22 May 2026`;
 
+  // Extract color from variant suffix (e.g. ' - Siyah' → 'Siyah')
+  const variantColor = variant ? variant.slice(3) : null;
+
+  // Pre-build sibling colors for same base product (same PRODUCTS entry, different variants)
+  const siblingColors = VARIANTS_D.slice(1).map(v => v.slice(3));
+
   return {
     id, name: base.name + variant,
     sku: base.sku + (variant ? '-' + (variantIdx + 1) : ''),
     barcode: genBarcode(s), emoji: base.emoji, category: base.category,
     price, cost, discountRate, discountedPrice, stock, status, channels, weight,
-    createdStr, updatedStr,
+    createdStr, updatedStr, variantColor, siblingColors,
     description: `${base.name}${variant} — ${base.category.toLowerCase()} kategorisinde öne çıkan ürün. Orijinal kutusuyla birlikte gelir, 2 yıl resmi garanti kapsamındadır.`,
     tags: [base.category, base.name.split(' ')[0]],
   };
@@ -454,11 +460,34 @@ function renderProduct(p) {
   `;
 }
 
+function initProductVariants(p) {
+  // Reset shared variant state
+  variantOptions = [];
+  variantData    = {};
+
+  if (!p.variantColor) return; // no variants for this product
+
+  // Pre-populate Renk option with the product's own color
+  variantOptions.push({ id: Date.now(), name: 'Renk', values: [p.variantColor] });
+
+  // Check the toggle and show the section
+  const cb   = document.getElementById('hasVariants');
+  const body = document.getElementById('variantsBody');
+  if (cb)   cb.checked = true;
+  if (body) body.style.display = 'block';
+
+  renderVariantOptions();
+  updateAddOptBtn();
+  renderVariantsTable();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initSidebar();
   initModals();
   const id = parseInt(new URLSearchParams(window.location.search).get('id')) || 1;
-  renderProduct(getProduct(id));
+  const p  = getProduct(id);
+  renderProduct(p);
+  initProductVariants(p);
 });
 </script>
 </body>
