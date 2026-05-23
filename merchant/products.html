@@ -80,8 +80,9 @@
         <div class="tabs" data-tabs-container>
           <button class="tab-btn active" data-tab="tab-all" onclick="switchProductTab('all', this)">Tüm Ürünler <span id="cnt-all" style="color:var(--text-muted)"></span></button>
           <button class="tab-btn" data-tab="tab-all" onclick="switchProductTab('active', this)">Aktif <span id="cnt-active" style="color:var(--text-muted)"></span></button>
-          <button class="tab-btn" data-tab="tab-all" onclick="switchProductTab('passive', this)">Pasif <span id="cnt-passive" style="color:var(--text-muted)"></span></button>
-          <button class="tab-btn" data-tab="tab-all" onclick="switchProductTab('nostock', this)">Stok Yok <span id="cnt-nostock" style="color:var(--danger)"></span></button>
+          <button class="tab-btn" data-tab="tab-all" onclick="switchProductTab('draft', this)">Taslak <span id="cnt-draft" style="color:var(--text-muted)"></span></button>
+          <button class="tab-btn" data-tab="tab-all" onclick="switchProductTab('archived', this)">Arşiv <span id="cnt-archived" style="color:var(--text-muted)"></span></button>
+          <button class="tab-btn" data-tab="tab-all" onclick="switchProductTab('nostock', this)">Stokta Yok <span id="cnt-nostock" style="color:var(--danger)"></span></button>
         </div>
 
         <!-- FILTER BAR -->
@@ -158,14 +159,21 @@
           <div id="filterChannels" style="display:flex;flex-direction:column;gap:6px;"></div>
         </div>
 
-        <!-- Durum -->
+        <!-- Ürün Durumu -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Ürün Durumu</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label class="filter-check"><input type="checkbox" name="fStatus" value="active"> <span>Aktif</span></label>
+            <label class="filter-check"><input type="checkbox" name="fStatus" value="draft"> <span>Taslak</span></label>
+            <label class="filter-check"><input type="checkbox" name="fStatus" value="archived"> <span>Arşiv</span></label>
+          </div>
+        </div>
+
+        <!-- Stok Durumu -->
         <div>
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Stok Durumu</div>
           <div style="display:flex;flex-direction:column;gap:6px;">
-            <label class="filter-check"><input type="checkbox" name="fStatus" value="active"> <span>Aktif</span></label>
-            <label class="filter-check"><input type="checkbox" name="fStatus" value="low"> <span>Düşük Stok</span></label>
-            <label class="filter-check"><input type="checkbox" name="fStatus" value="passive"> <span>Pasif</span></label>
-            <label class="filter-check"><input type="checkbox" name="fStatus" value="nostock"> <span>Stok Yok</span></label>
+            <label class="filter-check"><input type="checkbox" name="fNostock" value="1"> <span>Stokta Yok (0 adet)</span></label>
           </div>
         </div>
 
@@ -349,11 +357,16 @@ function generateAllProducts(count) {
     const variantIdx = Math.floor(i / PRODUCTS.length);
     const variant = VARIANTS[variantIdx % VARIANTS.length];
     const stockRaw = rInt(s, 22, 10);
-    let status, stock;
-    if (stockRaw === 0) { status = 'nostock'; stock = 0; }
-    else if (stockRaw <= 2) { status = 'passive'; stock = rInt(s, 23, 40) + 5; }
-    else if (stockRaw <= 3) { status = 'low'; stock = rInt(s, 23, 3) + 1; }
-    else { status = 'active'; stock = rInt(s, 23, 80) + 10; }
+    let stock;
+    if (stockRaw === 0) stock = 0;
+    else if (stockRaw <= 2) stock = rInt(s, 23, 40) + 5;
+    else if (stockRaw <= 3) stock = rInt(s, 23, 3) + 1;
+    else stock = rInt(s, 23, 80) + 10;
+    const statusSeed = rInt(s, 29, 10);
+    let status;
+    if (statusSeed <= 1) status = 'archived';
+    else if (statusSeed <= 3) status = 'draft';
+    else status = 'active';
     const priceAdj = 1 + (rInt(s, 24, 21) - 10) / 100;
     const price = Math.round(base.price * priceAdj / 100) * 100 || base.price;
     const discountRates = [0, 0, 0, 5, 10, 10, 15, 20, 25, 30];
@@ -379,9 +392,8 @@ let allProducts = [];
 let filteredProducts = [];
 
 function statusBadge(p) {
-  if (p.status === 'nostock') return '<span class="badge badge-danger">Stok Yok</span>';
-  if (p.status === 'low')     return '<span class="badge badge-warning">Düşük Stok</span>';
-  if (p.status === 'passive') return '<span class="badge badge-gray">Pasif</span>';
+  if (p.status === 'archived') return '<span class="badge badge-gray">Arşiv</span>';
+  if (p.status === 'draft')    return '<span class="badge badge-warning">Taslak</span>';
   return '<span class="badge badge-success">Aktif</span>';
 }
 
@@ -515,13 +527,15 @@ function switchProductTab(tab, el) {
 
 function buildFilteredList() {
   return allProducts.filter(p => {
-    if (tabFilter === 'active'  && p.status !== 'active')  return false;
-    if (tabFilter === 'passive' && p.status !== 'passive') return false;
-    if (tabFilter === 'nostock' && p.status !== 'nostock') return false;
+    if (tabFilter === 'active'   && p.status !== 'active')   return false;
+    if (tabFilter === 'draft'    && p.status !== 'draft')    return false;
+    if (tabFilter === 'archived' && p.status !== 'archived') return false;
+    if (tabFilter === 'nostock'  && p.stock !== 0)           return false;
     if (searchQuery && !p.name.toLowerCase().includes(searchQuery) && !p.sku.toLowerCase().includes(searchQuery) && !p.barcode.includes(searchQuery)) return false;
     if (activeFilters.categories?.length && !activeFilters.categories.includes(p.category)) return false;
     if (activeFilters.channels?.length && !activeFilters.channels.some(c => p.channels.includes(c))) return false;
     if (activeFilters.statuses?.length && !activeFilters.statuses.includes(p.status)) return false;
+    if (activeFilters.nostock && p.stock !== 0) return false;
     if (activeFilters.discount === 'yes' && !p.discountedPrice) return false;
     if (activeFilters.discount === 'no' && p.discountedPrice) return false;
     const effectivePrice = p.discountedPrice || p.price;
@@ -534,16 +548,18 @@ function buildFilteredList() {
 }
 
 function updateTabCounts() {
-  document.getElementById('cnt-all').textContent     = allProducts.length;
-  document.getElementById('cnt-active').textContent  = allProducts.filter(p => p.status === 'active').length;
-  document.getElementById('cnt-passive').textContent = allProducts.filter(p => p.status === 'passive').length;
-  document.getElementById('cnt-nostock').textContent = allProducts.filter(p => p.status === 'nostock').length;
+  document.getElementById('cnt-all').textContent      = allProducts.length;
+  document.getElementById('cnt-active').textContent   = allProducts.filter(p => p.status === 'active').length;
+  document.getElementById('cnt-draft').textContent    = allProducts.filter(p => p.status === 'draft').length;
+  document.getElementById('cnt-archived').textContent = allProducts.filter(p => p.status === 'archived').length;
+  document.getElementById('cnt-nostock').textContent  = allProducts.filter(p => p.stock === 0).length;
 }
 
 function applyFilters() {
   activeFilters.categories = [...document.querySelectorAll('[name="fCategory"]:checked')].map(el => el.value);
   activeFilters.channels   = [...document.querySelectorAll('[name="fChannel"]:checked')].map(el => el.value);
   activeFilters.statuses   = [...document.querySelectorAll('[name="fStatus"]:checked')].map(el => el.value);
+  activeFilters.nostock    = !!document.querySelector('[name="fNostock"]:checked');
   const discountChecked    = [...document.querySelectorAll('[name="fDiscount"]:checked')].map(el => el.value);
   activeFilters.discount   = discountChecked.length === 1 ? discountChecked[0] : null;
   const pMin = document.getElementById('fPriceMin').value;
@@ -578,6 +594,7 @@ function updateFilterBadge() {
   if (activeFilters.categories?.length) count++;
   if (activeFilters.channels?.length) count++;
   if (activeFilters.statuses?.length) count++;
+  if (activeFilters.nostock) count++;
   if (activeFilters.discount) count++;
   if (activeFilters.priceMin != null || activeFilters.priceMax != null) count++;
   if (activeFilters.stockMin != null || activeFilters.stockMax != null) count++;

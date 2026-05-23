@@ -154,11 +154,16 @@ function getProduct(id) {
   const variantIdx = Math.floor(i / PRODUCTS.length);
   const variant = VARIANTS_D[variantIdx % VARIANTS_D.length];
   const stockRaw = rInt(s, 22, 10);
-  let status, stock;
-  if (stockRaw === 0)      { status = 'nostock'; stock = 0; }
-  else if (stockRaw <= 2)  { status = 'passive'; stock = rInt(s, 23, 40) + 5; }
-  else if (stockRaw <= 3)  { status = 'low';     stock = rInt(s, 23, 3) + 1; }
-  else                     { status = 'active';  stock = rInt(s, 23, 80) + 10; }
+  let stock;
+  if (stockRaw === 0)     stock = 0;
+  else if (stockRaw <= 2) stock = rInt(s, 23, 40) + 5;
+  else if (stockRaw <= 3) stock = rInt(s, 23, 3) + 1;
+  else                    stock = rInt(s, 23, 80) + 10;
+  const statusSeed = rInt(s, 29, 10);
+  let status;
+  if (statusSeed <= 1) status = 'archived';
+  else if (statusSeed <= 3) status = 'draft';
+  else status = 'active';
   const priceAdj = 1 + (rInt(s, 24, 21) - 10) / 100;
   const price = Math.round(base.price * priceAdj / 100) * 100 || base.price;
   const cost  = Math.round(price * (0.72 + rInt(s, 25, 16) / 100) / 100) * 100;
@@ -295,8 +300,8 @@ function deleteProduct() {
 
 function renderProduct(p) {
   const margin = p.cost > 0 ? Math.round(((p.price - p.cost) / p.price) * 100) : 0;
-  const statusMap = { active:'Aktif', passive:'Pasif', low:'Düşük Stok', nostock:'Stok Yok' };
-  const statusBadgeCls = { active:'badge-success', passive:'badge-gray', low:'badge-warning', nostock:'badge-danger' };
+  const statusMap = { active:'Aktif', draft:'Taslak', archived:'Arşiv' };
+  const statusBadgeCls = { active:'badge-success', draft:'badge-warning', archived:'badge-gray' };
 
   document.getElementById('headerTitle').textContent = p.name;
   document.title = p.name + ' — Entegrasyon';
@@ -312,6 +317,7 @@ function renderProduct(p) {
         <h1>${p.name}</h1>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;">
           <span class="badge ${statusBadgeCls[p.status]}">${statusMap[p.status]}</span>
+          ${p.stock === 0 ? '<span class="badge badge-danger">Stokta Yok</span>' : ''}
           <span class="badge badge-gray">${p.category}</span>
           <span style="font-size:12px;color:var(--text-muted);">ID: #${p.id}</span>
         </div>
@@ -447,11 +453,14 @@ function renderProduct(p) {
           <div class="pd-card-title">Durum</div>
           <div class="pd-card-body">
             <select class="status-select" id="fStatus">
-              <option value="active"  ${p.status==='active'  ?'selected':''}>Aktif</option>
-              <option value="low"     ${p.status==='low'     ?'selected':''}>Düşük Stok</option>
-              <option value="passive" ${p.status==='passive' ?'selected':''}>Pasif</option>
-              <option value="nostock" ${p.status==='nostock' ?'selected':''}>Stok Yok</option>
+              <option value="active"   ${p.status==='active'   ?'selected':''}>Aktif</option>
+              <option value="draft"    ${p.status==='draft'    ?'selected':''}>Taslak</option>
+              <option value="archived" ${p.status==='archived' ?'selected':''}>Arşiv</option>
             </select>
+            ${p.stock === 0 ? `<div style="display:flex;align-items:center;gap:6px;margin-top:10px;padding:8px 12px;background:var(--danger-light,#FEF2F2);border-radius:var(--radius-sm);font-size:12px;color:var(--danger);">
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+              <span>Bu ürün <strong>stokta yok</strong> (0 adet)</span>
+            </div>` : ''}
           </div>
         </div>
 
