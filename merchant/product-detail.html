@@ -368,7 +368,9 @@ function buildNewProduct(id) {
     cost:           parseFloat(raw.cost) || 0,
     sku:            raw.sku              || '',
     barcode:        raw.barcode          || '',
-    stock:          parseInt(raw.stock)  || 0,
+    stock:          (raw.hasVariants && raw.variantData)
+                    ? Object.values(raw.variantData).reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0)
+                    : (parseInt(raw.stock) || 0),
     weight:         parseFloat(raw.weight) || 0,
     status:         raw.status           || 'draft',
     emoji:          '📦',
@@ -452,7 +454,7 @@ function renderProduct(p) {
         <h1>${p.name}</h1>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;">
           <span class="badge ${statusBadgeCls[p.status]}">${statusMap[p.status]}</span>
-          ${p.stock === 0 ? '<span class="badge badge-danger">Stokta Yok</span>' : ''}
+          <span id="stockBadge" class="badge badge-danger"${p.stock > 0 ? ' style="display:none;"' : ''}>Stokta Yok</span>
           <span class="badge badge-gray">${p.category}</span>
           <span style="font-size:12px;color:var(--text-muted);">ID: #${p.id}</span>
         </div>
@@ -592,10 +594,10 @@ function renderProduct(p) {
               <option value="draft"    ${p.status==='draft'    ?'selected':''}>Taslak</option>
               <option value="archived" ${p.status==='archived' ?'selected':''}>Arşiv</option>
             </select>
-            ${p.stock === 0 ? `<div style="display:flex;align-items:center;gap:6px;margin-top:10px;padding:8px 12px;background:var(--danger-light,#FEF2F2);border-radius:var(--radius-sm);font-size:12px;color:var(--danger);">
+            <div id="stockWarn" style="display:${p.stock === 0 ? 'flex' : 'none'};align-items:center;gap:6px;margin-top:10px;padding:8px 12px;background:var(--danger-light,#FEF2F2);border-radius:var(--radius-sm);font-size:12px;color:var(--danger);">
               <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
               <span>Bu ürün <strong>stokta yok</strong> (0 adet)</span>
-            </div>` : ''}
+            </div>
           </div>
         </div>
 
@@ -753,6 +755,16 @@ document.addEventListener('DOMContentLoaded', () => {
         renderVariantOptions();
         updateAddOptBtn();
         renderVariantsTable();
+
+        // Varyant stoklarını topla; stok varsa uyarıları gizle
+        const totalStock = Object.values(saved.variantData || {})
+          .reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+        if (totalStock > 0) {
+          const badge = document.getElementById('stockBadge');
+          const warn  = document.getElementById('stockWarn');
+          if (badge) badge.style.display = 'none';
+          if (warn)  warn.style.display  = 'none';
+        }
       }
     }
   }
