@@ -474,20 +474,42 @@ function addTag(e, input) {
 
 function validate() {
   let ok = true;
+  const hasVariants = document.getElementById('hasVariants')?.checked;
+
+  // Varyantlar aktifse fiyat ve envanter kartları gizli — o alanlar zorunlu değil
   const checks = [
-    { id: 'fName',  errId: 'err-name',  msg: 'Ürün adı zorunludur.'  },
-    { id: 'fPrice', errId: 'err-price', msg: 'Fiyat zorunludur.'      },
-    { id: 'fSku',   errId: 'err-sku',   msg: 'SKU zorunludur.'        },
+    { id: 'fName',  errId: 'err-name',  required: true           },
+    { id: 'fPrice', errId: 'err-price', required: !hasVariants   },
+    { id: 'fSku',   errId: 'err-sku',   required: !hasVariants   },
   ];
-  checks.forEach(({ id, errId }) => {
+
+  checks.forEach(({ id, errId, required }) => {
     const el  = document.getElementById(id);
     const err = document.getElementById(errId);
-    if (!el.value.trim()) {
-      el.classList.add('error'); err.style.display = 'block'; ok = false;
+    if (!required) {
+      el?.classList.remove('error');
+      if (err) err.style.display = 'none';
+      return;
+    }
+    if (!el?.value.trim()) {
+      el?.classList.add('error');
+      if (err) err.style.display = 'block';
+      ok = false;
     } else {
-      el.classList.remove('error'); err.style.display = 'none';
+      el.classList.remove('error');
+      if (err) err.style.display = 'none';
     }
   });
+
+  // Varyant varsa en az bir varyant seçeneği + değeri olmalı
+  if (hasVariants) {
+    const filled = variantOptions.filter(o => o.name && o.values.length > 0);
+    if (!filled.length) {
+      showToast('Uyarı', 'En az bir varyant seçeneği ve değeri ekleyin.', 'warning');
+      ok = false;
+    }
+  }
+
   return ok;
 }
 
