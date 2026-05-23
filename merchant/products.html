@@ -112,6 +112,7 @@
                 <tr>
                   <th><input type="checkbox" id="checkAll"></th>
                   <th>Ürün</th>
+                  <th>Ürün Tipi</th>
                   <th>Kategori</th>
                   <th>Fiyat</th>
                   <th>Stok</th>
@@ -379,6 +380,7 @@ function generateAllProducts(count) {
       barcode: generateBarcode(s),
       emoji: base.emoji,
       category: base.category,
+      type: variant ? 'variant' : 'simple',
       price, discountRate, discountedPrice, stock, status,
       channels: CHANNEL_SETS[rInt(s, 26, CHANNEL_SETS.length)],
     });
@@ -395,6 +397,12 @@ function statusBadge(p) {
   if (p.status === 'archived') return '<span class="badge badge-gray">Arşiv</span>';
   if (p.status === 'draft')    return '<span class="badge badge-warning">Taslak</span>';
   return '<span class="badge badge-success">Aktif</span>';
+}
+
+function typeBadge(p) {
+  return p.type === 'variant'
+    ? '<span class="badge badge-primary">Varyant</span>'
+    : '<span class="badge badge-gray">Basit</span>';
 }
 
 function stockCell(p) {
@@ -443,6 +451,7 @@ function renderTable() {
           </div>
         </div>
       </td>
+      <td>${typeBadge(p)}</td>
       <td><span class="badge badge-gray">${p.category}</span></td>
       <td>
         ${p.discountedPrice
@@ -639,6 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
         discountedPrice: np.discounted || null,
         stock:          np.stock,
         status:         np.status || 'draft',
+        type:           np.hasVariants ? 'variant' : 'simple',
         channels:       np.channels?.length ? np.channels : ['ikas'],
         isNew:          true,
       });
@@ -663,6 +673,9 @@ document.addEventListener('DOMContentLoaded', () => {
       stock,
       status:         saved.status  || p.status,
       mediaSrc:       saved.media?.find(m => m.src)?.src || null,
+      type:           saved.hasVariants !== undefined
+                        ? (saved.hasVariants ? 'variant' : 'simple')
+                        : p.type,
     };
   });
 
