@@ -31,6 +31,7 @@ function addVariantOption() {
   variantOptions.push({ id: Date.now(), name: '', values: [] });
   renderVariantOptions();
   updateAddOptBtn();
+  if (typeof markDirty === 'function') markDirty();
 }
 
 function removeVariantOption(id) {
@@ -38,6 +39,7 @@ function removeVariantOption(id) {
   renderVariantOptions();
   renderVariantsTable();
   updateAddOptBtn();
+  if (typeof markDirty === 'function') markDirty();
 }
 
 function updateOptionName(id, val) {
@@ -53,6 +55,7 @@ function addOptionValue(id, input) {
     opt.values.push(val);
     renderVariantOptions();
     renderVariantsTable();
+    if (typeof markDirty === 'function') markDirty();
   }
   // restore focus to new input
   setTimeout(() => {
@@ -67,6 +70,7 @@ function removeOptionValue(id, val) {
     opt.values = opt.values.filter(v => v !== val);
     renderVariantOptions();
     renderVariantsTable();
+    if (typeof markDirty === 'function') markDirty();
   }
 }
 

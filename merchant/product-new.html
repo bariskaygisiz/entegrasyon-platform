@@ -91,7 +91,7 @@
     <header class="header">
       <button class="hamburger" id="hamburger"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <div class="header-title">Yeni Ürün Ekle</div>
-      <div class="header-actions">
+      <div class="header-actions" id="headerActions" style="display:none;gap:8px;">
         <button class="btn btn-ghost btn-sm" onclick="window.location.href='products.html'">Vazgeç</button>
         <button class="btn btn-primary btn-sm" onclick="createProduct()">Ürünü Oluştur</button>
       </div>
@@ -107,10 +107,6 @@
         <div class="pd-header-left">
           <h1>Yeni Ürün</h1>
           <p style="font-size:13px;color:var(--text-muted);margin-top:2px;">Ürün bilgilerini doldurun ve kanalları seçin</p>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-ghost btn-sm" onclick="window.location.href='products.html'">Vazgeç</button>
-          <button class="btn btn-primary btn-sm" onclick="createProduct()">Ürünü Oluştur</button>
         </div>
       </div>
 
@@ -293,11 +289,6 @@
         </div>
       </div>
 
-      <div class="save-bar">
-        <button class="btn btn-ghost btn-sm" onclick="window.location.href='products.html'">Vazgeç</button>
-        <button class="btn btn-primary btn-sm" onclick="createProduct()">Ürünü Oluştur</button>
-      </div>
-
     </div>
   </main>
 </div>
@@ -400,6 +391,7 @@ function mediaDrop(e, idx) {
   mediaItems.splice(idx, 0, moved);
   mediaDragSrc = null;
   renderMediaGrid();
+  markDirty();
 }
 function mediaDragEnd(e) {
   mediaDragSrc = null;
@@ -415,6 +407,7 @@ function deleteSelectedMedia() {
   const count = mediaItems.filter(m => m.selected).length;
   mediaItems = mediaItems.filter(m => !m.selected);
   renderMediaGrid();
+  markDirty();
   showToast('Silindi', count + ' görsel kaldırıldı.', 'success');
 }
 
@@ -440,11 +433,17 @@ function compressImage(file, maxPx = 1024, quality = 0.78) {
   });
 }
 
+function markDirty() {
+  const ha = document.getElementById('headerActions');
+  if (ha && ha.style.display === 'none') ha.style.display = 'flex';
+}
+
 function addMediaFiles(input) {
   [...input.files].forEach(file => {
     compressImage(file).then(src => {
       mediaItems.push({ id: mediaNextId++, src, selected: false });
       renderMediaGrid();
+      markDirty();
     });
   });
   input.value = '';
@@ -568,6 +567,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (this.value.trim()) { this.classList.remove('error'); }
     });
   });
+
+  // Herhangi bir form alanı değişince header butonlarını göster
+  document.addEventListener('input',  e => { if (e.target.closest('.page')) markDirty(); });
+  document.addEventListener('change', e => { if (e.target.closest('.page')) markDirty(); });
 });
 </script>
 </body>
