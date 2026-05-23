@@ -114,12 +114,32 @@ function getCombinations() {
 function handleVariantImg(input, combo) {
   const file = input.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    saveVD(combo, 'img', e.target.result);
+  compressImageV(file).then(src => {
+    saveVD(combo, 'img', src);
     renderVariantsTable();
-  };
-  reader.readAsDataURL(file);
+  });
+}
+
+function compressImageV(file, maxPx = 1024, quality = 0.78) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxPx || h > maxPx) {
+          if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
+          else        { w = Math.round(w * maxPx / h); h = maxPx; }
+        }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 function removeVariantImg(combo) {

@@ -276,14 +276,34 @@ function deleteSelectedMedia() {
   showToast('Silindi', count + ' görsel kaldırıldı.', 'success');
 }
 
-function addMediaFiles(input) {
-  [...input.files].forEach(file => {
+function compressImage(file, maxPx = 1024, quality = 0.78) {
+  return new Promise(resolve => {
     const reader = new FileReader();
     reader.onload = e => {
-      mediaItems.push({ id: mediaNextId++, src: e.target.result, selected: false, opacity: 1 });
-      renderMediaGrid();
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxPx || h > maxPx) {
+          if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
+          else        { w = Math.round(w * maxPx / h); h = maxPx; }
+        }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+  });
+}
+
+function addMediaFiles(input) {
+  [...input.files].forEach(file => {
+    compressImage(file).then(src => {
+      mediaItems.push({ id: mediaNextId++, src, selected: false, opacity: 1 });
+      renderMediaGrid();
+    });
   });
   input.value = '';
 }
