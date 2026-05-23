@@ -645,6 +645,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   } catch (e) {}
 
+  // Düzenlenmiş ürünleri localStorage'dan uygula
+  allProducts = allProducts.map(p => {
+    const saved = JSON.parse(localStorage.getItem('pd_' + p.id) || 'null');
+    if (!saved) return p;
+    const price      = parseFloat(saved.price)      || p.price;
+    const discounted = saved.discounted ? parseFloat(saved.discounted) : p.discountedPrice;
+    const stock      = (saved.stock !== undefined && saved.stock !== '') ? parseInt(saved.stock) : p.stock;
+    return {
+      ...p,
+      name:           saved.name    || p.name,
+      price,
+      discountedPrice: discounted   || null,
+      discountRate:   discounted && price ? Math.round((1 - discounted / price) * 100) : 0,
+      sku:            saved.sku     || p.sku,
+      barcode:        saved.barcode || p.barcode,
+      stock,
+      status:         saved.status  || p.status,
+      mediaSrc:       saved.media?.find(m => m.src)?.src || null,
+    };
+  });
+
   filteredProducts = allProducts;
   renderTable();
   updateTabCounts();

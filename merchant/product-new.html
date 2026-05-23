@@ -28,6 +28,11 @@
     .media-cb { position:absolute; top:5px; left:5px; width:16px; height:16px; accent-color:var(--primary); cursor:pointer; z-index:2; opacity:0; transition:opacity .15s; }
     .media-thumb:hover .media-cb,
     .media-thumb.selected .media-cb { opacity:1; }
+    .media-thumb[draggable=true] { cursor: grab; }
+    .media-thumb[draggable=true]:active { cursor: grabbing; }
+    .media-thumb.dragging { opacity: 0.35; }
+    .media-thumb.drag-over { border-color: var(--primary) !important; outline: 2px dashed var(--primary); outline-offset: -3px; background: var(--primary-light, #EEF2FF) !important; }
+    .media-main-badge { position:absolute; bottom:3px; left:3px; right:3px; background:rgba(0,0,0,.55); color:#fff; font-size:9px; font-weight:700; text-align:center; border-radius:3px; padding:2px 0; letter-spacing:.4px; pointer-events:none; }
 
     .media-upload { border: 2px dashed var(--border); border-radius: var(--radius); padding: 36px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; display:block; }
     .media-upload:hover { border-color: var(--primary); background: var(--primary-light); }
@@ -350,11 +355,19 @@ function renderMediaGrid() {
     return;
   }
   grid.style.display = 'grid';
-  grid.innerHTML = mediaItems.map(item => `
-    <div class="media-thumb${item.selected ? ' selected' : ''}" onclick="toggleMediaSelect(${item.id})">
+  grid.innerHTML = mediaItems.map((item, idx) => `
+    <div class="media-thumb${item.selected ? ' selected' : ''}"
+         draggable="true"
+         onclick="toggleMediaSelect(${item.id})"
+         ondragstart="mediaDragStart(event,${idx})"
+         ondragover="mediaDragOver(event)"
+         ondragleave="mediaDragLeave(event)"
+         ondrop="mediaDrop(event,${idx})"
+         ondragend="mediaDragEnd(event)">
       <img src="${item.src}" style="width:100%;height:100%;object-fit:contain;border-radius:calc(var(--radius-sm) - 2px);">
       <input class="media-cb" type="checkbox" ${item.selected ? 'checked' : ''}
         onclick="event.stopPropagation();" onchange="toggleMediaSelect(${item.id})">
+      ${idx === 0 ? '<span class="media-main-badge">ANA GÖRSEL</span>' : ''}
     </div>
   `).join('') + `
     <label class="media-thumb add" title="Görsel ekle">
@@ -364,6 +377,33 @@ function renderMediaGrid() {
     </label>
   `;
   if (uploadArea) uploadArea.style.display = 'none';
+}
+
+let mediaDragSrc = null;
+function mediaDragStart(e, idx) {
+  mediaDragSrc = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => e.currentTarget?.classList.add('dragging'), 0);
+}
+function mediaDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+function mediaDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+function mediaDrop(e, idx) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (mediaDragSrc === null || mediaDragSrc === idx) return;
+  const [moved] = mediaItems.splice(mediaDragSrc, 1);
+  mediaItems.splice(idx, 0, moved);
+  mediaDragSrc = null;
+  renderMediaGrid();
+}
+function mediaDragEnd(e) {
+  mediaDragSrc = null;
+  document.querySelectorAll('.media-thumb').forEach(el => el.classList.remove('drag-over','dragging'));
 }
 
 function toggleMediaSelect(id) {
