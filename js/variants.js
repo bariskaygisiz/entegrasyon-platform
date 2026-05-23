@@ -101,6 +101,22 @@ function getCombinations() {
   return combos.map(combo => combo.join(' / '));
 }
 
+function handleVariantImg(input, combo) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    saveVD(combo, 'img', e.target.result);
+    renderVariantsTable();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeVariantImg(combo) {
+  if (variantData[combo]) delete variantData[combo].img;
+  renderVariantsTable();
+}
+
 function renderVariantsTable() {
   const combos = getCombinations();
   const tableEl = document.getElementById('variantsTable');
@@ -118,7 +134,8 @@ function renderVariantsTable() {
       <table id="variantDataTable" style="margin:0;">
         <thead>
           <tr>
-            <th style="width:160px;">Varyant</th>
+            <th style="width:56px;">Görsel</th>
+            <th style="width:140px;">Varyant</th>
             <th>Fiyat (₺)</th>
             <th>İndirimli (₺)</th>
             <th>Stok</th>
@@ -128,20 +145,34 @@ function renderVariantsTable() {
         </thead>
         <tbody>
           ${combos.map((combo, i) => {
-            const saved = variantData[combo] || {};
+            const saved  = variantData[combo] || {};
+            const esc    = combo.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+            const imgCell = saved.img
+              ? `<div style="position:relative;width:44px;height:44px;">
+                   <img src="${saved.img}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--radius-sm);border:1.5px solid var(--border);display:block;">
+                   <button onclick="removeVariantImg('${esc}')" title="Görseli kaldır"
+                     style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--danger);color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>
+                 </div>`
+              : `<label title="Görsel ekle (opsiyonel)" style="cursor:pointer;display:flex;width:44px;height:44px;border:1.5px dashed var(--border);border-radius:var(--radius-sm);align-items:center;justify-content:center;color:var(--text-muted);background:var(--bg);transition:border-color .15s,background .15s;"
+                   onmouseover="this.style.borderColor='var(--primary)';this.style.background='var(--primary-light)'"
+                   onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg)'">
+                   <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                   <input type="file" accept="image/*" style="display:none;" onchange="handleVariantImg(this,'${esc}')">
+                 </label>`;
             return `<tr>
+              <td style="padding:8px 10px;">${imgCell}</td>
               <td><span style="font-size:13px;font-weight:600;">${combo}</span></td>
               <td><input class="form-control" type="number" style="width:100px;" placeholder="${basePrice || '0'}"
-                value="${saved.price || ''}" onchange="saveVD('${combo}','price',this.value)"></td>
+                value="${saved.price || ''}" onchange="saveVD('${esc}','price',this.value)"></td>
               <td><input class="form-control" type="number" style="width:100px;" placeholder="—"
-                value="${saved.disc || ''}" onchange="saveVD('${combo}','disc',this.value)"></td>
+                value="${saved.disc || ''}" onchange="saveVD('${esc}','disc',this.value)"></td>
               <td><input class="form-control" type="number" style="width:80px;" placeholder="0"
-                value="${saved.stock || ''}" onchange="saveVD('${combo}','stock',this.value)"></td>
-              <td><input class="form-control" type="text" style="width:120px;"
+                value="${saved.stock || ''}" onchange="saveVD('${esc}','stock',this.value)"></td>
+              <td><input class="form-control" type="text" style="width:110px;"
                 placeholder="${baseSku ? baseSku + '-' + (i + 1) : 'SKU-' + (i + 1)}"
-                value="${saved.sku || ''}" onchange="saveVD('${combo}','sku',this.value)"></td>
-              <td><input class="form-control" type="text" style="width:140px;" placeholder="8680000000000"
-                value="${saved.barcode || ''}" onchange="saveVD('${combo}','barcode',this.value)"></td>
+                value="${saved.sku || ''}" onchange="saveVD('${esc}','sku',this.value)"></td>
+              <td><input class="form-control" type="text" style="width:130px;" placeholder="8680000000000"
+                value="${saved.barcode || ''}" onchange="saveVD('${esc}','barcode',this.value)"></td>
             </tr>`;
           }).join('')}
         </tbody>
