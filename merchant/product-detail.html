@@ -348,8 +348,42 @@ function addMediaFiles(input) {
   input.value = '';
 }
 
+function getPageId() {
+  const p = new URLSearchParams(location.search).get('id') || '1';
+  return /^\d+$/.test(p) ? parseInt(p) : p;
+}
+
+function buildNewProduct(id) {
+  const raw = JSON.parse(localStorage.getItem('pd_' + id) || 'null');
+  if (!raw) return null;
+  const price = parseFloat(raw.price) || 0;
+  const disc  = parseFloat(raw.discounted) || null;
+  return {
+    id,
+    name:           raw.name             || 'Yeni Ürün',
+    description:    raw.desc             || '',
+    price,
+    discountedPrice: disc,
+    discountRate:   disc && price ? Math.round((1 - disc / price) * 100) : 0,
+    cost:           parseFloat(raw.cost) || 0,
+    sku:            raw.sku              || '',
+    barcode:        raw.barcode          || '',
+    stock:          parseInt(raw.stock)  || 0,
+    weight:         parseFloat(raw.weight) || 0,
+    status:         raw.status           || 'draft',
+    emoji:          '📦',
+    category:       raw.category         || 'Telefon',
+    channels:       raw.channels         || [],
+    tags:           [],
+    variantColor:   null,
+    siblingColors:  [],
+    createdStr:     raw.createdAt        || new Date().toLocaleDateString('tr-TR'),
+    updatedStr:     new Date().toLocaleDateString('tr-TR'),
+  };
+}
+
 function saveProduct() {
-  const id = parseInt(new URLSearchParams(location.search).get('id')) || 1;
+  const id = getPageId();
   const data = {
     name:       document.getElementById('fName')?.value       || '',
     desc:       document.getElementById('fDesc')?.value       || '',
@@ -361,13 +395,15 @@ function saveProduct() {
     stock:      document.getElementById('fStock')?.value      || '',
     weight:     document.getElementById('fWeight')?.value     || '',
     status:     document.getElementById('fStatus')?.value     || 'active',
+    category:   document.getElementById('fCategory')?.value   || '',
+    channels:   [...document.querySelectorAll('#channelList input[type=checkbox]:checked')]
+                  .map(cb => cb.closest('[id^=crow-]')?.id?.replace('crow-', '')).filter(Boolean),
     media:      mediaItems.map(m => ({ id: m.id, src: m.src || null, emoji: m.emoji || null, opacity: m.opacity || 1 })),
   };
   try {
     localStorage.setItem('pd_' + id, JSON.stringify(data));
     showToast('Kaydedildi', 'Ürün bilgileri başarıyla güncellendi.', 'success');
   } catch (e) {
-    // Kota aşıldı (büyük görseller) — görselsiz kaydet
     try {
       data.media = [];
       localStorage.setItem('pd_' + id, JSON.stringify(data));
@@ -379,6 +415,15 @@ function saveProduct() {
 }
 
 function deleteProduct() {
+  const id = getPageId();
+  // Yeni ürünse newProducts listesinden ve pd_<id>'den kaldır
+  if (typeof id === 'string') {
+    try {
+      const list = JSON.parse(localStorage.getItem('newProducts') || '[]');
+      localStorage.setItem('newProducts', JSON.stringify(list.filter(p => p.id !== id)));
+      localStorage.removeItem('pd_' + id);
+    } catch (e) {}
+  }
   closeModal('deleteModal');
   showToast('Silindi', 'Ürün başarıyla silindi.', 'error');
   setTimeout(() => window.location.href = 'products.html', 1400);
@@ -650,13 +695,24 @@ function initProductVariants(p) {
 document.addEventListener('DOMContentLoaded', () => {
   initSidebar();
   initModals();
-  const id = parseInt(new URLSearchParams(window.location.search).get('id')) || 1;
-  const p  = getProduct(id);
+
+  const id = getPageId();
+  const isNew = typeof id === 'string';
+
+  let p;
+  if (isNew) {
+    p = buildNewProduct(id);
+    if (!p) { window.location.href = 'products.html'; return; }
+  } else {
+    p = getProduct(id);
+  }
+
   renderProduct(p);
   initMedia(p.emoji);
   initProductVariants(p);
 
-  // Kaydedilmiş verileri localStorage'dan yükle
+  // Kaydedilmiş verileri localStorage'dan yükle (yeni ürünlerde ilk açılışta zaten p'den geliyor,
+  // ama sonraki düzenlemeler için buradan override edilir)
   const saved = JSON.parse(localStorage.getItem('pd_' + id) || 'null');
   if (saved) {
     const sv = (elId, val) => { const el = document.getElementById(elId); if (el && val != null && val !== '') el.value = val; };
@@ -670,6 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sv('fStock', saved.stock);
     sv('fWeight', saved.weight);
     sv('fStatus', saved.status);
+    sv('fCategory', saved.category);
     if (saved.media?.length) {
       mediaItems = saved.media;
       renderMediaGrid();
