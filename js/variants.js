@@ -159,7 +159,7 @@ function renderVariantsTable() {
             const esc    = combo.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
             const imgCell = saved.img
               ? `<div style="position:relative;width:44px;height:44px;">
-                   <img src="${saved.img}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--radius-sm);border:1.5px solid var(--border);display:block;">
+                   <img src="${saved.img}" style="width:44px;height:44px;object-fit:contain;border-radius:var(--radius-sm);border:1.5px solid var(--border);display:block;background:var(--bg);">
                    <button onclick="removeVariantImg('${esc}')" title="Görseli kaldır"
                      style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--danger);color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>
                  </div>`
