@@ -465,23 +465,19 @@ function initProductVariants(p) {
   variantOptions = [];
   variantData    = {};
 
-  if (p.variantColor) {
-    // Pre-populate Renk option with the product's existing color variant
-    variantOptions.push({ id: Date.now(), name: 'Renk', values: [p.variantColor] });
-  } else {
-    // No existing variant — add one blank option row so the section is usable immediately
-    variantOptions.push({ id: Date.now(), name: '', values: [] });
-  }
-
-  // Always open the variants section
   const cb   = document.getElementById('hasVariants');
   const body = document.getElementById('variantsBody');
-  if (cb)   cb.checked = true;
-  if (body) body.style.display = 'block';
 
-  renderVariantOptions();
-  updateAddOptBtn();
-  renderVariantsTable();
+  if (p.variantColor) {
+    // Ürünün mevcut renk varyantı var → bölümü açık getir, pre-populate et
+    variantOptions.push({ id: Date.now(), name: 'Renk', values: [p.variantColor] });
+    if (cb)   cb.checked = true;
+    if (body) body.style.display = 'block';
+    renderVariantOptions();
+    updateAddOptBtn();
+    renderVariantsTable();
+  }
+  // Varyant yoksa → checkbox kapalı, bölüm gizli kalır; kullanıcı checkbox'a tıklayınca açılır
 }
 
 document.addEventListener('DOMContentLoaded', () => {
