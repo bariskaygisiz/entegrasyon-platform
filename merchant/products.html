@@ -414,6 +414,30 @@ function typeBadge(p) {
     : '<span class="badge badge-gray">Basit</span>';
 }
 
+function calcVariantPrices(variantData) {
+  const entries = Object.values(variantData || {});
+  const prices  = entries.map(v => parseFloat(v.price)).filter(n => n > 0);
+  const discs   = entries.map(v => parseFloat(v.disc)).filter(n => n > 0);
+  if (!prices.length) return null;
+  return {
+    price:          Math.min(...prices),
+    discountedPrice: discs.length ? Math.min(...discs) : null,
+  };
+}
+
+function priceCell(p) {
+  const hint = p.variantPricing
+    ? `<div style="font-size:10px;color:var(--text-muted);margin-top:1px;">başlangıç fiyatı</div>` : '';
+  if (p.discountedPrice) {
+    return `<div style="display:flex;align-items:center;gap:6px;">
+               <span style="text-decoration:line-through;color:var(--text-muted);font-size:12px;">${formatMoney(p.price)}</span>
+               <span style="font-size:10px;font-weight:700;background:var(--danger-light);color:var(--danger);padding:1px 5px;border-radius:4px;">-%${p.discountRate}</span>
+             </div>
+             <div class="fw-600" style="color:var(--danger);">${formatMoney(p.discountedPrice)}</div>${hint}`;
+  }
+  return `<div class="fw-600">${formatMoney(p.price)}</div>${hint}`;
+}
+
 function stockCell(p) {
   if (p.stock === 0) return '<span class="stock-count low">0 adet</span>';
   if (p.stock <= 3)  return `<span class="stock-count low">${p.stock} adet</span>`;
@@ -460,16 +484,7 @@ function renderTable() {
       </td>
       <td>${typeBadge(p)}</td>
       <td><span class="badge badge-gray">${p.category}</span></td>
-      <td>
-        ${p.discountedPrice
-          ? `<div style="display:flex;align-items:center;gap:6px;">
-               <span style="text-decoration:line-through;color:var(--text-muted);font-size:12px;">${formatMoney(p.price)}</span>
-               <span style="font-size:10px;font-weight:700;background:var(--danger-light);color:var(--danger);padding:1px 5px;border-radius:4px;">-%${p.discountRate}</span>
-             </div>
-             <div class="fw-600" style="color:var(--danger);">${formatMoney(p.discountedPrice)}</div>`
-          : `<div class="fw-600">${formatMoney(p.price)}</div>`
-        }
-      </td>
+      <td>${priceCell(p)}</td>
       <td>${stockCell(p)}</td>
       <td><div style="display:flex;gap:4px;align-items:center;">${channelIcons(p.channels)}</div></td>
       <td>${statusBadge(p)}</td>
@@ -645,6 +660,9 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const newProds = JSON.parse(localStorage.getItem('newProducts') || '[]');
     newProds.forEach(np => {
+      const vpNew = (np.hasVariants && np.variantData) ? calcVariantPrices(np.variantData) : null;
+      const npPrice      = vpNew ? vpNew.price          : (parseFloat(np.price) || 0);
+      const npDiscounted = vpNew ? vpNew.discountedPrice : (np.discounted ? parseFloat(np.discounted) : null);
       allProducts.unshift({
         id:             np.id,
         name:           np.name,
@@ -653,9 +671,10 @@ document.addEventListener('DOMContentLoaded', () => {
         emoji:          np.media?.[0]?.src ? null : '📦',
         mediaSrc:       np.media?.[0]?.src || null,
         category:       np.category || 'Diğer',
-        price:          np.price,
-        discountRate:   np.discounted ? Math.round((1 - np.discounted / np.price) * 100) : 0,
-        discountedPrice: np.discounted || null,
+        price:          npPrice,
+        discountRate:   npDiscounted && npPrice ? Math.round((1 - npDiscounted / npPrice) * 100) : 0,
+        discountedPrice: npDiscounted || null,
+        variantPricing:  vpNew !== null,
         stock:          np.stock,
         status:         np.status || 'draft',
         type:           np.hasVariants ? 'variant' : 'simple',
@@ -669,8 +688,10 @@ document.addEventListener('DOMContentLoaded', () => {
   allProducts = allProducts.map(p => {
     const saved = JSON.parse(localStorage.getItem('pd_' + p.id) || 'null');
     if (!saved) return p;
-    const price      = parseFloat(saved.price)      || p.price;
-    const discounted = saved.discounted ? parseFloat(saved.discounted) : p.discountedPrice;
+    const vpSaved  = (saved.hasVariants && saved.variantData) ? calcVariantPrices(saved.variantData) : null;
+    const price    = vpSaved ? vpSaved.price : (parseFloat(saved.price) || p.price);
+    const discounted = vpSaved ? vpSaved.discountedPrice
+                               : (saved.discounted ? parseFloat(saved.discounted) : p.discountedPrice);
     const stock      = (saved.stock !== undefined && saved.stock !== '') ? parseInt(saved.stock) : p.stock;
     return {
       ...p,
@@ -678,6 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
       price,
       discountedPrice: discounted   || null,
       discountRate:   discounted && price ? Math.round((1 - discounted / price) * 100) : 0,
+      variantPricing:  vpSaved !== null,
       sku:            saved.sku     || p.sku,
       barcode:        saved.barcode || p.barcode,
       stock,
