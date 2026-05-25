@@ -463,6 +463,8 @@ function switchTab(name, el) {
 }
 
 /* ── Shopify Eşleştirme ── */
+const SHOPIFY_PROXY = 'http://localhost:3001'; // proxy.js sunucusu
+
 const MOCK_SHOPIFY_PRODUCTS = [
   { id:'7891001', title:'iPhone 15 Pro Max 256GB',     handle:'iphone-15-pro-max-256gb',   sku:'AAPL-IP15PM-256', price:72999 },
   { id:'7891002', title:'Samsung Galaxy S24 Ultra',    handle:'samsung-galaxy-s24-ultra',  sku:'SAM-S24U-256',    price:65999 },
@@ -540,6 +542,7 @@ async function shopifyLoadAndRender(q) {
     return;
   }
 
+  // Yükleniyor göster
   listEl.innerHTML = `
     <div style="padding:40px;text-align:center;font-size:13px;color:var(--text-muted);">
       <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -549,28 +552,60 @@ async function shopifyLoadAndRender(q) {
       <strong>${domain}.myshopify.com</strong> mağazasından ürünler yükleniyor…
     </div>`;
 
+  /* 1. ADIM: Proxy üzerinden dene (CORS yok) */
   try {
-    const resp = await fetch(
-      `https://${domain}.myshopify.com/admin/api/2024-01/products.json?limit=250&status=active`,
-      { headers: { 'X-Shopify-Access-Token': token } }
-    );
+    const resp = await fetch(`${SHOPIFY_PROXY}/shopify/products?limit=250`, {
+      headers: { 'X-Shop-Domain': domain, 'X-Shop-Token': token }
+    });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
     _shopifyProductCache = (data.products || []).map(p => ({
       id:     String(p.id),
       title:  p.title,
       handle: p.handle,
-      sku:    p.variants?.[0]?.sku   || '',
+      sku:    p.variants?.[0]?.sku || '',
       price:  parseFloat(p.variants?.[0]?.price || '0'),
     }));
     shopifyRenderItems(_shopifyProductCache, q, listEl);
-  } catch(err) {
-    _shopifyProductCache = false;
-    showToast('API Erişim Hatası',
-      'Shopify Admin API CORS nedeniyle tarayıcıdan çağrılamıyor. Gerçek platformda backend proxy kullanılır.',
-      'warning');
-    shopifyRenderItems(MOCK_SHOPIFY_PRODUCTS, q, listEl);
+    return; // ✅ Başarı
+  } catch(proxyErr) {
+    /* Proxy çevrimdışı veya hata — devam et */
   }
+
+  /* 2. ADIM: Proxy çevrimdışı → açıklama göster + demo veriler */
+  _shopifyProductCache = false;
+  listEl.innerHTML = `
+    <div style="padding:20px;border-bottom:1px solid var(--border-light);">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+        <span style="font-size:22px;flex-shrink:0;line-height:1;">⚡</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;margin-bottom:5px;">Proxy sunucusu başlatılmamış</div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">
+            Gerçek Shopify ürünlerini görmek için yeni bir terminal açıp şu komutu çalıştırın:
+          </div>
+          <code style="display:block;background:var(--bg);border:1px solid var(--border);border-radius:6px;
+                       padding:8px 12px;margin-top:8px;font-size:12px;font-family:monospace;
+                       color:var(--primary);letter-spacing:.3px;">
+            node server/proxy.js
+          </code>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">
+            Başlatıldıktan sonra aşağıdaki butona basın.
+          </div>
+        </div>
+      </div>
+      <button onclick="_shopifyProductCache=null;shopifyLoadAndRender(document.getElementById('shopifyMapSearch')?.value||'')"
+        class="btn btn-ghost btn-sm" style="font-size:12px;width:100%;justify-content:center;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:5px;flex-shrink:0;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Tekrar dene
+      </button>
+    </div>
+    <div id="shopifyDemoProducts"></div>`;
+
+  // Demo ürünlerini alt kısma ekle
+  const demoEl = listEl.querySelector('#shopifyDemoProducts');
+  if (demoEl) shopifyRenderItems(MOCK_SHOPIFY_PRODUCTS, q, demoEl);
 }
 
 /* Ürün listesini DOM'a yazar (hem gerçek hem demo için ortak) */
@@ -664,34 +699,72 @@ function shopifyConfirmMap() {
   document.getElementById('tabEntegrasyon').innerHTML = renderIntegrationTab(pObj);
 }
 
-function shopifyCreateProduct(btn, productId, productName, productPrice, productSku) {
-  // Show loading state
+async function shopifyCreateProduct(btn, productId, productName, productPrice, productSku) {
   btn.disabled = true;
-  const originalHTML = btn.innerHTML;
   btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"
     style="animation:spin 1s linear infinite;margin-right:5px;">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
   </svg>Oluşturuluyor…`;
 
-  // Simulate async Shopify Admin API call (~1.4s)
-  setTimeout(() => {
-    const newShopifyId = String(7899000 + Math.floor(Math.random() * 999));
-    const handle = productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 50);
+  const state  = JSON.parse(localStorage.getItem('shopify_integration') || '{}');
+  const domain = state.shopDomain;
+  const token  = state.accessToken;
+
+  function _finishCreate(shopifyId, shopifyTitle, handle, sku) {
     saveShopifyMapping(productId, {
-      shopifyId:    newShopifyId,
-      shopifyTitle: productName,
-      handle,
-      sku:          productSku || ('SHP-' + newShopifyId),
-      price:        productPrice,
-      mappedAt:     new Date().toLocaleDateString('tr-TR'),
-      type:         'created',
+      shopifyId, shopifyTitle, handle,
+      sku:     sku  || productSku || ('SHP-' + shopifyId),
+      price:   productPrice,
+      mappedAt: new Date().toLocaleDateString('tr-TR'),
+      type:    'created',
     });
-    showToast('Shopify\'da Oluşturuldu', `"${productName}" Shopify Admin API ile mağazanıza eklendi.`, 'success');
     const saved = JSON.parse(localStorage.getItem('pd_' + productId) || 'null');
     const pObj  = { id: productId, name: productName, channels: saved?.channels || [],
                     price: productPrice, sku: productSku };
     document.getElementById('tabEntegrasyon').innerHTML = renderIntegrationTab(pObj);
-  }, 1400);
+  }
+
+  /* Proxy çalışıyorsa gerçek Shopify API ile oluştur */
+  if (domain && token) {
+    try {
+      const resp = await fetch(`${SHOPIFY_PROXY}/shopify/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type':   'application/json',
+          'X-Shop-Domain':  domain,
+          'X-Shop-Token':   token,
+        },
+        body: JSON.stringify({
+          product: {
+            title:  productName,
+            status: 'active',
+            variants: [{ price: String(productPrice), sku: productSku || '' }],
+          }
+        })
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      const sp   = data.product;
+      _finishCreate(
+        String(sp.id), sp.title, sp.handle,
+        sp.variants?.[0]?.sku || productSku
+      );
+      showToast('Shopify\'da Oluşturuldu',
+        `"${sp.title}" Shopify mağazanıza eklendi. ID: #${sp.id}`, 'success');
+      return;
+    } catch(e) {
+      /* Proxy çevrimdışı → simülasyona düş */
+    }
+  }
+
+  /* Proxy yoksa simüle et (demo mod) */
+  setTimeout(() => {
+    const mockId = String(7899000 + Math.floor(Math.random() * 999));
+    const handle = productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 50);
+    _finishCreate(mockId, productName, handle, productSku);
+    showToast('Oluşturuldu (Demo)',
+      `"${productName}" demo olarak oluşturuldu. Gerçek oluşturma için proxy\'yi başlatın.`, 'info');
+  }, 800);
 }
 
 function shopifyUnmap(productId) {
