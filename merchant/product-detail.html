@@ -157,7 +157,7 @@
       <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">
         Platform ürününüzle eşleştirmek istediğiniz Shopify ürününü seçin.
       </p>
-      <div style="position:relative;margin-bottom:12px;">
+      <div id="shopifySearchWrap" style="position:relative;margin-bottom:12px;">
         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"
           style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
@@ -466,25 +466,41 @@ function switchTab(name, el) {
 const SHOPIFY_PROXY = 'http://localhost:3001'; // proxy.js sunucusu
 
 const MOCK_SHOPIFY_PRODUCTS = [
-  { id:'7891001', title:'iPhone 15 Pro Max 256GB',     handle:'iphone-15-pro-max-256gb',   sku:'AAPL-IP15PM-256', price:72999 },
-  { id:'7891002', title:'Samsung Galaxy S24 Ultra',    handle:'samsung-galaxy-s24-ultra',  sku:'SAM-S24U-256',    price:65999 },
-  { id:'7891003', title:'Apple MacBook Pro M3 14"',    handle:'macbook-pro-m3-14',         sku:'AAPL-MBP-M3-14',  price:89999 },
-  { id:'7891004', title:'iPad Pro 12.9" M2',           handle:'ipad-pro-12-m2',            sku:'AAPL-IPADPRO-M2', price:42999 },
-  { id:'7891005', title:'AirPods Pro 2. Nesil',        handle:'airpods-pro-2',             sku:'AAPL-APP2',       price:9999  },
-  { id:'7891006', title:'Sony WH-1000XM5',             handle:'sony-wh-1000xm5',           sku:'SONY-WH1000XM5',  price:14999 },
-  { id:'7891007', title:'LG OLED C3 65"',              handle:'lg-oled-c3-65',             sku:'LG-OLED-C3-65',   price:54999 },
-  { id:'7891008', title:'Dell XPS 15 i7 32GB',         handle:'dell-xps-15-i7',            sku:'DELL-XPS15-I7',   price:49999 },
-  { id:'7891009', title:'Logitech MX Master 3S',       handle:'logitech-mx-master-3s',     sku:'LOG-MXM3S',       price:3999  },
-  { id:'7891010', title:'Samsung 990 Pro 2TB SSD',     handle:'samsung-990-pro-2tb',       sku:'SAM-990PRO-2TB',  price:5999  },
-  { id:'7891011', title:'Apple Watch Series 9 GPS',    handle:'apple-watch-s9-gps',        sku:'AAPL-AWS9-GPS',   price:16999 },
-  { id:'7891012', title:'Bose QuietComfort 45',        handle:'bose-quietcomfort-45',      sku:'BOSE-QC45',       price:11999 },
-  { id:'7891013', title:'ASUS ROG Zephyrus G14',       handle:'asus-rog-zephyrus-g14',     sku:'ASUS-ROGZG14',    price:44999 },
-  { id:'7891014', title:'Xiaomi 14 Ultra',             handle:'xiaomi-14-ultra',           sku:'XIA-14U',         price:35999 },
-  { id:'7891015', title:'GoPro Hero 12 Black',         handle:'gopro-hero-12-black',       sku:'GP-HERO12-BLK',   price:18999 },
+  { id:'7891001', title:'iPhone 15 Pro Max 256GB',    handle:'iphone-15-pro-max-256gb',  sku:'AAPL-IP15PM-256', price:72999,
+    variants:[{ id:'v7891001_1',title:'Siyah Titanium',sku:'AAPL-IP15PM-256-BLK',price:'72999.00'},{ id:'v7891001_2',title:'Beyaz Titanium',sku:'AAPL-IP15PM-256-WHT',price:'72999.00'},{ id:'v7891001_3',title:'Mavi Titanium',sku:'AAPL-IP15PM-256-BLU',price:'72999.00'}]},
+  { id:'7891002', title:'Samsung Galaxy S24 Ultra',   handle:'samsung-galaxy-s24-ultra', sku:'SAM-S24U-256',    price:65999,
+    variants:[{ id:'v7891002_1',title:'Phantom Black',sku:'SAM-S24U-BLK',price:'65999.00'},{ id:'v7891002_2',title:'Titanium Gray',sku:'SAM-S24U-GRY',price:'65999.00'},{ id:'v7891002_3',title:'Titanium Violet',sku:'SAM-S24U-VIO',price:'65999.00'}]},
+  { id:'7891003', title:'Apple MacBook Pro M3 14"',   handle:'macbook-pro-m3-14',        sku:'AAPL-MBP-M3-14',  price:89999,
+    variants:[{ id:'v7891003_1',title:'Uzay Siyahı / 16GB',sku:'AAPL-MBP-M3-16-BLK',price:'89999.00'},{ id:'v7891003_2',title:'Uzay Siyahı / 32GB',sku:'AAPL-MBP-M3-32-BLK',price:'109999.00'},{ id:'v7891003_3',title:'Gümüş / 16GB',sku:'AAPL-MBP-M3-16-SLV',price:'89999.00'}]},
+  { id:'7891004', title:'iPad Pro 12.9" M2',          handle:'ipad-pro-12-m2',           sku:'AAPL-IPADPRO-M2', price:42999,
+    variants:[{ id:'v7891004_1',title:'128GB Wi-Fi',sku:'AAPL-IPADPRO-128-WIFI',price:'42999.00'},{ id:'v7891004_2',title:'256GB Wi-Fi',sku:'AAPL-IPADPRO-256-WIFI',price:'49999.00'},{ id:'v7891004_3',title:'128GB Cellular',sku:'AAPL-IPADPRO-128-CEL',price:'52999.00'}]},
+  { id:'7891005', title:'AirPods Pro 2. Nesil',       handle:'airpods-pro-2',            sku:'AAPL-APP2',       price:9999,
+    variants:[{ id:'v7891005_1',title:'Varsayılan',sku:'AAPL-APP2',price:'9999.00'}]},
+  { id:'7891006', title:'Sony WH-1000XM5',            handle:'sony-wh-1000xm5',          sku:'SONY-WH1000XM5',  price:14999,
+    variants:[{ id:'v7891006_1',title:'Siyah',sku:'SONY-WH1000XM5-BLK',price:'14999.00'},{ id:'v7891006_2',title:'Platin Gümüş',sku:'SONY-WH1000XM5-SLV',price:'14999.00'}]},
+  { id:'7891007', title:'LG OLED C3 65"',             handle:'lg-oled-c3-65',            sku:'LG-OLED-C3-65',   price:54999,
+    variants:[{ id:'v7891007_1',title:'Varsayılan',sku:'LG-OLED-C3-65',price:'54999.00'}]},
+  { id:'7891008', title:'Dell XPS 15 i7 32GB',        handle:'dell-xps-15-i7',           sku:'DELL-XPS15-I7',   price:49999,
+    variants:[{ id:'v7891008_1',title:'512GB SSD',sku:'DELL-XPS15-I7-512',price:'49999.00'},{ id:'v7891008_2',title:'1TB SSD',sku:'DELL-XPS15-I7-1T',price:'55999.00'}]},
+  { id:'7891009', title:'Logitech MX Master 3S',      handle:'logitech-mx-master-3s',    sku:'LOG-MXM3S',       price:3999,
+    variants:[{ id:'v7891009_1',title:'Grafit',sku:'LOG-MXM3S-GRF',price:'3999.00'},{ id:'v7891009_2',title:'Açık Gri',sku:'LOG-MXM3S-GRY',price:'3999.00'},{ id:'v7891009_3',title:'Gül Pembe',sku:'LOG-MXM3S-ROSE',price:'3999.00'}]},
+  { id:'7891010', title:'Samsung 990 Pro 2TB SSD',    handle:'samsung-990-pro-2tb',      sku:'SAM-990PRO-2TB',  price:5999,
+    variants:[{ id:'v7891010_1',title:'1TB',sku:'SAM-990PRO-1TB',price:'3499.00'},{ id:'v7891010_2',title:'2TB',sku:'SAM-990PRO-2TB',price:'5999.00'}]},
+  { id:'7891011', title:'Apple Watch Series 9 GPS',   handle:'apple-watch-s9-gps',       sku:'AAPL-AWS9-GPS',   price:16999,
+    variants:[{ id:'v7891011_1',title:'41mm Gece Yarısı',sku:'AAPL-AWS9-41-MID',price:'16999.00'},{ id:'v7891011_2',title:'45mm Gece Yarısı',sku:'AAPL-AWS9-45-MID',price:'18999.00'},{ id:'v7891011_3',title:'41mm Yıldız Işığı',sku:'AAPL-AWS9-41-STR',price:'16999.00'},{ id:'v7891011_4',title:'45mm Yıldız Işığı',sku:'AAPL-AWS9-45-STR',price:'18999.00'}]},
+  { id:'7891012', title:'Bose QuietComfort 45',       handle:'bose-quietcomfort-45',     sku:'BOSE-QC45',       price:11999,
+    variants:[{ id:'v7891012_1',title:'Siyah',sku:'BOSE-QC45-BLK',price:'11999.00'},{ id:'v7891012_2',title:'Beyaz Füme',sku:'BOSE-QC45-WHT',price:'11999.00'}]},
+  { id:'7891013', title:'ASUS ROG Zephyrus G14',      handle:'asus-rog-zephyrus-g14',    sku:'ASUS-ROGZG14',    price:44999,
+    variants:[{ id:'v7891013_1',title:'16GB / 512GB',sku:'ASUS-ROGZG14-16-512',price:'44999.00'},{ id:'v7891013_2',title:'32GB / 1TB',sku:'ASUS-ROGZG14-32-1T',price:'52999.00'}]},
+  { id:'7891014', title:'Xiaomi 14 Ultra',            handle:'xiaomi-14-ultra',          sku:'XIA-14U',         price:35999,
+    variants:[{ id:'v7891014_1',title:'Siyah / 256GB',sku:'XIA-14U-BLK-256',price:'35999.00'},{ id:'v7891014_2',title:'Beyaz / 256GB',sku:'XIA-14U-WHT-256',price:'35999.00'},{ id:'v7891014_3',title:'Siyah / 512GB',sku:'XIA-14U-BLK-512',price:'39999.00'}]},
+  { id:'7891015', title:'GoPro Hero 12 Black',        handle:'gopro-hero-12-black',      sku:'GP-HERO12-BLK',   price:18999,
+    variants:[{ id:'v7891015_1',title:'Varsayılan',sku:'GP-HERO12-BLK',price:'18999.00'}]},
 ];
 
 let _shopifySelectedProduct = null;
 let _shopifyProductCache   = null; // null=henüz denenmedi, Array=başarılı, false=başarısız/mock kullan
+let _shopifyMapIsVariant   = false; // ürün varyantlıysa true
 
 function getShopifyMapping(productId) {
   const all = JSON.parse(localStorage.getItem('shopify_mappings') || '{}');
@@ -506,10 +522,29 @@ function getShopifyMappedCount() {
 
 function openShopifyMapModal(productId) {
   _shopifySelectedProduct = null;
-  document.getElementById('shopifyMapSearch').value = '';
-  document.getElementById('shopifyMapConfirmBtn').disabled = true;
+  _shopifyMapIsVariant    = document.getElementById('hasVariants')?.checked || false;
+
+  /* Step-2 artıklarını temizle */
+  document.getElementById('shopifyVariantStepBody')?.remove();
+  document.getElementById('shopifyVariantBackBtn')?.remove();
+
+  /* Step-1 elemanlarını göster */
+  document.getElementById('shopifySearchWrap').style.display   = '';
+  document.getElementById('shopifyProductList').style.display  = '';
   const lbl = document.getElementById('shopifyMapSelectedLabel');
-  if (lbl) lbl.textContent = 'Seçili: —';
+  if (lbl) { lbl.textContent = 'Seçili: —'; lbl.style.display = ''; }
+
+  /* Başlık */
+  const titleEl = document.querySelector('#shopifyMapModal .modal-title');
+  if (titleEl) titleEl.innerHTML = `<span style="font-size:18px;">🛍</span>&nbsp;Shopify Ürünü Eşleştir${_shopifyMapIsVariant ? ' — Adım 1/2' : ''}`;
+
+  /* Onayla butonu */
+  const confirmBtn = document.getElementById('shopifyMapConfirmBtn');
+  confirmBtn.disabled  = true;
+  confirmBtn.innerHTML = _shopifyMapIsVariant ? 'Devam: Varyant Eşleştirme &rarr;' : 'Eşleştir';
+  confirmBtn.onclick   = shopifyConfirmMap;
+
+  document.getElementById('shopifyMapSearch').value = '';
   document.getElementById('shopifyMapModal').dataset.pid = productId;
   openModal('shopifyMapModal');
   shopifyLoadAndRender('');
@@ -560,11 +595,17 @@ async function shopifyLoadAndRender(q) {
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
     _shopifyProductCache = (data.products || []).map(p => ({
-      id:     String(p.id),
-      title:  p.title,
-      handle: p.handle,
-      sku:    p.variants?.[0]?.sku || '',
-      price:  parseFloat(p.variants?.[0]?.price || '0'),
+      id:       String(p.id),
+      title:    p.title,
+      handle:   p.handle,
+      sku:      p.variants?.[0]?.sku || '',
+      price:    parseFloat(p.variants?.[0]?.price || '0'),
+      variants: (p.variants || []).map(v => ({
+        id:    String(v.id),
+        title: v.title,
+        sku:   v.sku || '',
+        price: v.price || '0',
+      })),
     }));
     shopifyRenderItems(_shopifyProductCache, q, listEl);
     return; // ✅ Başarı
@@ -632,8 +673,12 @@ function shopifyRenderItems(products, q, listEl) {
 
   listEl.innerHTML = badge + (filtered.length
     ? filtered.map(sp => {
-        const alreadyMapped = usedIds.includes(sp.id);
-        const priceStr = sp.price ? formatMoney(sp.price) : '—';
+        const alreadyMapped  = usedIds.includes(sp.id);
+        const priceStr       = sp.price ? formatMoney(sp.price) : '—';
+        const variantCnt     = sp.variants?.length || 0;
+        const variantBadge   = variantCnt > 1
+          ? `<span style="font-size:10px;background:#96BF4820;color:#6B8F2A;padding:2px 6px;border-radius:10px;font-weight:600;white-space:nowrap;">${variantCnt} varyant</span>`
+          : `<span style="font-size:10px;background:var(--bg);color:var(--text-muted);padding:2px 6px;border-radius:10px;white-space:nowrap;">Tek tip</span>`;
         return `
         <div onclick="${alreadyMapped ? '' : `shopifySelectProduct('${sp.id}')`}"
           id="shopify_row_${sp.id}"
@@ -646,7 +691,10 @@ function shopifyRenderItems(products, q, listEl) {
           <div style="width:36px;height:36px;border-radius:6px;background:#96BF4820;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📦</div>
           <div style="flex:1;min-width:0;">
             <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sp.title}</div>
-            <div style="font-size:11px;color:var(--text-muted);">SKU: ${sp.sku || '—'} · ${priceStr}</div>
+            <div style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px;margin-top:2px;">
+              <span>SKU: ${sp.sku || '—'} · ${priceStr}</span>
+              ${variantBadge}
+            </div>
           </div>
           ${alreadyMapped ? '<span style="font-size:10px;color:var(--success);font-weight:600;white-space:nowrap;">Eşli</span>' : ''}
         </div>`;
@@ -672,7 +720,9 @@ function shopifySelectProduct(shopifyId) {
   });
   const row = document.getElementById('shopify_row_' + shopifyId);
   if (row) { row.style.borderColor = '#96BF48'; row.style.background = '#96BF4812'; }
-  document.getElementById('shopifyMapConfirmBtn').disabled = false;
+  const confirmBtn = document.getElementById('shopifyMapConfirmBtn');
+  confirmBtn.disabled  = false;
+  confirmBtn.innerHTML = _shopifyMapIsVariant ? 'Devam: Varyant Eşleştirme &rarr;' : 'Eşleştir';
   const lbl = document.getElementById('shopifyMapSelectedLabel');
   if (lbl && _shopifySelectedProduct) lbl.textContent = 'Seçili: ' + _shopifySelectedProduct.title;
 }
@@ -680,6 +730,11 @@ function shopifySelectProduct(shopifyId) {
 function shopifyConfirmMap() {
   const pid = document.getElementById('shopifyMapModal').dataset.pid;
   if (!_shopifySelectedProduct || !pid) return;
+
+  /* Varyantlı ürün → step 2'ye geç */
+  if (_shopifyMapIsVariant) { shopifyGoToVariantStep(); return; }
+
+  /* Varyantsız ürün → direkt eşleştir */
   saveShopifyMapping(pid, {
     shopifyId:    _shopifySelectedProduct.id,
     shopifyTitle: _shopifySelectedProduct.title,
@@ -691,11 +746,17 @@ function shopifyConfirmMap() {
   });
   closeModal('shopifyMapModal');
   showToast('Eşleştirildi', `"${_shopifySelectedProduct.title}" ile eşleştirildi.`, 'success');
+  _refreshIntegrationTab(pid);
+}
+
+/* Tab'ı yenile (ortak yardımcı) */
+function _refreshIntegrationTab(pid) {
   const saved = JSON.parse(localStorage.getItem('pd_' + pid) || 'null');
-  const pObj  = { id: pid, name: document.getElementById('fName')?.value || '',
+  const pObj  = { id: pid,
+                  name:     document.getElementById('fName')?.value  || '',
                   channels: saved?.channels || [],
-                  price: parseFloat(document.getElementById('fPrice')?.value) || 0,
-                  sku: document.getElementById('fSku')?.value || '' };
+                  price:    parseFloat(document.getElementById('fPrice')?.value) || 0,
+                  sku:      document.getElementById('fSku')?.value   || '' };
   document.getElementById('tabEntegrasyon').innerHTML = renderIntegrationTab(pObj);
 }
 
@@ -706,76 +767,241 @@ async function shopifyCreateProduct(btn, productId, productName, productPrice, p
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
   </svg>Oluşturuluyor…`;
 
-  const state  = JSON.parse(localStorage.getItem('shopify_integration') || '{}');
-  const domain = state.shopDomain;
-  const token  = state.accessToken;
+  const state      = JSON.parse(localStorage.getItem('shopify_integration') || '{}');
+  const domain     = state.shopDomain;
+  const token      = state.accessToken;
+  const isVariant  = document.getElementById('hasVariants')?.checked || false;
+  const combos     = isVariant ? getCombinations() : [];
 
-  function _finishCreate(shopifyId, shopifyTitle, handle, sku) {
-    saveShopifyMapping(productId, {
+  /* Kayıt + tab yenile */
+  function _finishCreate(shopifyId, shopifyTitle, handle, sku, shopifyApiVariants) {
+    const mappingData = {
       shopifyId, shopifyTitle, handle,
-      sku:     sku  || productSku || ('SHP-' + shopifyId),
-      price:   productPrice,
+      sku:      sku || productSku || ('SHP-' + shopifyId),
+      price:    productPrice,
       mappedAt: new Date().toLocaleDateString('tr-TR'),
-      type:    'created',
-    });
-    const saved = JSON.parse(localStorage.getItem('pd_' + productId) || 'null');
-    const pObj  = { id: productId, name: productName, channels: saved?.channels || [],
-                    price: productPrice, sku: productSku };
-    document.getElementById('tabEntegrasyon').innerHTML = renderIntegrationTab(pObj);
+      type:     'created',
+    };
+    if (isVariant && combos.length > 0) {
+      const variantMappings = {};
+      combos.forEach((combo, i) => {
+        const sv = shopifyApiVariants?.[i];
+        variantMappings[combo] = {
+          shopifyVariantId:    sv ? String(sv.id) : String(shopifyId) + '_' + (i + 1),
+          shopifyVariantTitle: sv ? sv.title : combo,
+          shopifySku:          sv?.sku   || '',
+          shopifyPrice:        sv?.price || String(productPrice),
+        };
+      });
+      mappingData.isVariant      = true;
+      mappingData.variantMappings = variantMappings;
+    }
+    saveShopifyMapping(productId, mappingData);
+    _refreshIntegrationTab(productId);
   }
 
   /* Proxy çalışıyorsa gerçek Shopify API ile oluştur */
   if (domain && token) {
     try {
+      /* Variant payload */
+      let apiVariants = [{ price: String(productPrice), sku: productSku || '' }];
+      let apiOptions  = undefined;
+      if (isVariant && combos.length > 0) {
+        apiVariants = combos.map((combo, i) => {
+          const vd    = variantData[combo] || {};
+          const parts = combo.split(' / ');
+          const entry = {
+            price:                String(vd.price || productPrice),
+            sku:                  vd.sku || (productSku ? productSku + '-' + (i + 1) : ''),
+            inventory_quantity:   parseInt(vd.stock) || 0,
+          };
+          if (parts[0]) entry.option1 = parts[0];
+          if (parts[1]) entry.option2 = parts[1];
+          if (parts[2]) entry.option3 = parts[2];
+          return entry;
+        });
+        apiOptions = variantOptions
+          .filter(o => o.name && o.values.length)
+          .map(o => ({ name: o.name, values: [...o.values] }));
+      }
+      const bodyObj = { product: { title: productName, status: 'active', variants: apiVariants } };
+      if (apiOptions?.length) bodyObj.product.options = apiOptions;
+
       const resp = await fetch(`${SHOPIFY_PROXY}/shopify/products`, {
         method: 'POST',
-        headers: {
-          'Content-Type':   'application/json',
-          'X-Shop-Domain':  domain,
-          'X-Shop-Token':   token,
-        },
-        body: JSON.stringify({
-          product: {
-            title:  productName,
-            status: 'active',
-            variants: [{ price: String(productPrice), sku: productSku || '' }],
-          }
-        })
+        headers: { 'Content-Type':'application/json', 'X-Shop-Domain': domain, 'X-Shop-Token': token },
+        body: JSON.stringify(bodyObj),
       });
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       const data = await resp.json();
       const sp   = data.product;
-      _finishCreate(
-        String(sp.id), sp.title, sp.handle,
-        sp.variants?.[0]?.sku || productSku
-      );
+      _finishCreate(String(sp.id), sp.title, sp.handle, sp.variants?.[0]?.sku || productSku, sp.variants || []);
       showToast('Shopify\'da Oluşturuldu',
         `"${sp.title}" Shopify mağazanıza eklendi. ID: #${sp.id}`, 'success');
       return;
-    } catch(e) {
-      /* Proxy çevrimdışı → simülasyona düş */
-    }
+    } catch(e) { /* Proxy çevrimdışı → simülasyona düş */ }
   }
 
   /* Proxy yoksa simüle et (demo mod) */
   setTimeout(() => {
     const mockId = String(7899000 + Math.floor(Math.random() * 999));
     const handle = productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 50);
-    _finishCreate(mockId, productName, handle, productSku);
+    const mockVariants = isVariant && combos.length
+      ? combos.map((c, i) => ({ id: mockId + '_' + (i + 1), title: c, sku: '', price: String(productPrice) }))
+      : null;
+    _finishCreate(mockId, productName, handle, productSku, mockVariants);
     showToast('Oluşturuldu (Demo)',
-      `"${productName}" demo olarak oluşturuldu. Gerçek oluşturma için proxy\'yi başlatın.`, 'info');
+      `"${productName}" demo olarak oluşturuldu. Gerçek oluşturma için proxy'yi başlatın.`, 'info');
   }, 800);
 }
 
 function shopifyUnmap(productId) {
   removeShopifyMapping(productId);
   showToast('Kaldırıldı', 'Shopify eşleştirmesi kaldırıldı.', 'info');
-  const saved = JSON.parse(localStorage.getItem('pd_' + productId) || 'null');
-  const pObj  = { id: productId, name: document.getElementById('fName')?.value || '',
-                  channels: saved?.channels || [],
-                  price: parseFloat(document.getElementById('fPrice')?.value) || 0,
-                  sku: document.getElementById('fSku')?.value || '' };
-  document.getElementById('tabEntegrasyon').innerHTML = renderIntegrationTab(pObj);
+  _refreshIntegrationTab(productId);
+}
+
+/* ─── Adım 2: Varyant eşleştirme arayüzünü aç ─── */
+function shopifyGoToVariantStep() {
+  const sp = _shopifySelectedProduct;
+  const shopifyVariants = (sp.variants && sp.variants.length)
+    ? sp.variants
+    : [{ id: sp.id + '_1', title: 'Varsayılan', sku: sp.sku || '', price: String(sp.price || '0') }];
+
+  const platformCombos = getCombinations();
+
+  /* Step-1 elemanlarını gizle */
+  document.getElementById('shopifySearchWrap').style.display  = 'none';
+  document.getElementById('shopifyProductList').style.display = 'none';
+
+  /* Başlık → Adım 2/2 */
+  const titleEl = document.querySelector('#shopifyMapModal .modal-title');
+  if (titleEl) titleEl.innerHTML = `<span style="font-size:18px;">🛍</span>&nbsp;Varyant Eşleştirme — Adım 2/2`;
+
+  /* Selected label gizle */
+  const lbl = document.getElementById('shopifyMapSelectedLabel');
+  if (lbl) lbl.style.display = 'none';
+
+  /* Confirm butonu → "Eşleştir" */
+  const confirmBtn = document.getElementById('shopifyMapConfirmBtn');
+  confirmBtn.innerHTML = 'Eşleştir';
+  confirmBtn.disabled  = false;
+  confirmBtn.onclick   = shopifyConfirmVariantMap;
+
+  /* Geri butonu */
+  if (!document.getElementById('shopifyVariantBackBtn')) {
+    const backBtn = document.createElement('button');
+    backBtn.id        = 'shopifyVariantBackBtn';
+    backBtn.className = 'btn btn-ghost';
+    backBtn.style.cssText = 'font-size:12px;';
+    backBtn.innerHTML = '&larr; Geri';
+    backBtn.onclick   = () => {
+      document.getElementById('shopifyVariantStepBody')?.remove();
+      backBtn.remove();
+      document.getElementById('shopifySearchWrap').style.display  = '';
+      document.getElementById('shopifyProductList').style.display = '';
+      if (titleEl) titleEl.innerHTML = `<span style="font-size:18px;">🛍</span>&nbsp;Shopify Ürünü Eşleştir — Adım 1/2`;
+      if (lbl) lbl.style.display = '';
+      confirmBtn.innerHTML = 'Devam: Varyant Eşleştirme &rarr;';
+      confirmBtn.onclick   = shopifyConfirmMap;
+    };
+    confirmBtn.parentElement.insertBefore(backBtn, confirmBtn);
+  }
+
+  /* Tablo */
+  const stepEl = document.createElement('div');
+  stepEl.id = 'shopifyVariantStepBody';
+  stepEl.innerHTML = `
+    <div style="padding:14px 18px 0;">
+      <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--radius-sm);
+                  padding:9px 12px;margin-bottom:12px;font-size:12px;color:var(--success);font-weight:600;">
+        🛍 ${sp.title} · ${shopifyVariants.length} Shopify varyantı
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">
+        Her platform varyantını karşılık gelen Shopify varyantıyla eşleştirin.<br>
+        Eşleştirmek istemediğiniz satırı boş bırakabilirsiniz.
+      </p>
+      <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
+        <table style="margin:0;font-size:12px;">
+          <thead>
+            <tr>
+              <th style="width:42%;padding:8px 12px;">Platform Varyantı</th>
+              <th style="padding:8px 12px;">Shopify Varyantı</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${platformCombos.map((combo, i) => {
+              const vd  = variantData[combo] || {};
+              const esc = combo.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+              const priceHint = vd.price ? ' · ₺' + parseFloat(vd.price).toLocaleString('tr-TR') : '';
+              const skuHint   = vd.sku   ? ' · ' + vd.sku : '';
+              /* Akıllı ön-seçim: Shopify varyant başlığı platform combo'yu içeriyorsa seç */
+              const autoId = (() => {
+                const cl = combo.toLowerCase();
+                const match = shopifyVariants.find(v => v.title.toLowerCase().includes(cl) || cl.includes(v.title.toLowerCase()));
+                return match ? match.id : '';
+              })();
+              return `<tr>
+                <td style="padding:8px 12px;">
+                  <span style="font-weight:600;">${combo}</span>
+                  <div style="color:var(--text-muted);font-size:11px;margin-top:1px;">${priceHint}${skuHint}</div>
+                </td>
+                <td style="padding:8px 12px;">
+                  <select class="form-control" style="font-size:12px;padding:5px 8px;" data-combo="${esc}">
+                    <option value="">— Eşleştirme yok —</option>
+                    ${shopifyVariants.map(v => `<option value="${v.id}"${v.id === autoId ? ' selected' : ''}>${v.title}${v.sku ? ' · ' + v.sku : ''}</option>`).join('')}
+                  </select>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--text-muted);padding-bottom:14px;">
+        ${platformCombos.length} platform varyantı · ${shopifyVariants.length} Shopify varyantı
+      </div>
+    </div>`;
+  document.querySelector('#shopifyMapModal .modal-body').appendChild(stepEl);
+}
+
+/* ─── Adım 2: Varyant eşleştirmesini kaydet ─── */
+function shopifyConfirmVariantMap() {
+  const pid = document.getElementById('shopifyMapModal').dataset.pid;
+  if (!_shopifySelectedProduct || !pid) return;
+  const sp = _shopifySelectedProduct;
+  const shopifyVariants = sp.variants || [];
+
+  /* Seçimlerden variantMappings oluştur */
+  const variantMappings = {};
+  document.querySelectorAll('#shopifyVariantStepBody select[data-combo]').forEach(sel => {
+    const combo           = sel.dataset.combo;
+    const shopifyVariantId = sel.value;
+    if (!shopifyVariantId) return;
+    const sv = shopifyVariants.find(v => v.id === shopifyVariantId);
+    if (sv) variantMappings[combo] = {
+      shopifyVariantId:    sv.id,
+      shopifyVariantTitle: sv.title,
+      shopifySku:          sv.sku   || '',
+      shopifyPrice:        sv.price || '0',
+    };
+  });
+
+  saveShopifyMapping(pid, {
+    shopifyId:       sp.id,
+    shopifyTitle:    sp.title,
+    handle:          sp.handle,
+    sku:             sp.sku,
+    price:           sp.price,
+    mappedAt:        new Date().toLocaleDateString('tr-TR'),
+    type:            'mapped',
+    isVariant:       true,
+    variantMappings,
+  });
+
+  closeModal('shopifyMapModal');
+  const cnt = Object.keys(variantMappings).length;
+  showToast('Eşleştirildi', `"${sp.title}" ile ${cnt} varyant eşleştirildi.`, 'success');
+  _refreshIntegrationTab(pid);
 }
 
 function renderIntegrationTab(p) {
@@ -797,6 +1023,35 @@ function renderIntegrationTab(p) {
     const domain   = shopifyState.shopDomain ? shopifyState.shopDomain + '.myshopify.com' : 'myshopify.com';
 
     if (mapping) {
+      /* Varyant eşleşme tablosu (varsa) */
+      const vmEntries = mapping.isVariant && mapping.variantMappings
+        ? Object.entries(mapping.variantMappings)
+        : [];
+      const variantMappingTable = vmEntries.length
+        ? `<div style="margin-top:8px;border-top:1px solid var(--border-light);padding-top:10px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">
+              Varyant Eşleştirmeleri (${vmEntries.length})
+            </div>
+            <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
+              <table style="margin:0;font-size:11px;">
+                <thead><tr>
+                  <th style="padding:5px 10px;">Platform</th>
+                  <th style="padding:5px 10px;">Shopify Varyantı</th>
+                  <th style="padding:5px 10px;">SKU</th>
+                </tr></thead>
+                <tbody>
+                  ${vmEntries.map(([combo, vm]) => `
+                    <tr>
+                      <td style="padding:5px 10px;font-weight:600;">${combo}</td>
+                      <td style="padding:5px 10px;">${vm.shopifyVariantTitle}</td>
+                      <td style="padding:5px 10px;font-family:monospace;color:var(--text-muted);">${vm.shopifySku || '—'}</td>
+                    </tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>`
+        : '';
+
       shopifySection = `
       <div style="background:var(--card);border:1.5px solid #96BF48;border-radius:var(--radius);overflow:hidden;margin-bottom:24px;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border-light);">
@@ -815,14 +1070,16 @@ function renderIntegrationTab(p) {
           </div>
           <div class="int-row"><span class="lbl">Shopify ID</span><span class="val">#${mapping.shopifyId}</span></div>
           <div class="int-row"><span class="lbl">Handle</span><span class="val" style="font-family:monospace;font-size:11px;">${mapping.handle}</span></div>
-          <div class="int-row"><span class="lbl">SKU</span><span class="val">${mapping.sku}</span></div>
+          <div class="int-row"><span class="lbl">SKU</span><span class="val">${mapping.sku || '—'}</span></div>
           <div class="int-row">
             <span class="lbl">Tür</span>
             <span class="val" style="color:${mapping.type === 'created' ? '#96BF48' : 'var(--primary)'};">
               ${mapping.type === 'created' ? '✦ Shopify\'da Oluşturuldu' : '⇌ Manuel Eşleştirildi'}
+              ${mapping.isVariant ? ' · Varyantlı' : ''}
             </span>
           </div>
           <div class="int-row"><span class="lbl">Tarih</span><span class="val">${mapping.mappedAt}</span></div>
+          ${variantMappingTable}
         </div>
         <div style="padding:10px 16px;border-top:1px solid var(--border-light);display:flex;gap:8px;flex-wrap:wrap;">
           <a href="https://${domain}/products/${mapping.handle}" target="_blank"

@@ -2,16 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "entegrasyon",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8080"],
-      "port": 8080
-    },
-    {
-      "name": "shopify-proxy",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["server/proxy.js"],
-      "port": 3001
+      "name": "React Client",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--workspace=client"],
+      "cwd": "/Users/bariskaygisiz/entegrasyon-platform",
+      "autoPort": true
     }
   ]
 }
