@@ -700,7 +700,7 @@ function shopifyRunTest() {
     const result  = document.getElementById('testResult');
     if (!spinner || !result) return;
     spinner.style.display = 'none';
-    const productCount = 47 + (state?.shopDomain?.length || 3) * 7 % 200;
+    const mappedCount  = Object.keys(JSON.parse(localStorage.getItem('shopify_mappings') || '{}')).length;
     const storeName    = (state?.shopDomain || 'magaza').replace(/-/g,' ').replace(/\b\w/g, c => c.toUpperCase());
     result.style.display = '';
     result.innerHTML = `
@@ -711,7 +711,7 @@ function shopifyRunTest() {
         <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-light);"><span style="color:var(--text-muted);">Mağaza Adı</span><span style="font-weight:600;">${storeName}</span></div>
         <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-light);"><span style="color:var(--text-muted);">Alan Adı</span><span style="font-weight:600;">${state?.shopDomain}.myshopify.com</span></div>
         <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-light);"><span style="color:var(--text-muted);">Plan</span><span style="font-weight:600;">Shopify</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;"><span style="color:var(--text-muted);">Ürün Sayısı</span><span style="font-weight:600;">${productCount} ürün</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;"><span style="color:var(--text-muted);">Eşleştirilen Ürün</span><span style="font-weight:600;">${mappedCount} ürün</span></div>
       </div>
       <button class="btn btn-primary" style="width:100%;background:#96BF48;border-color:#96BF48;" onclick="shopifyGoStep3()">
         Devam Et — Senkronizasyon Ayarları
@@ -739,7 +739,6 @@ function shopifyActivate() {
   saveShopifyState({
     ...state, connected: true, syncSettings, connectedAt: now,
     storeName, lastSync: 'Az önce',
-    productCount: 47 + (state.shopDomain?.length || 3) * 7 % 200,
     orderCount: 0, webhookActive: syncSettings.webhooks,
   });
   showToast('Bağlandı!', 'Shopify entegrasyonu başarıyla aktifleştirildi.', 'success');
@@ -747,6 +746,7 @@ function shopifyActivate() {
 }
 
 function renderShopifyDashboard(state) {
+  const mappedProductCount = Object.keys(JSON.parse(localStorage.getItem('shopify_mappings') || '{}')).length;
   const ha = document.getElementById('headerActions');
   ha.innerHTML = `
     <button class="btn btn-ghost btn-sm" onclick="shopifySync()">
@@ -777,7 +777,7 @@ function renderShopifyDashboard(state) {
     </div>`).join('');
 
   const logs = [
-    { t:'az önce',    ok:true,  msg:`${state.productCount || 0} ürün senkronize edildi`           },
+    { t:'az önce',    ok:true,  msg:`${mappedProductCount} ürün eşleştirildi`                     },
     { t:'2 dk önce',  ok:true,  msg:'Webhook endpoint\'leri kaydedildi'                           },
     { t:'3 dk önce',  ok:true,  msg:'Stok bilgileri alındı'                                       },
     { t:'4 dk önce',  ok:true,  msg:'Bağlantı başarıyla kuruldu'                                  },
@@ -804,8 +804,8 @@ function renderShopifyDashboard(state) {
     <!-- Stats -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
       <div class="card" style="padding:16px;text-align:center;">
-        <div style="font-size:22px;font-weight:800;color:#96BF48;">${state.productCount || 0}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Senkron Ürün</div>
+        <div style="font-size:22px;font-weight:800;color:#96BF48;">${mappedProductCount}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Eşleştirilen Ürün</div>
       </div>
       <div class="card" style="padding:16px;text-align:center;">
         <div style="font-size:22px;font-weight:800;color:var(--primary);">0</div>
@@ -882,7 +882,7 @@ function renderShopifyDashboard(state) {
   const ctx = document.getElementById('activityChart');
   if (ctx) {
     const labels = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
-    const data   = [0,0,0,0,0,0, state.productCount || 1];
+    const data   = [0,0,0,0,0,0, mappedProductCount || 0];
     new Chart(ctx, {
       type:'bar',
       data:{ labels, datasets:[{ data, backgroundColor:'#96BF4899', borderRadius:4 }] },

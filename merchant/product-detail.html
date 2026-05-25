@@ -141,6 +141,47 @@
   </div>
 </div>
 
+<!-- Shopify Ürün Eşleştirme Modal -->
+<div class="modal-backdrop" id="shopifyMapModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">🛍</span>
+        Shopify Ürünü Eşleştir
+      </div>
+      <button class="modal-close" onclick="closeModal('shopifyMapModal')">×</button>
+    </div>
+    <div class="modal-body" style="padding-bottom:0;">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">
+        Platform ürününüzle eşleştirmek istediğiniz Shopify ürününü seçin.
+      </p>
+      <div style="position:relative;margin-bottom:12px;">
+        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+        </svg>
+        <input id="shopifyMapSearch" class="form-control" type="text" placeholder="Ürün adı veya SKU ile ara…"
+          style="padding-left:32px;"
+          oninput="shopifyRenderProductList(this.value)">
+      </div>
+      <div id="shopifyProductList"
+        style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:0;">
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
+      <span id="shopifyMapSelectedLabel" style="font-size:12px;color:var(--text-muted);">Seçili: —</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" onclick="closeModal('shopifyMapModal')">İptal</button>
+        <button id="shopifyMapConfirmBtn" class="btn btn-sm" disabled
+          style="background:#96BF48;color:#fff;border:none;padding:8px 18px;"
+          onclick="shopifyConfirmMap()">
+          Eşleştir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="../js/nav.js"></script>
 <script src="../js/mock-data.js"></script>
 <script src="../js/app.js"></script>
@@ -419,17 +460,250 @@ function switchTab(name, el) {
   document.getElementById('tabEntegrasyon').style.display  = name === 'entegrasyon'  ? '' : 'none';
 }
 
+/* ── Shopify Eşleştirme ── */
+const MOCK_SHOPIFY_PRODUCTS = [
+  { id:'7891001', title:'iPhone 15 Pro Max 256GB',     handle:'iphone-15-pro-max-256gb',   sku:'AAPL-IP15PM-256', price:72999 },
+  { id:'7891002', title:'Samsung Galaxy S24 Ultra',    handle:'samsung-galaxy-s24-ultra',  sku:'SAM-S24U-256',    price:65999 },
+  { id:'7891003', title:'Apple MacBook Pro M3 14"',    handle:'macbook-pro-m3-14',         sku:'AAPL-MBP-M3-14',  price:89999 },
+  { id:'7891004', title:'iPad Pro 12.9" M2',           handle:'ipad-pro-12-m2',            sku:'AAPL-IPADPRO-M2', price:42999 },
+  { id:'7891005', title:'AirPods Pro 2. Nesil',        handle:'airpods-pro-2',             sku:'AAPL-APP2',       price:9999  },
+  { id:'7891006', title:'Sony WH-1000XM5',             handle:'sony-wh-1000xm5',           sku:'SONY-WH1000XM5',  price:14999 },
+  { id:'7891007', title:'LG OLED C3 65"',              handle:'lg-oled-c3-65',             sku:'LG-OLED-C3-65',   price:54999 },
+  { id:'7891008', title:'Dell XPS 15 i7 32GB',         handle:'dell-xps-15-i7',            sku:'DELL-XPS15-I7',   price:49999 },
+  { id:'7891009', title:'Logitech MX Master 3S',       handle:'logitech-mx-master-3s',     sku:'LOG-MXM3S',       price:3999  },
+  { id:'7891010', title:'Samsung 990 Pro 2TB SSD',     handle:'samsung-990-pro-2tb',       sku:'SAM-990PRO-2TB',  price:5999  },
+  { id:'7891011', title:'Apple Watch Series 9 GPS',    handle:'apple-watch-s9-gps',        sku:'AAPL-AWS9-GPS',   price:16999 },
+  { id:'7891012', title:'Bose QuietComfort 45',        handle:'bose-quietcomfort-45',      sku:'BOSE-QC45',       price:11999 },
+  { id:'7891013', title:'ASUS ROG Zephyrus G14',       handle:'asus-rog-zephyrus-g14',     sku:'ASUS-ROGZG14',    price:44999 },
+  { id:'7891014', title:'Xiaomi 14 Ultra',             handle:'xiaomi-14-ultra',           sku:'XIA-14U',         price:35999 },
+  { id:'7891015', title:'GoPro Hero 12 Black',         handle:'gopro-hero-12-black',       sku:'GP-HERO12-BLK',   price:18999 },
+];
+
+let _shopifySelectedProduct = null;
+
+function getShopifyMapping(productId) {
+  const all = JSON.parse(localStorage.getItem('shopify_mappings') || '{}');
+  return all[productId] || null;
+}
+function saveShopifyMapping(productId, data) {
+  const all = JSON.parse(localStorage.getItem('shopify_mappings') || '{}');
+  all[productId] = data;
+  localStorage.setItem('shopify_mappings', JSON.stringify(all));
+}
+function removeShopifyMapping(productId) {
+  const all = JSON.parse(localStorage.getItem('shopify_mappings') || '{}');
+  delete all[productId];
+  localStorage.setItem('shopify_mappings', JSON.stringify(all));
+}
+function getShopifyMappedCount() {
+  return Object.keys(JSON.parse(localStorage.getItem('shopify_mappings') || '{}')).length;
+}
+
+function openShopifyMapModal(productId) {
+  _shopifySelectedProduct = null;
+  document.getElementById('shopifyMapSearch').value = '';
+  document.getElementById('shopifyMapConfirmBtn').disabled = true;
+  const lbl = document.getElementById('shopifyMapSelectedLabel');
+  if (lbl) lbl.textContent = 'Seçili: —';
+  document.getElementById('shopifyMapModal').dataset.pid = productId;
+  openModal('shopifyMapModal');
+  shopifyRenderProductList('');
+}
+
+function shopifyRenderProductList(q) {
+  const filtered = MOCK_SHOPIFY_PRODUCTS.filter(p =>
+    !q || p.title.toLowerCase().includes(q.toLowerCase()) || p.sku.toLowerCase().includes(q.toLowerCase())
+  );
+  const mapped = JSON.parse(localStorage.getItem('shopify_mappings') || '{}');
+  const usedIds = Object.values(mapped).map(m => m.shopifyId);
+
+  document.getElementById('shopifyProductList').innerHTML = filtered.length
+    ? filtered.map(sp => {
+        const alreadyMapped = usedIds.includes(sp.id);
+        return `
+        <div onclick="${alreadyMapped ? '' : `shopifySelectProduct('${sp.id}')`}"
+          id="shopify_row_${sp.id}"
+          style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-sm);
+                 cursor:${alreadyMapped ? 'not-allowed' : 'pointer'};
+                 opacity:${alreadyMapped ? '.45' : '1'};
+                 border:1.5px solid transparent;transition:border-color .15s,background .15s;"
+          onmouseover="if(!${alreadyMapped}) this.style.background='var(--bg)'"
+          onmouseout="if(!${alreadyMapped}&&!this.classList.contains('selected')) this.style.background=''">
+          <div style="width:36px;height:36px;border-radius:6px;background:#96BF4820;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📦</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sp.title}</div>
+            <div style="font-size:11px;color:var(--text-muted);">SKU: ${sp.sku} · ${formatMoney(sp.price)}</div>
+          </div>
+          ${alreadyMapped ? '<span style="font-size:10px;color:var(--success);font-weight:600;">Eşli</span>' : ''}
+        </div>`;
+      }).join('')
+    : '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px;">Sonuç bulunamadı.</div>';
+}
+
+function shopifySelectProduct(shopifyId) {
+  _shopifySelectedProduct = MOCK_SHOPIFY_PRODUCTS.find(p => p.id === shopifyId);
+  document.querySelectorAll('#shopifyProductList > div').forEach(el => {
+    el.style.borderColor = 'transparent';
+    el.style.background  = '';
+  });
+  const row = document.getElementById('shopify_row_' + shopifyId);
+  if (row) { row.style.borderColor = '#96BF48'; row.style.background = '#96BF4812'; }
+  document.getElementById('shopifyMapConfirmBtn').disabled = false;
+  const lbl = document.getElementById('shopifyMapSelectedLabel');
+  if (lbl && _shopifySelectedProduct) lbl.textContent = 'Seçili: ' + _shopifySelectedProduct.title;
+}
+
+function shopifyConfirmMap() {
+  const pid = document.getElementById('shopifyMapModal').dataset.pid;
+  if (!_shopifySelectedProduct || !pid) return;
+  saveShopifyMapping(pid, {
+    shopifyId:    _shopifySelectedProduct.id,
+    shopifyTitle: _shopifySelectedProduct.title,
+    handle:       _shopifySelectedProduct.handle,
+    sku:          _shopifySelectedProduct.sku,
+    price:        _shopifySelectedProduct.price,
+    mappedAt:     new Date().toLocaleDateString('tr-TR'),
+    type:         'mapped',
+  });
+  closeModal('shopifyMapModal');
+  showToast('Eşleştirildi', `"${_shopifySelectedProduct.title}" ile eşleştirildi.`, 'success');
+  const saved = JSON.parse(localStorage.getItem('pd_' + pid) || 'null');
+  const pObj  = { id: pid, name: document.getElementById('fName')?.value || '',
+                  channels: saved?.channels || [],
+                  price: parseFloat(document.getElementById('fPrice')?.value) || 0,
+                  sku: document.getElementById('fSku')?.value || '' };
+  document.getElementById('tabEntegrasyon').innerHTML = renderIntegrationTab(pObj);
+}
+
+function shopifyCreateProduct(productId, productName, productPrice, productSku) {
+  const newShopifyId = String(7899000 + Math.floor(Math.random() * 999));
+  const handle = productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 50);
+  saveShopifyMapping(productId, {
+    shopifyId:    newShopifyId,
+    shopifyTitle: productName,
+    handle,
+    sku:          productSku || ('SHP-' + newShopifyId),
+    price:        productPrice,
+    mappedAt:     new Date().toLocaleDateString('tr-TR'),
+    type:         'created',
+  });
+  showToast('Oluşturuldu', `"${productName}" Shopify mağazanızda oluşturuldu.`, 'success');
+  const saved = JSON.parse(localStorage.getItem('pd_' + productId) || 'null');
+  const pObj  = { id: productId, name: productName, channels: saved?.channels || [],
+                  price: productPrice, sku: productSku };
+  document.getElementById('tabEntegrasyon').innerHTML = renderIntegrationTab(pObj);
+}
+
+function shopifyUnmap(productId) {
+  removeShopifyMapping(productId);
+  showToast('Kaldırıldı', 'Shopify eşleştirmesi kaldırıldı.', 'info');
+  const saved = JSON.parse(localStorage.getItem('pd_' + productId) || 'null');
+  const pObj  = { id: productId, name: document.getElementById('fName')?.value || '',
+                  channels: saved?.channels || [],
+                  price: parseFloat(document.getElementById('fPrice')?.value) || 0,
+                  sku: document.getElementById('fSku')?.value || '' };
+  document.getElementById('tabEntegrasyon').innerHTML = renderIntegrationTab(pObj);
+}
+
 function renderIntegrationTab(p) {
   const allChannels = Object.entries(CHANNEL_META_D);
   const syncTimes   = ['2 dk önce','15 dk önce','1 sa önce','3 sa önce','Bugün 09:14','Dün 22:40','2 gün önce'];
   const listingDomains = { trendyol:'trendyol.com', hepsi:'hepsiburada.com', n11:'n11.com', ikas:'ikas.com', shopify:'myshopify.com', ticimax:'ticimax.com', ideasoft:'ideasoft.com' };
 
+  /* ---- Shopify eşleştirme kartı ---- */
+  const shopifyState   = JSON.parse(localStorage.getItem('shopify_integration') || 'null');
+  const shopifyActive  = shopifyState?.connected === true;
+  let shopifySection   = '';
+
+  if (shopifyActive) {
+    const mapping  = getShopifyMapping(p.id);
+    const pidEsc   = String(p.id).replace(/'/g,"\\'");
+    const nameEsc  = (p.name || '').replace(/'/g,"\\'");
+    const price    = p.price || 0;
+    const sku      = (p.sku  || '').replace(/'/g,"\\'");
+    const domain   = shopifyState.shopDomain ? shopifyState.shopDomain + '.myshopify.com' : 'myshopify.com';
+
+    if (mapping) {
+      shopifySection = `
+      <div style="background:var(--card);border:1.5px solid #96BF48;border-radius:var(--radius);overflow:hidden;margin-bottom:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border-light);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;background:#96BF4818;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;">🛍</div>
+            <span style="font-size:13px;font-weight:700;">Shopify Eşleştirmesi</span>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:var(--success);display:flex;align-items:center;gap:5px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:var(--success);display:inline-block;"></span>Eşleştirildi
+          </span>
+        </div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;">
+          <div class="int-row">
+            <span class="lbl">Shopify Ürünü</span>
+            <span class="val" style="max-width:220px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;" title="${mapping.shopifyTitle}">${mapping.shopifyTitle}</span>
+          </div>
+          <div class="int-row"><span class="lbl">Shopify ID</span><span class="val">#${mapping.shopifyId}</span></div>
+          <div class="int-row"><span class="lbl">Handle</span><span class="val" style="font-family:monospace;font-size:11px;">${mapping.handle}</span></div>
+          <div class="int-row"><span class="lbl">SKU</span><span class="val">${mapping.sku}</span></div>
+          <div class="int-row">
+            <span class="lbl">Tür</span>
+            <span class="val" style="color:${mapping.type === 'created' ? '#96BF48' : 'var(--primary)'};">
+              ${mapping.type === 'created' ? '✦ Shopify\'da Oluşturuldu' : '⇌ Manuel Eşleştirildi'}
+            </span>
+          </div>
+          <div class="int-row"><span class="lbl">Tarih</span><span class="val">${mapping.mappedAt}</span></div>
+        </div>
+        <div style="padding:10px 16px;border-top:1px solid var(--border-light);display:flex;gap:8px;flex-wrap:wrap;">
+          <a href="https://${domain}/products/${mapping.handle}" target="_blank"
+             class="btn btn-ghost btn-sm" style="font-size:12px;text-decoration:none;">
+            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            Shopify'da Görüntüle
+          </a>
+          <button class="btn btn-ghost btn-sm" style="font-size:12px;" onclick="openShopifyMapModal('${pidEsc}')">
+            Yeniden Eşleştir
+          </button>
+          <button class="btn btn-ghost btn-sm" style="font-size:12px;color:var(--danger);" onclick="shopifyUnmap('${pidEsc}')">
+            Eşleştirmeyi Kaldır
+          </button>
+        </div>
+      </div>`;
+    } else {
+      shopifySection = `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border-light);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;background:#96BF4818;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;">🛍</div>
+            <span style="font-size:13px;font-weight:700;">Shopify Eşleştirmesi</span>
+          </div>
+          <span style="font-size:12px;color:var(--text-muted);font-weight:500;">Eşleştirilmemiş</span>
+        </div>
+        <div style="padding:16px;">
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">
+            Bu ürün Shopify mağazanızdaki <strong>${domain}</strong> ile henüz eşleştirilmedi.<br>
+            Mevcut bir Shopify ürününü seçebilir veya Shopify'da yeni ürün oluşturabilirsiniz.
+          </p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-sm" style="font-size:12px;background:#96BF48;color:#fff;border:none;padding:8px 14px;"
+              onclick="openShopifyMapModal('${pidEsc}')">
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:5px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+              Mevcut Ürünü Eşleştir
+            </button>
+            <button class="btn btn-ghost btn-sm" style="font-size:12px;padding:8px 14px;"
+              onclick="shopifyCreateProduct('${pidEsc}','${nameEsc}',${price},'${sku}')">
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:5px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Shopify'da Yeni Oluştur
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }
+  }
+
+  /* ---- Satış kanalı kartları ---- */
   const cards = allChannels.filter(([key]) => p.channels.includes(key)).map(([key, meta], i) => {
     const connected = true;
     const seed      = (typeof p.id === 'string' ? p.id.replace('new_','') : p.id) * (i + 3) || (i + 1) * 7;
     const syncIdx   = Math.abs(parseInt(seed) + i * 13) % syncTimes.length;
     const listingId = Math.abs(parseInt(seed) * 97 + i * 31) % 9000000 + 1000000;
-    const chanPrice = connected ? Math.round(p.price * (1 + (i % 3 === 0 ? 0 : i % 3 === 1 ? 0.05 : -0.03))) : null;
+    const chanPrice = connected ? Math.round((p.price || 0) * (1 + (i % 3 === 0 ? 0 : i % 3 === 1 ? 0.05 : -0.03))) : null;
     const statusOptions = ['Yayında','Yayında','Yayında','Taslak','Beklemede'];
     const chanStatus = connected ? statusOptions[Math.abs(parseInt(seed) + i) % statusOptions.length] : null;
     const statusColor = { 'Yayında':'var(--success)', 'Taslak':'var(--warning)', 'Beklemede':'var(--text-muted)' };
@@ -448,7 +722,7 @@ function renderIntegrationTab(p) {
         </div>
         <div class="int-card-body">
           <div class="int-row"><span class="lbl">Listeleme Fiyatı</span><span class="val">${formatMoney(chanPrice)}</span></div>
-          <div class="int-row"><span class="lbl">Stok</span><span class="val">${p.stock} adet</span></div>
+          <div class="int-row"><span class="lbl">Stok</span><span class="val">${p.stock || 0} adet</span></div>
           <div class="int-row"><span class="lbl">Listeleme ID</span><span class="val">#${listingDomains[key].split('.')[0].toUpperCase()}-${listingId}</span></div>
           <div class="int-row"><span class="lbl">Son Senkronizasyon</span><span class="val">${syncTimes[syncIdx]}</span></div>
         </div>
@@ -465,20 +739,23 @@ function renderIntegrationTab(p) {
       </div>`;
   }).join('');
 
+  const hasChannels = p.channels.length > 0;
   return `
+    ${shopifySection}
     <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <div style="font-size:13px;font-weight:700;">Satış Kanalları</div>
         <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${p.channels.length} aktif kanal bağlı</div>
       </div>
+      ${hasChannels ? `
       <button class="btn btn-ghost btn-sm" style="font-size:12px;" onclick="showToast('Senkronizasyon','Tüm kanallar senkronize ediliyor…','info')">
         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:5px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         Tümünü Senkronize Et
-      </button>
+      </button>` : ''}
     </div>
     ${cards
       ? `<div class="int-grid">${cards}</div>`
-      : `<div style="text-align:center;padding:48px 0;color:var(--text-muted);font-size:13px;">
+      : `<div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:13px;">
            <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 12px;display:block;opacity:.4;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
            Henüz hiçbir satış kanalı bağlı değil.<br>
            <span style="font-size:12px;">Genel sekmesinden Satış Kanalları bölümünü kullanabilirsiniz.</span>
