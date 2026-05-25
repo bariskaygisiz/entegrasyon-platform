@@ -471,7 +471,7 @@ function addTag(e, input) {
   const list = document.getElementById('tagList');
   const span = document.createElement('span');
   span.className = 'tag';
-  span.innerHTML = `${val}<button onclick="this.parentElement.remove()">×</button>`;
+  span.innerHTML = `${val}<button onclick="this.parentElement.remove();markDirty()">×</button>`;
   list.appendChild(span);
   input.value = '';
 }

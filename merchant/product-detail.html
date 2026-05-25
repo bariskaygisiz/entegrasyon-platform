@@ -225,7 +225,7 @@ function addTag(e, input) {
   if (!val) return;
   const span = document.createElement('span');
   span.className = 'tag';
-  span.innerHTML = `${val}<button onclick="this.parentElement.remove()">×</button>`;
+  span.innerHTML = `${val}<button onclick="this.parentElement.remove();markDirty()">×</button>`;
   document.getElementById('tagList').appendChild(span);
   input.value = '';
 }
@@ -647,7 +647,7 @@ function renderProduct(p) {
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label">Etiketler</label>
               <div class="tag-list" id="tagList">
-                ${p.tags.map(t=>`<span class="tag">${t}<button onclick="this.parentElement.remove()">×</button></span>`).join('')}
+                ${p.tags.map(t=>`<span class="tag">${t}<button onclick="this.parentElement.remove();markDirty()">×</button></span>`).join('')}
               </div>
               <input class="form-control" type="text" placeholder="Etiket ekle + Enter" style="margin-top:8px;" onkeydown="addTag(event,this)">
             </div>
@@ -751,7 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved.tags?.length) {
       const tagList = document.getElementById('tagList');
       if (tagList) tagList.innerHTML = saved.tags.map(t =>
-        `<span class="tag">${t}<button onclick="this.parentElement.remove()">×</button></span>`
+        `<span class="tag">${t}<button onclick="this.parentElement.remove();markDirty()">×</button></span>`
       ).join('');
     }
 
