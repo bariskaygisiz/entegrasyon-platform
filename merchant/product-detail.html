@@ -424,8 +424,8 @@ function renderIntegrationTab(p) {
   const syncTimes   = ['2 dk önce','15 dk önce','1 sa önce','3 sa önce','Bugün 09:14','Dün 22:40','2 gün önce'];
   const listingDomains = { trendyol:'trendyol.com', hepsi:'hepsiburada.com', n11:'n11.com', ikas:'ikas.com', shopify:'myshopify.com', ticimax:'ticimax.com', ideasoft:'ideasoft.com' };
 
-  const cards = allChannels.map(([key, meta], i) => {
-    const connected = p.channels.includes(key);
+  const cards = allChannels.filter(([key]) => p.channels.includes(key)).map(([key, meta], i) => {
+    const connected = true;
     const seed      = (typeof p.id === 'string' ? p.id.replace('new_','') : p.id) * (i + 3) || (i + 1) * 7;
     const syncIdx   = Math.abs(parseInt(seed) + i * 13) % syncTimes.length;
     const listingId = Math.abs(parseInt(seed) * 97 + i * 31) % 9000000 + 1000000;
@@ -435,57 +435,34 @@ function renderIntegrationTab(p) {
     const statusColor = { 'Yayında':'var(--success)', 'Taslak':'var(--warning)', 'Beklemede':'var(--text-muted)' };
     const dotColor = statusColor[chanStatus] || 'var(--border)';
 
-    if (connected) {
-      return `
-        <div class="int-card">
-          <div class="int-card-head">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <img src="https://www.google.com/s2/favicons?domain=${meta.favicon}&sz=32" width="20" height="20" style="border-radius:4px;">
-              <span style="font-size:13px;font-weight:700;">${meta.title}</span>
-            </div>
-            <span style="font-size:12px;font-weight:600;color:${dotColor};">
-              <span class="int-status-dot" style="background:${dotColor};"></span>${chanStatus}
-            </span>
+    return `
+      <div class="int-card">
+        <div class="int-card-head">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <img src="https://www.google.com/s2/favicons?domain=${meta.favicon}&sz=32" width="20" height="20" style="border-radius:4px;">
+            <span style="font-size:13px;font-weight:700;">${meta.title}</span>
           </div>
-          <div class="int-card-body">
-            <div class="int-row"><span class="lbl">Listeleme Fiyatı</span><span class="val">${formatMoney(chanPrice)}</span></div>
-            <div class="int-row"><span class="lbl">Stok</span><span class="val">${p.stock} adet</span></div>
-            <div class="int-row"><span class="lbl">Listeleme ID</span><span class="val">#${listingDomains[key].split('.')[0].toUpperCase()}-${listingId}</span></div>
-            <div class="int-row"><span class="lbl">Son Senkronizasyon</span><span class="val">${syncTimes[syncIdx]}</span></div>
-          </div>
-          <div class="int-card-foot">
-            <button class="btn btn-ghost btn-sm" style="font-size:12px;" onclick="showToast('Senkronizasyon','${meta.title} senkronize ediliyor…','info')">
-              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              Senkronize Et
-            </button>
-            <a href="https://${listingDomains[key]}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:12px;text-decoration:none;">
-              Kanalda Gör
-              <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-left:3px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-            </a>
-          </div>
-        </div>`;
-    } else {
-      return `
-        <div class="int-card" style="opacity:.7;">
-          <div class="int-card-head">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <img src="https://www.google.com/s2/favicons?domain=${meta.favicon}&sz=32" width="20" height="20" style="border-radius:4px;filter:grayscale(1);">
-              <span style="font-size:13px;font-weight:700;color:var(--text-muted);">${meta.title}</span>
-            </div>
-            <span style="font-size:12px;color:var(--text-muted);">
-              <span class="int-status-dot" style="background:var(--border);"></span>Bağlı Değil
-            </span>
-          </div>
-          <div class="int-card-body">
-            <p style="font-size:12px;color:var(--text-muted);margin:4px 0;">Bu ürün henüz ${meta.title}'a eklenmemiş.</p>
-          </div>
-          <div class="int-card-foot">
-            <button class="btn btn-ghost btn-sm" style="font-size:12px;" onclick="showToast('Kanal','${meta.title} kanalına ekleniyor…','info')">
-              Kanala Ekle
-            </button>
-          </div>
-        </div>`;
-    }
+          <span style="font-size:12px;font-weight:600;color:${dotColor};">
+            <span class="int-status-dot" style="background:${dotColor};"></span>${chanStatus}
+          </span>
+        </div>
+        <div class="int-card-body">
+          <div class="int-row"><span class="lbl">Listeleme Fiyatı</span><span class="val">${formatMoney(chanPrice)}</span></div>
+          <div class="int-row"><span class="lbl">Stok</span><span class="val">${p.stock} adet</span></div>
+          <div class="int-row"><span class="lbl">Listeleme ID</span><span class="val">#${listingDomains[key].split('.')[0].toUpperCase()}-${listingId}</span></div>
+          <div class="int-row"><span class="lbl">Son Senkronizasyon</span><span class="val">${syncTimes[syncIdx]}</span></div>
+        </div>
+        <div class="int-card-foot">
+          <button class="btn btn-ghost btn-sm" style="font-size:12px;" onclick="showToast('Senkronizasyon','${meta.title} senkronize ediliyor…','info')">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Senkronize Et
+          </button>
+          <a href="https://${listingDomains[key]}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:12px;text-decoration:none;">
+            Kanalda Gör
+            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-left:3px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </a>
+        </div>
+      </div>`;
   }).join('');
 
   return `
@@ -499,7 +476,14 @@ function renderIntegrationTab(p) {
         Tümünü Senkronize Et
       </button>
     </div>
-    <div class="int-grid">${cards}</div>
+    ${cards
+      ? `<div class="int-grid">${cards}</div>`
+      : `<div style="text-align:center;padding:48px 0;color:var(--text-muted);font-size:13px;">
+           <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 12px;display:block;opacity:.4;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+           Henüz hiçbir satış kanalı bağlı değil.<br>
+           <span style="font-size:12px;">Genel sekmesinden Satış Kanalları bölümünü kullanabilirsiniz.</span>
+         </div>`
+    }
   `;
 }
 
