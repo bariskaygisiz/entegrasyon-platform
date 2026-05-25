@@ -464,7 +464,7 @@ function renderProduct(p) {
           <span class="badge ${statusBadgeCls[p.status]}">${statusMap[p.status]}</span>
           <span id="stockBadge" class="badge badge-danger"${p.stock > 0 ? ' style="display:none;"' : ''}>Stokta Yok</span>
           <span class="badge badge-gray">${p.category}</span>
-          <span style="font-size:12px;color:var(--text-muted);">ID: #${p.id}</span>
+          <span style="font-size:12px;color:var(--text-muted);">ID: #${String(p.id).replace('new_', '')}</span>
         </div>
       </div>
     </div>
@@ -649,7 +649,7 @@ function renderProduct(p) {
         <div class="pd-card">
           <div class="pd-card-title">Ürün Bilgisi</div>
           <div class="pd-card-body">
-            <div class="info-row"><span class="lbl">Ürün ID</span><span class="val">#${p.id}</span></div>
+            <div class="info-row"><span class="lbl">Ürün ID</span><span class="val">#${String(p.id).replace('new_', '')}</span></div>
             <div class="info-row"><span class="lbl">Oluşturulma</span><span class="val">${p.createdStr}</span></div>
             <div class="info-row"><span class="lbl">Son Güncelleme</span><span class="val">${p.updatedStr}</span></div>
             <div class="info-row"><span class="lbl">SKU</span><span class="val">${p.sku}</span></div>
