@@ -164,7 +164,7 @@
         </svg>
         <input id="shopifyMapSearch" class="form-control" type="text" placeholder="Ürün adı veya SKU ile ara…"
           style="padding-left:32px;"
-          oninput="shopifyRenderProductList(this.value)">
+          oninput="shopifyLoadAndRender(this.value)">
       </div>
       <div id="shopifyProductList"
         style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:0;">
@@ -482,6 +482,7 @@ const MOCK_SHOPIFY_PRODUCTS = [
 ];
 
 let _shopifySelectedProduct = null;
+let _shopifyProductCache   = null; // null=henüz denenmedi, Array=başarılı, false=başarısız/mock kullan
 
 function getShopifyMapping(productId) {
   const all = JSON.parse(localStorage.getItem('shopify_mappings') || '{}');
@@ -509,19 +510,95 @@ function openShopifyMapModal(productId) {
   if (lbl) lbl.textContent = 'Seçili: —';
   document.getElementById('shopifyMapModal').dataset.pid = productId;
   openModal('shopifyMapModal');
-  shopifyRenderProductList('');
+  shopifyLoadAndRender('');
 }
 
-function shopifyRenderProductList(q) {
-  const filtered = MOCK_SHOPIFY_PRODUCTS.filter(p =>
-    !q || p.title.toLowerCase().includes(q.toLowerCase()) || p.sku.toLowerCase().includes(q.toLowerCase())
+/* Ürün listesini Shopify Admin API'den çeker (ilk açılış), sonra cache'den filtreler */
+async function shopifyLoadAndRender(q) {
+  const listEl = document.getElementById('shopifyProductList');
+  if (!listEl) return;
+
+  /* Cache'de gerçek ürünler var → sadece filtrele */
+  if (Array.isArray(_shopifyProductCache)) {
+    shopifyRenderItems(_shopifyProductCache, q, listEl);
+    return;
+  }
+  /* Önceki denemede başarısız oldu → demo verisini kullan */
+  if (_shopifyProductCache === false) {
+    shopifyRenderItems(MOCK_SHOPIFY_PRODUCTS, q, listEl);
+    return;
+  }
+
+  /* İlk çalışma: Shopify Admin API'yi dene */
+  const state  = JSON.parse(localStorage.getItem('shopify_integration') || '{}');
+  const domain = state.shopDomain;
+  const token  = state.accessToken;
+
+  if (!domain || !token) {
+    _shopifyProductCache = false;
+    shopifyRenderItems(MOCK_SHOPIFY_PRODUCTS, q, listEl);
+    return;
+  }
+
+  listEl.innerHTML = `
+    <div style="padding:40px;text-align:center;font-size:13px;color:var(--text-muted);">
+      <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        style="animation:spin 1s linear infinite;display:block;margin:0 auto 12px;">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+      <strong>${domain}.myshopify.com</strong> mağazasından ürünler yükleniyor…
+    </div>`;
+
+  try {
+    const resp = await fetch(
+      `https://${domain}.myshopify.com/admin/api/2024-01/products.json?limit=250&status=active`,
+      { headers: { 'X-Shopify-Access-Token': token } }
+    );
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    _shopifyProductCache = (data.products || []).map(p => ({
+      id:     String(p.id),
+      title:  p.title,
+      handle: p.handle,
+      sku:    p.variants?.[0]?.sku   || '',
+      price:  parseFloat(p.variants?.[0]?.price || '0'),
+    }));
+    shopifyRenderItems(_shopifyProductCache, q, listEl);
+  } catch(err) {
+    _shopifyProductCache = false;
+    showToast('API Erişim Hatası',
+      'Shopify Admin API CORS nedeniyle tarayıcıdan çağrılamıyor. Gerçek platformda backend proxy kullanılır.',
+      'warning');
+    shopifyRenderItems(MOCK_SHOPIFY_PRODUCTS, q, listEl);
+  }
+}
+
+/* Ürün listesini DOM'a yazar (hem gerçek hem demo için ortak) */
+function shopifyRenderItems(products, q, listEl) {
+  const filtered = products.filter(p =>
+    !q || p.title.toLowerCase().includes(q.toLowerCase()) ||
+          (p.sku || '').toLowerCase().includes(q.toLowerCase())
   );
-  const mapped = JSON.parse(localStorage.getItem('shopify_mappings') || '{}');
+  const mapped  = JSON.parse(localStorage.getItem('shopify_mappings') || '{}');
   const usedIds = Object.values(mapped).map(m => m.shopifyId);
 
-  document.getElementById('shopifyProductList').innerHTML = filtered.length
+  const state = JSON.parse(localStorage.getItem('shopify_integration') || '{}');
+  const badge = Array.isArray(_shopifyProductCache)
+    ? `<div style="font-size:11px;color:var(--success);font-weight:600;padding:7px 12px;background:#F0FDF4;border-bottom:1px solid #BBF7D0;display:flex;align-items:center;gap:5px;">
+         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+         ${_shopifyProductCache.length} ürün ${state.shopDomain ? state.shopDomain + '.myshopify.com' : 'Shopify'}'dan yüklendi
+       </div>`
+    : _shopifyProductCache === false && state.accessToken
+    ? `<div style="font-size:11px;color:#92400E;padding:7px 12px;background:#FFFBEB;border-bottom:1px solid #FDE68A;display:flex;align-items:center;gap:5px;">
+         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+         CORS: Demo veriler gösteriliyor — gerçek platformda backend proxy kullanılır
+       </div>`
+    : '';
+
+  listEl.innerHTML = badge + (filtered.length
     ? filtered.map(sp => {
         const alreadyMapped = usedIds.includes(sp.id);
+        const priceStr = sp.price ? formatMoney(sp.price) : '—';
         return `
         <div onclick="${alreadyMapped ? '' : `shopifySelectProduct('${sp.id}')`}"
           id="shopify_row_${sp.id}"
@@ -534,16 +611,26 @@ function shopifyRenderProductList(q) {
           <div style="width:36px;height:36px;border-radius:6px;background:#96BF4820;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📦</div>
           <div style="flex:1;min-width:0;">
             <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sp.title}</div>
-            <div style="font-size:11px;color:var(--text-muted);">SKU: ${sp.sku} · ${formatMoney(sp.price)}</div>
+            <div style="font-size:11px;color:var(--text-muted);">SKU: ${sp.sku || '—'} · ${priceStr}</div>
           </div>
-          ${alreadyMapped ? '<span style="font-size:10px;color:var(--success);font-weight:600;">Eşli</span>' : ''}
+          ${alreadyMapped ? '<span style="font-size:10px;color:var(--success);font-weight:600;white-space:nowrap;">Eşli</span>' : ''}
         </div>`;
       }).join('')
-    : '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px;">Sonuç bulunamadı.</div>';
+    : '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px;">Sonuç bulunamadı.</div>');
+}
+
+/* Geriye dönük uyumluluk (oninput çağrıları için) */
+function shopifyRenderProductList(q) {
+  const listEl = document.getElementById('shopifyProductList');
+  if (!listEl) return;
+  if (Array.isArray(_shopifyProductCache)) shopifyRenderItems(_shopifyProductCache, q, listEl);
+  else if (_shopifyProductCache === false) shopifyRenderItems(MOCK_SHOPIFY_PRODUCTS, q, listEl);
+  else shopifyLoadAndRender(q);
 }
 
 function shopifySelectProduct(shopifyId) {
-  _shopifySelectedProduct = MOCK_SHOPIFY_PRODUCTS.find(p => p.id === shopifyId);
+  const pool = Array.isArray(_shopifyProductCache) ? _shopifyProductCache : MOCK_SHOPIFY_PRODUCTS;
+  _shopifySelectedProduct = pool.find(p => p.id === shopifyId);
   document.querySelectorAll('#shopifyProductList > div').forEach(el => {
     el.style.borderColor = 'transparent';
     el.style.background  = '';
