@@ -7,6 +7,8 @@ import { api, type ShopifyApiProduct } from '../lib/api';
 import { formatMoney, statusLabel } from '../lib/utils';
 import type { Product, ShopifyMapping, ShopifySettings, VariantOption, VariantDataEntry } from '../types';
 
+const CATEGORIES = ['Telefon','Bilgisayar','Tablet','Aksesuar','Ses Sistemleri','Monitör','Televizyon','Ev Elektroniği','Fotoğraf'];
+
 // ── Shopify mock products for offline demo ─────────────────────────────────────
 const MOCK_SHOPIFY: ShopifyApiProduct[] = [
   { id: 7891001, title: 'iPhone 15 Pro Max 256GB',  handle: 'iphone-15-pro-max-256gb',  variants: [{ id: 78910011, title: 'Siyah Titanium', sku: 'AAPL-IP15PM-256-BLK', price: '72999.00' }, { id: 78910012, title: 'Beyaz Titanium', sku: 'AAPL-IP15PM-256-WHT', price: '72999.00' }] },
@@ -52,6 +54,8 @@ export default function ProductDetail() {
   const [status, setStatus]     = useState<'active' | 'draft' | 'archived'>('active');
   const [category, setCategory] = useState('');
   const [channels, setChannels] = useState<string[]>([]);
+  const [tags, setTags]         = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
 
   // Variant state
   const [hasVariants, setHasVariants] = useState(false);
@@ -87,6 +91,7 @@ export default function ProductDetail() {
       setCost(String(p.cost)); setSku(p.sku); setBarcode(p.barcode);
       setStock(String(p.stock)); setWeight(String(p.weight));
       setStatus(p.status); setCategory(p.category); setChannels(p.channels);
+      setTags(p.tags || []);
       setHasVariants(p.has_variants);
       setVariantOptions(p.variant_options || []);
       setVariantData(p.variant_data || {});
@@ -104,7 +109,7 @@ export default function ProductDetail() {
         discounted_price: discounted ? parseFloat(discounted) : null,
         cost: parseFloat(cost) || 0, sku, barcode,
         stock: hasVariants ? Object.values(variantData).reduce((s, v) => s + (parseInt(v.stock || '0') || 0), 0) : parseInt(stock) || 0,
-        weight: parseFloat(weight) || 0, status, category, channels,
+        weight: parseFloat(weight) || 0, status, category, channels, tags,
         has_variants: hasVariants, variant_options: variantOptions, variant_data: variantData,
       });
       showToast('Kaydedildi', 'Ürün bilgileri güncellendi.', 'success');
@@ -480,9 +485,35 @@ export default function ProductDetail() {
             </div>
 
             <div className="pd-card">
-              <div className="pd-card-title">Kategori</div>
+              <div className="pd-card-title">Organizasyon</div>
               <div className="pd-card-body">
-                <input className="form-control" value={category} onChange={e => { setCategory(e.target.value); markDirty(); }} />
+                <div className="form-group">
+                  <label className="form-label">Kategori</label>
+                  <select className="form-control" value={category} onChange={e => { setCategory(e.target.value); markDirty(); }}>
+                    <option value="">Kategori seçin</option>
+                    {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Etiketler</label>
+                  <div className="tag-list">
+                    {tags.map(t => (
+                      <span key={t} className="tag">
+                        {t}
+                        <button onClick={() => { setTags(prev => prev.filter(x => x !== t)); markDirty(); }}>×</button>
+                      </span>
+                    ))}
+                  </div>
+                  <input className="form-control" type="text" placeholder="Etiket ekle ve Enter'a bas"
+                    style={{ marginTop: 8 }} value={tagInput}
+                    onChange={e => setTagInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key !== 'Enter') return;
+                      const val = tagInput.trim();
+                      if (val && !tags.includes(val)) { setTags(prev => [...prev, val]); markDirty(); }
+                      setTagInput('');
+                    }} />
+                </div>
               </div>
             </div>
 
@@ -507,10 +538,12 @@ export default function ProductDetail() {
             <div className="pd-card">
               <div className="pd-card-title" style={{ color: 'var(--danger)' }}>Tehlikeli Alan</div>
               <div className="pd-card-body">
-                <button className="btn btn-sm" style={{ background: 'var(--danger)', color: '#fff', border: 'none', width: '100%' }}
-                  onClick={() => setDeleteModalOpen(true)}>
-                  Ürünü Sil
-                </button>
+                <div className="danger-zone">
+                  <button className="btn btn-sm" style={{ background: 'var(--danger)', color: '#fff', border: 'none', width: '100%' }}
+                    onClick={() => setDeleteModalOpen(true)}>
+                    Ürünü Sil
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -611,9 +644,20 @@ export default function ProductDetail() {
           )}
 
           {/* Channel cards */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Satış Kanalları</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{channels.length} aktif kanal</div>
+          <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 13 }}>Satış Kanalları</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{channels.length} aktif kanal bağlı</div>
+            </div>
+            {channels.length > 0 && (
+              <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }}
+                onClick={() => showToast('Senkronizasyon', 'Tüm kanallar senkronize ediliyor…', 'info')}>
+                <svg width={13} height={13} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 5 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Tümünü Senkronize Et
+              </button>
+            )}
           </div>
           {channels.length > 0 ? (
             <div className="int-grid">
@@ -626,7 +670,10 @@ export default function ProductDetail() {
                         <img src={`https://www.google.com/s2/favicons?domain=${m?.favicon}&sz=32`} width={20} height={20} style={{ borderRadius: 4 }} alt="" />
                         <span style={{ fontWeight: 700, fontSize: 13 }}>{m?.label || ch}</span>
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--success)' }}>● Yayında</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--success)' }}>
+                        <span className="int-status-dot" style={{ background: 'var(--success)' }} />
+                        Yayında
+                      </span>
                     </div>
                     <div className="int-card-body">
                       <div className="int-row"><span className="lbl">Fiyat</span><span className="val">{formatMoney(parseFloat(price) || 0)}</span></div>
@@ -637,6 +684,9 @@ export default function ProductDetail() {
                         onClick={() => showToast('Senkronizasyon', `${m?.label} senkronize ediliyor…`, 'info')}>
                         Senkronize Et
                       </button>
+                      <a href={`https://${m?.favicon}`} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm" style={{ fontSize: 12, textDecoration: 'none' }}>
+                        Kanalda Gör ↗
+                      </a>
                     </div>
                   </div>
                 );
@@ -644,7 +694,11 @@ export default function ProductDetail() {
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: 13 }}>
-              Henüz kanal bağlı değil. Genel sekmesinden kanalları seçin.
+              <svg width={36} height={36} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ margin: '0 auto 12px', display: 'block', opacity: .4 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              Henüz hiçbir satış kanalı bağlı değil.<br />
+              <span style={{ fontSize: 12 }}>Genel sekmesinden Satış Kanalları bölümünü kullanabilirsiniz.</span>
             </div>
           )}
         </div>

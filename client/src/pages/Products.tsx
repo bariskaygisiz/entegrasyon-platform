@@ -196,7 +196,7 @@ export default function Products() {
                 {products.map(p => {
                   const st = statusLabel(p.status);
                   const hasLowStock = p.stock > 0 && p.stock <= 5;
-                  const isVariant = p.variants && p.variants.length > 0;
+                  const isVariant = p.has_variants;
                   return (
                     <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/products/${p.id}`)}>
                       <td onClick={e => e.stopPropagation()}>
