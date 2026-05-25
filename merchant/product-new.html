@@ -438,6 +438,11 @@ function markDirty() {
   if (ha && ha.style.display === 'none') ha.style.display = 'flex';
 }
 
+function markClean() {
+  const ha = document.getElementById('headerActions');
+  if (ha) ha.style.display = 'none';
+}
+
 function addMediaFiles(input) {
   [...input.files].forEach(file => {
     compressImage(file).then(src => {
@@ -558,6 +563,7 @@ function createProduct() {
   }
 
   showToast('Ürün Oluşturuldu', 'Yeni ürün başarıyla eklendi.', 'success');
+  markClean();
   setTimeout(() => window.location.href = 'products.html', 1200);
 }
 

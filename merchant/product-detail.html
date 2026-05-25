@@ -345,6 +345,11 @@ function markDirty() {
   if (ha && ha.style.display === 'none') ha.style.display = 'flex';
 }
 
+function markClean() {
+  const ha = document.getElementById('headerActions');
+  if (ha) ha.style.display = 'none';
+}
+
 function addMediaFiles(input) {
   [...input.files].forEach(file => {
     compressImage(file).then(src => {
@@ -419,11 +424,13 @@ function saveProduct() {
   try {
     localStorage.setItem('pd_' + id, JSON.stringify(data));
     showToast('Kaydedildi', 'Ürün bilgileri başarıyla güncellendi.', 'success');
+    markClean();
   } catch (e) {
     try {
       data.media = [];
       localStorage.setItem('pd_' + id, JSON.stringify(data));
       showToast('Kaydedildi', 'Bilgiler kaydedildi. Görseller depolama kotası nedeniyle saklanamadı.', 'warning');
+      markClean();
     } catch (e2) {
       showToast('Hata', 'Kaydedilemedi: tarayıcı depolama alanı dolu.', 'error');
     }
