@@ -320,14 +320,14 @@
               </div>
             </div>
 
-            <div class="int-card" onclick="goDetail('shopify')">
+            <div class="int-card" id="shopifyCard" onclick="goDetail('shopify')">
               <div class="int-card-header">
                 <div class="int-logo" style="background:#96BF48;color:#fff">S</div>
-                <div class="int-status-dot gray"></div>
+                <div class="int-status-dot" id="shopifyDot" style="background:var(--border);"></div>
               </div>
               <div class="int-name">Shopify</div>
               <div class="int-desc">Shopify mağazanızla ürün senkronu, sipariş aktarımı ve webhook desteği.</div>
-              <div class="int-meta">
+              <div class="int-meta" id="shopifyMeta">
                 <span class="badge badge-gray" style="font-size:10px">Bağlı değil</span>
                 <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();goDetail('shopify')" style="font-size:11px;padding:4px 10px">Bağlan</button>
               </div>
@@ -549,7 +549,21 @@
     });
   }
 
-  document.addEventListener('DOMContentLoaded', initSidebar);
+  document.addEventListener('DOMContentLoaded', () => {
+    initSidebar();
+    // Shopify kartını localStorage durumuna göre güncelle
+    const shopify = JSON.parse(localStorage.getItem('shopify_integration') || 'null');
+    if (shopify?.connected) {
+      const card = document.getElementById('shopifyCard');
+      const dot  = document.getElementById('shopifyDot');
+      const meta = document.getElementById('shopifyMeta');
+      if (card) card.classList.add('connected');
+      if (dot)  { dot.classList.remove('gray'); dot.classList.add('green'); }
+      if (meta) meta.innerHTML = `
+        <span class="badge badge-success" style="font-size:10px">Aktif</span>
+        <span class="int-last-sync">${shopify.lastSync || 'Az önce'}</span>`;
+    }
+  });
 </script>
 </body>
 </html>
