@@ -67,6 +67,8 @@
     .pd-tab:hover { color:var(--text); }
     .pd-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
 
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
     /* ---- Entegrasyon kartları ---- */
     .int-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px; }
     .int-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
@@ -575,23 +577,34 @@ function shopifyConfirmMap() {
   document.getElementById('tabEntegrasyon').innerHTML = renderIntegrationTab(pObj);
 }
 
-function shopifyCreateProduct(productId, productName, productPrice, productSku) {
-  const newShopifyId = String(7899000 + Math.floor(Math.random() * 999));
-  const handle = productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 50);
-  saveShopifyMapping(productId, {
-    shopifyId:    newShopifyId,
-    shopifyTitle: productName,
-    handle,
-    sku:          productSku || ('SHP-' + newShopifyId),
-    price:        productPrice,
-    mappedAt:     new Date().toLocaleDateString('tr-TR'),
-    type:         'created',
-  });
-  showToast('Oluşturuldu', `"${productName}" Shopify mağazanızda oluşturuldu.`, 'success');
-  const saved = JSON.parse(localStorage.getItem('pd_' + productId) || 'null');
-  const pObj  = { id: productId, name: productName, channels: saved?.channels || [],
-                  price: productPrice, sku: productSku };
-  document.getElementById('tabEntegrasyon').innerHTML = renderIntegrationTab(pObj);
+function shopifyCreateProduct(btn, productId, productName, productPrice, productSku) {
+  // Show loading state
+  btn.disabled = true;
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+    style="animation:spin 1s linear infinite;margin-right:5px;">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+  </svg>Oluşturuluyor…`;
+
+  // Simulate async Shopify Admin API call (~1.4s)
+  setTimeout(() => {
+    const newShopifyId = String(7899000 + Math.floor(Math.random() * 999));
+    const handle = productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 50);
+    saveShopifyMapping(productId, {
+      shopifyId:    newShopifyId,
+      shopifyTitle: productName,
+      handle,
+      sku:          productSku || ('SHP-' + newShopifyId),
+      price:        productPrice,
+      mappedAt:     new Date().toLocaleDateString('tr-TR'),
+      type:         'created',
+    });
+    showToast('Shopify\'da Oluşturuldu', `"${productName}" Shopify Admin API ile mağazanıza eklendi.`, 'success');
+    const saved = JSON.parse(localStorage.getItem('pd_' + productId) || 'null');
+    const pObj  = { id: productId, name: productName, channels: saved?.channels || [],
+                    price: productPrice, sku: productSku };
+    document.getElementById('tabEntegrasyon').innerHTML = renderIntegrationTab(pObj);
+  }, 1400);
 }
 
 function shopifyUnmap(productId) {
@@ -687,7 +700,7 @@ function renderIntegrationTab(p) {
               Mevcut Ürünü Eşleştir
             </button>
             <button class="btn btn-ghost btn-sm" style="font-size:12px;padding:8px 14px;"
-              onclick="shopifyCreateProduct('${pidEsc}','${nameEsc}',${price},'${sku}')">
+              onclick="shopifyCreateProduct(this,'${pidEsc}','${nameEsc}',${price},'${sku}')">
               <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right:5px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
               Shopify'da Yeni Oluştur
             </button>
