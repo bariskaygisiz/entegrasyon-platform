@@ -406,6 +406,8 @@ function saveProduct() {
     weight:     document.getElementById('fWeight')?.value     || '',
     status:     document.getElementById('fStatus')?.value     || 'active',
     category:       document.getElementById('fCategory')?.value   || '',
+    tags:           [...document.querySelectorAll('#tagList .tag')]
+                      .map(el => el.textContent.replace('×', '').trim()).filter(Boolean),
     channels:       [...document.querySelectorAll('#channelList input[type=checkbox]:checked')]
                       .map(cb => cb.closest('[id^=crow-]')?.id?.replace('crow-', '')).filter(Boolean),
     media:          mediaItems.map(m => ({ id: m.id, src: m.src || null, emoji: m.emoji || null, opacity: m.opacity || 1 })),
@@ -737,6 +739,23 @@ document.addEventListener('DOMContentLoaded', () => {
     sv('fWeight', saved.weight);
     sv('fStatus', saved.status);
     sv('fCategory', saved.category);
+
+    // Etiketleri geri yükle
+    if (saved.tags?.length) {
+      const tagList = document.getElementById('tagList');
+      if (tagList) tagList.innerHTML = saved.tags.map(t =>
+        `<span class="tag">${t}<button onclick="this.parentElement.remove()">×</button></span>`
+      ).join('');
+    }
+
+    // Satış kanallarını geri yükle
+    if (saved.channels) {
+      document.querySelectorAll('#channelList input[type=checkbox]').forEach(cb => {
+        const c = cb.closest('[id^=crow-]')?.id?.replace('crow-', '');
+        if (c) { cb.checked = saved.channels.includes(c); toggleChannel(c, cb); }
+      });
+    }
+
     if (saved.media?.length) {
       mediaItems = saved.media;
       renderMediaGrid();

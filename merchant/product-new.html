@@ -530,6 +530,8 @@ function createProduct() {
     weight:         parseFloat(document.getElementById('fWeight')?.value) || 0,
     status:         document.getElementById('fStatus')?.value      || 'draft',
     category:       document.getElementById('fCategory')?.value    || 'Telefon',
+    tags:           [...document.querySelectorAll('#tagList .tag')]
+                      .map(el => el.textContent.replace('×', '').trim()).filter(Boolean),
     media:          mediaItems.map(m => ({ id: m.id, src: m.src || null })),
     channels:       [...document.querySelectorAll('#channelList input[type=checkbox]:checked')]
                       .map(cb => cb.closest('[id^=crow-]')?.id?.replace('crow-','')).filter(Boolean),
