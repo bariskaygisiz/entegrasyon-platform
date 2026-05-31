@@ -49,44 +49,42 @@ function avatarColor(name: string): [string, string] {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
-// ── Form field helper ─────────────────────────────────────────────────────────
-function Field({ label, children, span }: { label: string; children: React.ReactNode; span?: boolean }) {
+// ── Bilgi satırı (read-only) ──────────────────────────────────────────────────
+function InfoRow({ label, value, span }: { label: string; value: string; span?: boolean }) {
   return (
     <div style={{ gridColumn: span ? '1 / -1' : undefined }}>
-      <label style={{ display:'block', fontSize:11, fontWeight:600, color:'var(--text-muted)', marginBottom:5, textTransform:'uppercase', letterSpacing:.4 }}>
+      <div style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:.4, marginBottom:4 }}>
         {label}
-      </label>
-      {children}
+      </div>
+      <div style={{ fontSize:13, fontWeight:500, color: value ? 'var(--text)' : 'var(--border)', padding:'8px 12px', background:'var(--bg)', border:'1px solid var(--border-light)', borderRadius:8, minHeight:36, display:'flex', alignItems:'center' }}>
+        {value || <span style={{ fontStyle:'italic', color:'var(--border)' }}>—</span>}
+      </div>
     </div>
   );
 }
 
 const INPUT_STYLE: React.CSSProperties = {
-  width: '100%', padding: '8px 12px', border: '1px solid var(--border)',
-  borderRadius: 8, fontSize: 13, background: 'var(--bg)',
-  color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
-  transition: 'border-color .15s',
+  width:'100%', padding:'8px 12px', border:'1px solid var(--border)',
+  borderRadius:8, fontSize:13, background:'var(--bg)', color:'var(--text)',
+  outline:'none', boxSizing:'border-box', transition:'border-color .15s',
 };
 
 // ── Ana bileşen ───────────────────────────────────────────────────────────────
-type ProfileState = {
-  name: string; email: string; phone: string;
-  city: string; district: string; address: string;
+type InvoiceState = {
   invoiceType: 'individual' | 'corporate';
-  tcNo: string; taxNo: string; taxOffice: string; notes: string;
+  tcNo: string; taxNo: string; taxOffice: string;
 };
 
 export default function CustomerDetail() {
-  const { key }    = useParams<{ key: string }>();
-  const navigate   = useNavigate();
+  const { key }   = useParams<{ key: string }>();
+  const navigate  = useNavigate();
   const [customer, setCustomer] = useState<CustomerWithOrders | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
   const [saved,    setSaved]    = useState(false);
   const [saveErr,  setSaveErr]  = useState('');
-  const [profile,  setProfile]  = useState<ProfileState>({
-    name:'', email:'', phone:'', city:'', district:'', address:'',
-    invoiceType:'individual', tcNo:'', taxNo:'', taxOffice:'', notes:'',
+  const [invoice,  setInvoice]  = useState<InvoiceState>({
+    invoiceType: 'individual', tcNo: '', taxNo: '', taxOffice: '',
   });
 
   useEffect(() => {
@@ -94,32 +92,29 @@ export default function CustomerDetail() {
     api.customers.get(key)
       .then(c => {
         setCustomer(c);
-        setProfile({
-          name:        c.name,
-          email:       c.email,
-          phone:       c.phone,
-          city:        c.city,
-          district:    c.district,
-          address:     c.address,
+        setInvoice({
           invoiceType: c.invoiceType || 'individual',
           tcNo:        c.tcNo        || '',
           taxNo:       c.taxNo       || '',
           taxOffice:   c.taxOffice   || '',
-          notes:       c.notes       || '',
         });
       })
       .catch(() => setCustomer(null))
       .finally(() => setLoading(false));
   }, [key]);
 
-  const set = (field: keyof ProfileState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    setProfile(prev => ({ ...prev, [field]: e.target.value }));
-
   const handleSave = async () => {
-    if (!key) return;
+    if (!key || !customer) return;
     setSaving(true); setSaved(false); setSaveErr('');
     try {
-      await api.customers.update(key, profile as any);
+      await api.customers.update(key, {
+        // İletişim bilgileri de gönder (orders'dan gelenler olduğu gibi korunur)
+        name: customer.name, email: customer.email, phone: customer.phone,
+        city: customer.city, district: customer.district, address: customer.address,
+        // Yalnızca fatura alanları kullanıcı tarafından girilir
+        invoiceType: invoice.invoiceType,
+        tcNo: invoice.tcNo, taxNo: invoice.taxNo, taxOffice: invoice.taxOffice,
+      } as any);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (e: any) {
@@ -151,10 +146,10 @@ export default function CustomerDetail() {
       <style>{`
         .prof-input:focus { border-color: var(--primary) !important; box-shadow: 0 0 0 3px var(--primary-light,#EEF2FF); }
         .invoice-radio { display:flex; gap:10px; }
-        .invoice-radio label { display:flex; align-items:center; gap:8px; padding:8px 14px; border:2px solid var(--border); border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; transition:all .15s; flex:1; justify-content:center; }
+        .invoice-radio label { display:flex; align-items:center; gap:8px; padding:9px 16px; border:2px solid var(--border); border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; transition:all .15s; flex:1; justify-content:center; }
         .invoice-radio label.active { border-color:var(--primary); background:var(--primary-light,#EEF2FF); color:var(--primary); }
         .invoice-radio input[type=radio] { display:none; }
-        @media (max-width:700px) { .prof-grid { grid-template-columns: 1fr !important; } .detail-grid { grid-template-columns: 1fr !important; } }
+        @media (max-width:680px) { .detail-grid { grid-template-columns:1fr !important; } .info-grid { grid-template-columns:1fr !important; } }
       `}</style>
 
       {/* Geri */}
@@ -171,162 +166,153 @@ export default function CustomerDetail() {
           {(customer.name||'?')[0].toUpperCase()}
         </div>
         <div style={{ flex:1 }}>
-          <h1 style={{ fontSize:20, fontWeight:800, margin:'0 0 4px' }}>{customer.name}</h1>
+          <h1 style={{ fontSize:20, fontWeight:800, margin:'0 0 6px' }}>{customer.name}</h1>
           <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
             {customer.channels.map(ch => <ChannelBadge key={ch} channel={ch} />)}
           </div>
         </div>
       </div>
 
-      <div className="detail-grid" style={{ display:'grid', gridTemplateColumns:'1fr 320px', gap:20, alignItems:'start' }}>
-        {/* SOL: Profil formu */}
+      <div className="detail-grid" style={{ display:'grid', gridTemplateColumns:'1fr 300px', gap:20, alignItems:'start' }}>
+
+        {/* SOL: Bilgi kartları */}
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
-          {/* İletişim Bilgileri */}
+          {/* Müşteri Bilgileri — read-only, siparişlerden otomatik */}
           <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', overflow:'hidden' }}>
-            <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border-light)', fontWeight:700, fontSize:13 }}>
-              İletişim Bilgileri
+            <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border-light)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontWeight:700, fontSize:13 }}>Müşteri Bilgileri</span>
+              <span style={{ fontSize:11, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:4 }}>
+                <svg width={12} height={12} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Siparişlerden otomatik alınır
+              </span>
             </div>
-            <div className="prof-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, padding:16 }}>
-              <Field label="Adı Soyadı" span>
-                <input className="prof-input" style={INPUT_STYLE} value={profile.name} onChange={set('name')} placeholder="Ad Soyad" />
-              </Field>
-              <Field label="E-posta Adresi">
-                <input className="prof-input" style={INPUT_STYLE} value={profile.email} onChange={set('email')} placeholder="ornek@email.com" type="email" />
-              </Field>
-              <Field label="Telefon">
-                <input className="prof-input" style={INPUT_STYLE} value={profile.phone} onChange={set('phone')} placeholder="05xx xxx xx xx" />
-              </Field>
-              <Field label="İl">
-                <input className="prof-input" style={INPUT_STYLE} value={profile.city} onChange={set('city')} placeholder="Şehir" />
-              </Field>
-              <Field label="İlçe">
-                <input className="prof-input" style={INPUT_STYLE} value={profile.district} onChange={set('district')} placeholder="İlçe" />
-              </Field>
-              <Field label="Adres" span>
-                <input className="prof-input" style={INPUT_STYLE} value={profile.address} onChange={set('address')} placeholder="Sokak, mahalle, bina no..." />
-              </Field>
+            <div className="info-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, padding:16 }}>
+              <InfoRow label="Adı Soyadı"   value={customer.name}     span />
+              <InfoRow label="E-posta Adresi" value={customer.email} />
+              <InfoRow label="Telefon"      value={customer.phone} />
+              <InfoRow label="İl"           value={customer.city} />
+              <InfoRow label="İlçe"         value={customer.district} />
+              <InfoRow label="Adres"        value={customer.address} span />
             </div>
           </div>
 
-          {/* Fatura Bilgileri */}
+          {/* Fatura Bilgileri — kullanıcı tarafından girilir */}
           <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', overflow:'hidden' }}>
             <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border-light)', fontWeight:700, fontSize:13 }}>
               Fatura Bilgileri
             </div>
             <div style={{ padding:16, display:'flex', flexDirection:'column', gap:14 }}>
 
-              {/* Fatura türü seçici */}
-              <Field label="Fatura Türü">
+              {/* Fatura türü */}
+              <div>
+                <div style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:.4, marginBottom:8 }}>Fatura Türü</div>
                 <div className="invoice-radio">
-                  <label className={profile.invoiceType === 'individual' ? 'active' : ''}>
-                    <input type="radio" value="individual" checked={profile.invoiceType === 'individual'}
-                      onChange={() => setProfile(p => ({ ...p, invoiceType: 'individual' }))} />
-                    <svg width={15} height={15} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
+                  <label className={invoice.invoiceType === 'individual' ? 'active' : ''}>
+                    <input type="radio" value="individual" checked={invoice.invoiceType === 'individual'}
+                      onChange={() => setInvoice(p => ({ ...p, invoiceType: 'individual' }))} />
+                    <svg width={15} height={15} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     Bireysel
                   </label>
-                  <label className={profile.invoiceType === 'corporate' ? 'active' : ''}>
-                    <input type="radio" value="corporate" checked={profile.invoiceType === 'corporate'}
-                      onChange={() => setProfile(p => ({ ...p, invoiceType: 'corporate' }))} />
-                    <svg width={15} height={15} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
+                  <label className={invoice.invoiceType === 'corporate' ? 'active' : ''}>
+                    <input type="radio" value="corporate" checked={invoice.invoiceType === 'corporate'}
+                      onChange={() => setInvoice(p => ({ ...p, invoiceType: 'corporate' }))} />
+                    <svg width={15} height={15} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                     Kurumsal
                   </label>
                 </div>
-              </Field>
+              </div>
 
               {/* Bireysel → TC No */}
-              {profile.invoiceType === 'individual' && (
-                <Field label="TC Kimlik Numarası">
+              {invoice.invoiceType === 'individual' && (
+                <div>
+                  <div style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:.4, marginBottom:5 }}>TC Kimlik Numarası</div>
                   <input
-                    className="prof-input" style={INPUT_STYLE}
-                    value={profile.tcNo} onChange={set('tcNo')}
-                    placeholder="11 haneli TC kimlik numaranızı girin"
-                    maxLength={11}
+                    className="prof-input"
+                    style={INPUT_STYLE}
+                    value={invoice.tcNo}
+                    onChange={e => setInvoice(p => ({ ...p, tcNo: e.target.value.replace(/\D/g,'').slice(0,11) }))}
+                    placeholder="11 haneli TC kimlik numarası"
                     inputMode="numeric"
                   />
-                  {profile.tcNo && profile.tcNo.length !== 11 && (
-                    <div style={{ fontSize:11, color:'#ef4444', marginTop:4 }}>TC kimlik numarası 11 haneli olmalıdır.</div>
+                  {invoice.tcNo.length > 0 && invoice.tcNo.length !== 11 && (
+                    <div style={{ fontSize:11, color:'#ef4444', marginTop:4 }}>TC kimlik numarası 11 haneli olmalıdır ({invoice.tcNo.length}/11)</div>
                   )}
-                </Field>
+                </div>
               )}
 
               {/* Kurumsal → Vergi No + Vergi Dairesi */}
-              {profile.invoiceType === 'corporate' && (
-                <div className="prof-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
-                  <Field label="Vergi Numarası">
+              {invoice.invoiceType === 'corporate' && (
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                  <div>
+                    <div style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:.4, marginBottom:5 }}>Vergi Numarası</div>
                     <input
-                      className="prof-input" style={INPUT_STYLE}
-                      value={profile.taxNo} onChange={set('taxNo')}
+                      className="prof-input"
+                      style={INPUT_STYLE}
+                      value={invoice.taxNo}
+                      onChange={e => setInvoice(p => ({ ...p, taxNo: e.target.value.replace(/\D/g,'').slice(0,10) }))}
                       placeholder="10 haneli vergi numarası"
-                      maxLength={10}
                       inputMode="numeric"
                     />
-                    {profile.taxNo && profile.taxNo.length !== 10 && (
-                      <div style={{ fontSize:11, color:'#ef4444', marginTop:4 }}>Vergi numarası 10 haneli olmalıdır.</div>
+                    {invoice.taxNo.length > 0 && invoice.taxNo.length !== 10 && (
+                      <div style={{ fontSize:11, color:'#ef4444', marginTop:4 }}>{invoice.taxNo.length}/10 hane</div>
                     )}
-                  </Field>
-                  <Field label="Vergi Dairesi">
+                  </div>
+                  <div>
+                    <div style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:.4, marginBottom:5 }}>Vergi Dairesi</div>
                     <input
-                      className="prof-input" style={INPUT_STYLE}
-                      value={profile.taxOffice} onChange={set('taxOffice')}
+                      className="prof-input"
+                      style={INPUT_STYLE}
+                      value={invoice.taxOffice}
+                      onChange={e => setInvoice(p => ({ ...p, taxOffice: e.target.value }))}
                       placeholder="Örn: Kadıköy Vergi Dairesi"
                     />
-                  </Field>
+                  </div>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Kaydet */}
-          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="btn btn-primary"
-              style={{ minWidth:120 }}
-            >
-              {saving ? 'Kaydediliyor…' : 'Değişiklikleri Kaydet'}
-            </button>
-            {saved && (
-              <span style={{ fontSize:13, color:'#15803d', display:'flex', alignItems:'center', gap:5 }}>
-                <svg width={15} height={15} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-                Kaydedildi
-              </span>
-            )}
-            {saveErr && <span style={{ fontSize:12, color:'#ef4444' }}>{saveErr}</span>}
+              {/* Kaydet */}
+              <div style={{ display:'flex', alignItems:'center', gap:12, paddingTop:4 }}>
+                <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ minWidth:130 }}>
+                  {saving ? 'Kaydediliyor…' : 'Fatura Bilgilerini Kaydet'}
+                </button>
+                {saved && (
+                  <span style={{ fontSize:13, color:'#15803d', display:'flex', alignItems:'center', gap:5 }}>
+                    <svg width={15} height={15} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Kaydedildi
+                  </span>
+                )}
+                {saveErr && <span style={{ fontSize:12, color:'#ef4444' }}>{saveErr}</span>}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* SAĞ: İstatistikler + özet */}
-        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-          {/* Stat kartları */}
+        {/* SAĞ: İstatistikler */}
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           {[
             { label:'Toplam Sipariş', value: customer.orderCount.toLocaleString('tr-TR'), icon:'🛒', color:'#6366f1' },
-            { label:'Toplam Harcama', value: formatMoney(customer.totalSpent), icon:'💰', color:'#10b981' },
-            { label:'Ort. Sipariş',   value: formatMoney(Math.round(avgOrder)), icon:'📊', color:'#f59e0b' },
-            { label:'Son Sipariş',    value: customer.lastOrderDate || '—', icon:'📅', color:'#0ea5e9' },
+            { label:'Toplam Harcama', value: formatMoney(customer.totalSpent),            icon:'💰', color:'#10b981' },
+            { label:'Ort. Sipariş',   value: formatMoney(Math.round(avgOrder)),           icon:'📊', color:'#f59e0b' },
+            { label:'Son Sipariş',    value: customer.lastOrderDate || '—',               icon:'📅', color:'#0ea5e9' },
+            { label:'İlk Sipariş',    value: customer.firstOrderDate || '—',              icon:'🗓', color:'#8b5cf6' },
           ].map(s => (
-            <div key={s.label} style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'12px 14px', display:'flex', alignItems:'center', gap:12 }}>
-              <span style={{ fontSize:22 }}>{s.icon}</span>
+            <div key={s.label} style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'11px 14px', display:'flex', alignItems:'center', gap:12 }}>
+              <span style={{ fontSize:20 }}>{s.icon}</span>
               <div>
-                <div style={{ fontSize:17, fontWeight:800, color:s.color }}>{s.value}</div>
+                <div style={{ fontSize:16, fontWeight:800, color:s.color, lineHeight:1.2 }}>{s.value}</div>
                 <div style={{ fontSize:11, color:'var(--text-muted)' }}>{s.label}</div>
               </div>
             </div>
           ))}
-
-          {/* İlk sipariş */}
-          {customer.firstOrderDate && (
-            <div style={{ fontSize:11, color:'var(--text-muted)', textAlign:'center', paddingTop:4 }}>
-              İlk sipariş: <strong>{customer.firstOrderDate}</strong>
-            </div>
-          )}
         </div>
       </div>
 
