@@ -9,6 +9,7 @@ const NAV = [
       { id: 'orders',           label: 'Siparişler',       path: '/orders',           icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z' },
       { id: 'products',         label: 'Ürünler',          path: '/products',         icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
       { id: 'categories',       label: 'Kategoriler',      path: '/categories',       icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
+      { id: 'operations',       label: 'İşlemler',         path: '/operations',       icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
       { id: 'customers',        label: 'Müşteriler',       path: '/customers',        icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
       { id: 'merchant-account', label: 'Hesabım',          path: '/account',          icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
     ],
@@ -95,9 +96,9 @@ function NavIcon({ d }: { d: string }) {
 
 function NavGroup({ group }: { group: NavGroupType }) {
   const location = useLocation();
-  const isActive = location.pathname === '/integrations' &&
-    !!new URLSearchParams(location.search).get('slug') &&
-    group.children.some((c: { slug: string }) => c.slug === new URLSearchParams(location.search).get('slug'));
+  const isActive = group.children.some(
+    (c: { slug: string }) => location.pathname === `/integrations/${c.slug}`,
+  );
 
   const [open, setOpen] = useState<boolean>(!!isActive);
 
@@ -114,11 +115,10 @@ function NavGroup({ group }: { group: NavGroupType }) {
         {group.children.map(child => (
           <NavLink
             key={child.slug}
-            to={`/integrations?slug=${child.slug}`}
-            className={({ isActive: a }) => {
-              const slugMatch = new URLSearchParams(location.search).get('slug') === child.slug && location.pathname === '/integrations';
-              return `nav-subitem${(a || slugMatch) ? ' active' : ''}`;
-            }}
+            to={`/integrations/${child.slug}`}
+            className={({ isActive: a }) =>
+              `nav-subitem${(a || location.pathname === `/integrations/${child.slug}`) ? ' active' : ''}`
+            }
           >
             {child.label}
             {'badge' in child && child.badge && <span className="nav-subitem-badge">{child.badge}</span>}

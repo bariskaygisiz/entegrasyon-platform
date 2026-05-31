@@ -64,6 +64,87 @@ db.exec(`
     is_variant    INTEGER NOT NULL DEFAULT 0,
     variant_mappings TEXT NOT NULL DEFAULT '{}'
   );
+
+  CREATE TABLE IF NOT EXISTS sync_jobs (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id   TEXT NOT NULL DEFAULT '',
+    product_name TEXT NOT NULL DEFAULT '',
+    channel      TEXT NOT NULL DEFAULT 'shopify',
+    action       TEXT NOT NULL DEFAULT 'sync',
+    status       TEXT NOT NULL DEFAULT 'pending',
+    message      TEXT NOT NULL DEFAULT '',
+    detail       TEXT NOT NULL DEFAULT '',
+    created_at   TEXT NOT NULL,
+    updated_at   TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS sync_state (
+    key        TEXT PRIMARY KEY,
+    value      TEXT NOT NULL DEFAULT '{}',
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS categories (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL UNIQUE,
+    description TEXT NOT NULL DEFAULT '',
+    image       TEXT NOT NULL DEFAULT '',
+    created_at  TEXT NOT NULL,
+    updated_at  TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS orders (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    shopify_order_id TEXT UNIQUE,
+    order_name       TEXT NOT NULL DEFAULT '',
+    channel          TEXT NOT NULL DEFAULT 'shopify',
+    status           TEXT NOT NULL DEFAULT 'approved',
+    customer         TEXT NOT NULL DEFAULT '',
+    email            TEXT NOT NULL DEFAULT '',
+    phone            TEXT NOT NULL DEFAULT '',
+    city             TEXT NOT NULL DEFAULT '',
+    district         TEXT NOT NULL DEFAULT '',
+    address          TEXT NOT NULL DEFAULT '',
+    product_name     TEXT NOT NULL DEFAULT '',
+    product_sku      TEXT NOT NULL DEFAULT '',
+    product_emoji    TEXT NOT NULL DEFAULT '📦',
+    product_price    REAL NOT NULL DEFAULT 0,
+    product_category TEXT NOT NULL DEFAULT '',
+    qty              INTEGER NOT NULL DEFAULT 1,
+    amount           REAL NOT NULL DEFAULT 0,
+    cargo_code       TEXT,
+    cargo_company    TEXT NOT NULL DEFAULT '',
+    payment_method   TEXT NOT NULL DEFAULT '',
+    note             TEXT,
+    line_items       TEXT NOT NULL DEFAULT '[]',
+    date_str         TEXT NOT NULL DEFAULT '',
+    shopify_synced_at TEXT,
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL
+  );
 `);
+
+// ─── Migrations (sütunlar yoksa ekle) ────────────────────────────────────────
+try { db.exec(`ALTER TABLE shopify_settings ADD COLUMN sync_config TEXT NOT NULL DEFAULT '{}'`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE products ADD COLUMN vat_rate    INTEGER NOT NULL DEFAULT 20`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE products ADD COLUMN vat_included INTEGER NOT NULL DEFAULT 1`);  } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE products ADD COLUMN b2b_price            REAL`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE products ADD COLUMN b2b_discounted_price REAL`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE shopify_settings ADD COLUMN price_type TEXT NOT NULL DEFAULT 'retail'`); } catch { /* zaten var */ }
+
+// ─── Veri düzeltme: varyantlı ürünlerde stock=0 ama variant_data'da stok var ─
+try {
+  db.exec(`
+    UPDATE products
+    SET stock = (
+      SELECT COALESCE(SUM(CAST(json_extract(e.value, '$.stock') AS INTEGER)), 0)
+      FROM json_each(products.variant_data) AS e
+    )
+    WHERE has_variants = 1
+      AND stock = 0
+      AND variant_data != '{}'
+      AND variant_data != '[]'
+  `);
+} catch { /* json_each desteklenmiyorsa atla */ }
 
 export default db;

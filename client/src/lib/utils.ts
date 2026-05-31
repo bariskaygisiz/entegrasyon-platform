@@ -13,11 +13,12 @@ export function rInt(seed: number, n: number, max: number): number {
 
 export function statusLabel(status: string): { label: string; cls: string } {
   const map: Record<string, { label: string; cls: string }> = {
-    new:       { label: 'Yeni',          cls: 'badge-info' },
-    preparing: { label: 'Hazırlanıyor',  cls: 'badge-warning' },
-    shipped:   { label: 'Kargoda',       cls: 'badge-primary' },
-    delivered: { label: 'Teslim Edildi', cls: 'badge-success' },
-    cancelled: { label: 'İptal',         cls: 'badge-gray' },
+    new:       { label: 'Onaylandı',       cls: 'badge-info' },
+    approved:  { label: 'Onaylandı',       cls: 'badge-info' },
+    preparing: { label: 'Hazırlanıyor',    cls: 'badge-warning' },
+    shipped:   { label: 'Kargoya Verildi', cls: 'badge-primary' },
+    delivered: { label: 'Teslim Edildi',   cls: 'badge-success' },
+    cancelled: { label: 'İptal Edildi',    cls: 'badge-gray' },
     active:    { label: 'Aktif',         cls: 'badge-success' },
     draft:     { label: 'Taslak',        cls: 'badge-warning' },
     archived:  { label: 'Arşiv',         cls: 'badge-gray' },

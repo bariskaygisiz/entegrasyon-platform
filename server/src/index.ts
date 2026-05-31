@@ -2,7 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import productsRouter from './routes/products';
 import ordersRouter from './routes/orders';
-import shopifyRouter from './routes/shopify';
+import shopifyRouter, { loadAndApplySyncConfig, runStockSync, runProductInfoSync, runPriceSync } from './routes/shopify';
+import categoriesRouter from './routes/categories';
+import { registerRunner } from './lib/syncScheduler';
+import { cleanupOldLogs } from './lib/log';
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -12,19 +15,30 @@ app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:8080'],
   credentials: true,
 }));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // ── Routes ─────────────────────────────────────────────────────────────────────
-app.use('/api/products', productsRouter);
-app.use('/api/orders',   ordersRouter);
-app.use('/api/shopify',  shopifyRouter);
+app.use('/api/products',   productsRouter);
+app.use('/api/orders',    ordersRouter);
+app.use('/api/shopify',   shopifyRouter);
+app.use('/api/categories', categoriesRouter);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, version: '2.0.0' }));
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ error: 'Endpoint bulunamadı.' }));
 
-// ── Start ─────────────────────────────────────────────────────────────────────
+// ── Sync scheduler: runner'ları kayıt et, DB'deki config'i yükle ─────────────
+registerRunner('inventory', runStockSync);
+registerRunner('products',  runProductInfoSync);
+registerRunner('prices',    runPriceSync);
+loadAndApplySyncConfig(); // DB'deki toggle durumuna göre interval'ları başlat
+
+// ── Günlük log temizliği (3 aydan eski kayıtları sil) ─────────────────────────
+cleanupOldLogs(); // Başlangıçta bir kez çalıştır
+setInterval(cleanupOldLogs, 24 * 60 * 60 * 1000); // Her 24 saatte bir
+
 app.listen(PORT, () => {
   console.log('');
   console.log('╔══════════════════════════════════════════════╗');

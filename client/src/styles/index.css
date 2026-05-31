@@ -1096,6 +1096,7 @@ input[type="checkbox"] {
    =================================== */
 
 .pd-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+.pd-layout > * { min-width: 0; }
 @media(max-width:900px){ .pd-layout { grid-template-columns: 1fr; } }
 
 .pd-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; }
@@ -1169,3 +1170,83 @@ input[type="checkbox"] {
 .int-card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
 .int-card-foot { padding: 10px 16px; border-top: 1px solid var(--border-light); display: flex; gap: 8px; flex-wrap: wrap; }
 .int-status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+/* Media grid */
+.media-grid { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.media-thumb { background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; transition: border-color .15s, background .15s; position: relative; overflow: hidden; width: 150px; height: 150px; flex-shrink: 0; }
+.media-thumb.main-thumb { width: 220px; height: 220px; }
+.media-thumb:hover { border-color: var(--primary); }
+.media-thumb.selected { border-color: var(--primary); background: var(--primary-light, #EEF2FF); }
+.media-thumb.add { border-style: dashed; color: var(--text-muted); flex-direction: column; gap: 4px; font-size: 20px; overflow: visible; }
+.media-thumb.add span { font-size: 11px; font-weight: 500; }
+.media-thumb.add:hover { border-color: var(--primary); background: var(--primary-light, #EEF2FF); }
+.media-cb { position: absolute; top: 5px; left: 5px; width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; z-index: 2; opacity: 0; transition: opacity .15s; }
+.media-thumb:hover .media-cb, .media-thumb.selected .media-cb { opacity: 1; }
+.media-main-badge { position: absolute; bottom: 3px; left: 3px; right: 3px; background: rgba(0,0,0,.55); color: #fff; font-size: 9px; font-weight: 700; text-align: center; border-radius: 3px; padding: 2px 0; letter-spacing: .4px; pointer-events: none; }
+
+/* === BULK EDIT SPREADSHEET === */
+.bulk-cell-input {
+  width: 100%;
+  border: 1.5px solid transparent;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: var(--font);
+  background: transparent;
+  color: var(--text);
+  outline: none;
+  transition: border-color .12s, background .12s, box-shadow .12s;
+}
+.bulk-cell-input:hover { border-color: var(--border); background: var(--card); }
+.bulk-cell-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px var(--primary-light); }
+
+.bulk-cell-select {
+  width: 100%;
+  border: 1.5px solid transparent;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: var(--font);
+  background: transparent;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.bulk-cell-select:hover { border-color: var(--border); background: var(--card); }
+.bulk-cell-select:focus { border-color: var(--primary); background: #fff; }
+
+/* Remove spinners on number inputs inside bulk edit table */
+.bulk-edit-table input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.bulk-edit-table input[type=number]::-webkit-outer-spin-button,
+.bulk-edit-table input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Excel-like fill handle */
+.be-cell { position: relative; }
+.be-fill-handle {
+  position: absolute;
+  bottom: -5px;
+  right: 2px;
+  width: 9px;
+  height: 9px;
+  background: #2563EB;
+  border: 2px solid #fff;
+  border-radius: 1px;
+  cursor: crosshair;
+  z-index: 6;
+  opacity: 0;
+  pointer-events: all;
+  box-shadow: 0 0 0 1px #2563EB;
+  transition: transform .1s;
+}
+.be-cell:hover .be-fill-handle { opacity: 1; }
+.be-cell.be-filling .be-fill-handle { opacity: 1; transform: scale(1.25); }
+/* Active (focused) cell — blue border only on the exact cell */
+.be-cell-active { outline: 2px solid #2563EB !important; outline-offset: -2px; z-index: 3; }
+/* Fill-preview cells — blue tint + blue outline */
+.be-cell.be-fill-preview { background: #DBEAFE !important; outline: 2px solid #3B82F6; outline-offset: -2px; }
+/* Source cell during drag */
+.be-cell.be-filling { outline: 2px solid #2563EB; outline-offset: -2px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* Column resize handle hover indicator */
+.bulk-edit-table th:not(:first-child):hover > div[style*="col-resize"] { background: rgba(37,99,235,.25); border-radius: 2px; }

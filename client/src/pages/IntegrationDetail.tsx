@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Modal from '../components/Modal';
 import { useToast } from '../context/ToastContext';
 import { api } from '../lib/api';
-import type { ShopifySettings } from '../types';
+import type { ShopifySettings, SyncJob } from '../types';
 
 /* ── Sync options shown in wizard step 3 and connected dashboard ── */
 const SYNC_OPTS = [
@@ -13,7 +13,6 @@ const SYNC_OPTS = [
   { key: 'orders',    icon: '🛒', label: 'Sipariş Aktarımı',      desc: 'Shopify siparişlerini otomatik çek',              def: true  },
   { key: 'webhooks',  icon: '⚡', label: 'Webhook Desteği',       desc: 'Anlık bildirimlerle gecikme sıfıra indir',        def: true  },
   { key: 'prices',    icon: '💰', label: 'Fiyat Senkronu',        desc: "Fiyat güncellemelerini Shopify'a otomatik yansıt", def: false },
-  { key: 'images',    icon: '🖼',  label: 'Görsel Senkronu',       desc: "Ürün görsellerini Shopify'a aktar",               def: false },
 ];
 
 const TEST_STEPS = [
@@ -23,14 +22,22 @@ const TEST_STEPS = [
   { msg: "Webhook endpoint'leri ayarlanıyor…",   sub: 'Bağlantı güvenliği sağlanıyor' },
 ];
 
-const MOCK_LOGS = [
-  { t: '09:41', ok: true,  msg: 'Sipariş #45231 başarıyla çekildi' },
-  { t: '09:38', ok: true,  msg: '12 ürün stoğu güncellendi' },
-  { t: '09:35', ok: false, msg: 'Rate limit yaklaşıyor (85%)' },
-  { t: '09:30', ok: true,  msg: 'Stok senkronu tamamlandı (156 ürün)' },
-  { t: '09:22', ok: true,  msg: 'Fiyat güncellemesi gönderildi (43 ürün)' },
-  { t: '09:15', ok: true,  msg: 'Bağlantı testi başarılı' },
-];
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const s = Math.floor(diff / 1000);
+  if (s < 60)  return 'Az önce';
+  const m = Math.floor(s / 60);
+  if (m < 60)  return `${m} dk önce`;
+  const h = Math.floor(m / 60);
+  if (h < 24)  return `${h} sa önce`;
+  const d = Math.floor(h / 24);
+  if (d < 7)   return `${d} gün önce`;
+  return new Date(iso).toLocaleString('tr-TR', {
+    timeZone: 'Europe/Istanbul',
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
 
 /* ── Wizard Step Indicator ─────────────────────────────────────── */
 function StepIndicator({ step }: { step: number }) {
@@ -69,11 +76,14 @@ function StepIndicator({ step }: { step: number }) {
 export default function IntegrationDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const isShopify = slug === 'shopify';
 
   /* Shopify settings from API */
   const [shopifyState, setShopifyState] = useState<ShopifySettings | null>(null);
   const [shopifyLoading, setShopifyLoading] = useState(isShopify);
+  const [recentJobs, setRecentJobs]     = useState<SyncJob[]>([]);
+  const [mappingCount, setMappingCount] = useState(0);
 
   /* Wizard state */
   const [wizardStep, setWizardStep] = useState(1);
@@ -95,22 +105,35 @@ export default function IntegrationDetail() {
   /* Connected: API settings edit */
   const [apiDomain, setApiDomain] = useState('');
   const [apiToken, setApiToken] = useState('');
-  const [showApiToken, setShowApiToken] = useState(false);
-  const [connSyncSettings, setConnSyncSettings] = useState<Record<string, boolean>>({});
+  const [connSyncSettings, setConnSyncSettings] = useState<Record<string, boolean>>(
+    Object.fromEntries(SYNC_OPTS.map(o => [o.key, o.def]))
+  );
+  const [syncConfigLoading, setSyncConfigLoading] = useState(false);
+  const [importing, setImporting]                 = useState(false);
+  const [priceType, setPriceType]                 = useState<'retail' | 'wholesale'>('retail');
+  const [priceTypeLoading, setPriceTypeLoading]   = useState(false);
 
   /* Disconnect modal */
   const [disconnectModal, setDisconnectModal] = useState(false);
 
-  /* Load settings */
+  /* Load settings + sync config + activity */
   useEffect(() => {
     if (!isShopify) return;
-    api.shopify.getSettings().then(s => {
+    Promise.all([
+      api.shopify.getSettings(),
+      api.shopify.getSyncConfig().catch(() => null),
+      api.shopify.getJobs().catch(() => [] as SyncJob[]),
+      api.shopify.getMappings().catch(() => ({})),
+    ]).then(([s, cfg, jobs, mappings]) => {
       setShopifyState(s);
       if (s) {
         setApiDomain(s.shop_domain);
         setApiToken(s.access_token);
-        setConnSyncSettings(Object.fromEntries(SYNC_OPTS.map(o => [o.key, true])));
+        setPriceType(s.price_type ?? 'retail');
       }
+      if (cfg) setConnSyncSettings(cfg);
+      setRecentJobs(jobs.slice(0, 12));
+      setMappingCount(Object.keys(mappings).length);
     }).finally(() => setShopifyLoading(false));
   }, [isShopify]);
 
@@ -149,10 +172,17 @@ export default function IntegrationDetail() {
         plan: 'Shopify',
         shop_name: formDomain.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
       });
+      // Wizard step 3'teki toggle seçimlerini scheduler'a kaydet (orders/webhooks hariç)
+      const schedulableKeys = ['inventory', 'products', 'prices'];
+      const schedConfig = Object.fromEntries(
+        schedulableKeys.map(k => [k, syncSettings[k] ?? false])
+      );
+      await api.shopify.saveSyncConfig(schedConfig).catch(() => null);
+
       setShopifyState(s);
       setApiDomain(s.shop_domain);
       setApiToken(s.access_token);
-      setConnSyncSettings(syncSettings);
+      setConnSyncSettings({ ...syncSettings, ...schedConfig });
       showToast('Bağlandı!', 'Shopify entegrasyonu başarıyla aktifleştirildi.', 'success');
     } catch {
       showToast('Hata', 'Kayıt sırasında bir hata oluştu.', 'error');
@@ -192,15 +222,59 @@ export default function IntegrationDetail() {
     }
   };
 
+  /* ── Shopify'dan içeri aktar ─────────────────────────────────── */
+  const handleImport = async () => {
+    setImporting(true);
+    try {
+      const result = await api.shopify.importProducts();
+      const { imported, skipped, total } = result;
+      if (imported === 0 && skipped === total) {
+        showToast('Bilgi', 'Tüm Shopify ürünleri zaten eşleştirilmiş.', 'info');
+      } else {
+        showToast(
+          'İçeri Aktarıldı',
+          `${imported} ürün aktarıldı${skipped > 0 ? `, ${skipped} zaten eşleştirili` : ''}.`,
+          'success',
+        );
+        // Sayıları güncelle
+        setMappingCount(c => c + imported);
+        const jobs = await api.shopify.getJobs().catch(() => [] as typeof recentJobs);
+        setRecentJobs(jobs.slice(0, 12));
+      }
+    } catch (e: any) {
+      showToast('Hata', e.message || 'İçeri aktarma başarısız.', 'error');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   /* ── Layout header actions ───────────────────────────────────── */
   const headerActions = isShopify && shopifyState?.connected ? (
     <div style={{ display: 'flex', gap: 8 }}>
-      <button className="btn btn-ghost btn-sm"
-        onClick={() => showToast('Senkronizasyon', 'Shopify senkronu başlatıldı.', 'info')}>
-        <svg width={14} height={14} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 4 }}>
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        Senkronize Et
+      <button
+        className="btn btn-ghost btn-sm"
+        disabled={importing}
+        onClick={handleImport}
+        style={{ gap: 6 }}
+      >
+        {importing ? (
+          <>
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              style={{ animation: 'spin 1s linear infinite', marginRight: 4 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Aktarılıyor…
+          </>
+        ) : (
+          <>
+            <svg width={14} height={14} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 4 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Ürünleri İçeri Aktar
+          </>
+        )}
       </button>
       <button className="btn btn-sm" style={{ background: 'var(--danger-light)', color: 'var(--danger)', border: '1px solid var(--danger)' }}
         onClick={() => setDisconnectModal(true)}>
@@ -266,12 +340,17 @@ export default function IntegrationDetail() {
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
-          {[
-            { val: '0',        color: '#96BF48',       lbl: 'Eşleştirilen Ürün' },
-            { val: '0',        color: 'var(--primary)', lbl: 'Bugün Sipariş' },
-            { val: '0',        color: 'var(--danger)',  lbl: 'Hata' },
-            { val: 'Az önce',  color: 'var(--success)', lbl: 'Son Senkron' },
-          ].map(s => (
+          {(() => {
+            const errorCount   = recentJobs.filter(j => j.status === 'error').length;
+            const lastSyncJob  = recentJobs.find(j => j.status === 'success');
+            const lastSyncTime = lastSyncJob ? timeAgo(lastSyncJob.updated_at) : '—';
+            return [
+              { val: String(mappingCount),  color: '#96BF48',       lbl: 'Eşleştirilen Ürün' },
+              { val: String(recentJobs.length), color: 'var(--primary)', lbl: 'Son İşlem' },
+              { val: String(errorCount),    color: errorCount > 0 ? 'var(--danger)' : 'var(--success)', lbl: 'Hata' },
+              { val: lastSyncTime,          color: 'var(--success)', lbl: 'Son Senkron' },
+            ];
+          })().map(s => (
             <div key={s.lbl} className="card" style={{ padding: 16, textAlign: 'center' }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: s.color }}>{s.val}</div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{s.lbl}</div>
@@ -288,10 +367,14 @@ export default function IntegrationDetail() {
             <div style={{ padding: 20 }}>
               <div className="form-group">
                 <label className="form-label">Mağaza Alan Adı</label>
-                <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
-                  <input className="form-control" type="text" value={apiDomain}
-                    onChange={e => setApiDomain(e.target.value.replace(/\.myshopify\.com.*/i, ''))}
-                    style={{ border: 'none', borderRadius: 0, flex: 1 }} />
+                <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', background: 'var(--bg)' }}>
+                  <input
+                    className="form-control"
+                    type="text"
+                    value={apiDomain}
+                    readOnly
+                    style={{ border: 'none', borderRadius: 0, flex: 1, background: 'transparent', cursor: 'default', color: 'var(--text-muted)' }}
+                  />
                   <span style={{ padding: '0 12px', fontSize: 13, color: 'var(--text-muted)', background: 'var(--bg)', borderLeft: '1.5px solid var(--border)', whiteSpace: 'nowrap', alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}>
                     .myshopify.com
                   </span>
@@ -299,16 +382,27 @@ export default function IntegrationDetail() {
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Admin API Erişim Token'ı</label>
-                <div style={{ position: 'relative' }}>
-                  <input className="form-control" type={showApiToken ? 'text' : 'password'} value={apiToken}
-                    onChange={e => setApiToken(e.target.value)} />
-                  <button type="button" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                    onClick={() => setShowApiToken(p => !p)}>👁</button>
-                </div>
+                <input
+                  className="form-control"
+                  type="password"
+                  value={apiToken}
+                  readOnly
+                  style={{ background: 'var(--bg)', cursor: 'default', color: 'var(--text-muted)' }}
+                />
               </div>
-              <button className="btn btn-primary" style={{ width: '100%', marginTop: 16, background: '#96BF48', borderColor: '#96BF48' }}
-                onClick={handleSaveApiSettings} disabled={saving}>
-                {saving ? 'Kaydediliyor…' : 'Ayarları Kaydet'}
+              <button
+                className="btn btn-primary"
+                style={{ width: '100%', marginTop: 16, opacity: 0.4, cursor: 'not-allowed', background: '#96BF48', borderColor: '#96BF48' }}
+                disabled
+              >
+                Ayarları Kaydet
+              </button>
+              <button
+                className="btn"
+                style={{ width: '100%', marginTop: 8, background: 'var(--danger-light)', color: 'var(--danger)', border: '1px solid var(--danger)' }}
+                onClick={() => setDisconnectModal(true)}
+              >
+                Bağlantıyı Kes
               </button>
             </div>
           </div>
@@ -317,24 +411,103 @@ export default function IntegrationDetail() {
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', fontSize: 13, fontWeight: 700 }}>Senkronizasyon Ayarları</div>
             <div style={{ padding: '4px 20px 16px' }}>
-              {SYNC_OPTS.map(opt => (
-                <div key={opt.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid var(--border-light)' }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>{opt.label}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
-                      Sıklık: {opt.key === 'products' ? '20 dk' : opt.key === 'inventory' ? '5 dk' : opt.key === 'orders' ? '3 dk' : opt.key === 'webhooks' ? 'Anlık' : opt.key === 'prices' ? '20 dk' : '60 dk'}
+              {SYNC_OPTS.map(opt => {
+                const FREQ: Record<string,string> = { products:'20 dk', inventory:'5 dk', orders:'3 dk', webhooks:'Anlık', prices:'20 dk' };
+                const isScheduled = ['inventory','products','prices','images'].includes(opt.key);
+                const currentVal  = connSyncSettings[opt.key] ?? opt.def;
+                return (
+                  <div key={opt.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid var(--border-light)' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 500 }}>{opt.label}</span>
+                        {!isScheduled && (
+                          <span style={{ fontSize: 10, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-muted)' }}>Yakında</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
+                        {isScheduled ? `Her ${FREQ[opt.key]} otomatik çalışır` : `Sıklık: ${FREQ[opt.key]}`}
+                      </div>
                     </div>
+                    <label className="toggle" style={{ opacity: !isScheduled ? 0.5 : 1 }}>
+                      <input
+                        type="checkbox"
+                        disabled={!isScheduled || syncConfigLoading}
+                        checked={currentVal}
+                        onChange={async e => {
+                          const newConfig = { ...connSyncSettings, [opt.key]: e.target.checked };
+                          setConnSyncSettings(newConfig);
+                          setSyncConfigLoading(true);
+                          try {
+                            await api.shopify.saveSyncConfig(newConfig);
+                            showToast('Kaydedildi', `${opt.label} ${e.target.checked ? 'aktif' : 'devre dışı'} edildi.`, 'success');
+                          } catch {
+                            setConnSyncSettings(prev => ({ ...prev, [opt.key]: !e.target.checked }));
+                            showToast('Hata', 'Ayar kaydedilemedi.', 'error');
+                          } finally {
+                            setSyncConfigLoading(false);
+                          }
+                        }}
+                      />
+                      <span className="toggle-slider" />
+                    </label>
                   </div>
-                  <label className="toggle">
-                    <input type="checkbox" checked={connSyncSettings[opt.key] ?? opt.def}
-                      onChange={e => {
-                        setConnSyncSettings(p => ({ ...p, [opt.key]: e.target.checked }));
-                        showToast('Kaydedildi', `${opt.label} ${e.target.checked ? 'aktif' : 'devre dışı'}.`, 'success');
-                      }} />
-                    <span className="toggle-slider" />
-                  </label>
-                </div>
-              ))}
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Price Type */}
+        <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', fontSize: 13, fontWeight: 700 }}>
+            Shopify'a Aktarılacak Fiyat
+          </div>
+          <div style={{ padding: 20 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
+              Shopify'a senkronize edilecek fiyat tipini seçin. Bu seçim hem manuel hem de otomatik fiyat senkronizasyonunu etkiler.
+            </p>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {([
+                { value: 'retail',    label: 'Perakende Fiyatı',  desc: 'Normal Fiyat ve Perakende İndirimli Fiyat',  icon: '🏪' },
+                { value: 'wholesale', label: 'Toptan Fiyatı',      desc: 'B2B Fiyat ve Toptan İndirimli Fiyat',        icon: '🏭' },
+              ] as { value: 'retail' | 'wholesale'; label: string; desc: string; icon: string }[]).map(opt => {
+                const isActive = priceType === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    disabled={priceTypeLoading}
+                    onClick={async () => {
+                      if (isActive) return;
+                      setPriceTypeLoading(true);
+                      try {
+                        await api.shopify.savePriceType(opt.value);
+                        setPriceType(opt.value);
+                        showToast('Kaydedildi', `Shopify fiyatı: ${opt.label}`, 'success');
+                      } catch {
+                        showToast('Hata', 'Fiyat tipi kaydedilemedi.', 'error');
+                      } finally {
+                        setPriceTypeLoading(false);
+                      }
+                    }}
+                    style={{
+                      flex: 1, minWidth: 200, textAlign: 'left', padding: '14px 18px',
+                      borderRadius: 'var(--radius-sm)', cursor: isActive ? 'default' : 'pointer',
+                      border: `2px solid ${isActive ? '#96BF48' : 'var(--border)'}`,
+                      background: isActive ? '#96BF4810' : 'var(--card)',
+                      transition: 'all .15s',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                      <span style={{ fontSize: 20 }}>{opt.icon}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: isActive ? '#5a8a20' : 'var(--text)' }}>{opt.label}</span>
+                      {isActive && (
+                        <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: '#96BF48' }}>● Aktif</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', paddingLeft: 30 }}>{opt.desc}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -343,22 +516,85 @@ export default function IntegrationDetail() {
         <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: 20 }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ fontSize: 13, fontWeight: 700 }}>Son Aktivite</div>
-            <span style={{ fontSize: 12, color: 'var(--primary)', cursor: 'pointer' }}>Tüm loglar →</span>
+            <button
+              onClick={() => navigate('/operations')}
+              style={{ fontSize: 12, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              Tüm işlemler →
+            </button>
           </div>
-          {[
-            { t: 'az önce',   ok: true,  msg: 'Bağlantı başarıyla kuruldu' },
-            { t: '1 dk önce', ok: true,  msg: `Mağaza doğrulandı: ${storeDomain}` },
-            { t: '2 dk önce', ok: true,  msg: "Webhook endpoint'leri kaydedildi" },
-            ...MOCK_LOGS,
-          ].map((l, i) => (
-            <div key={i} className="log-row">
-              <div className={`log-status ${l.ok ? 'ok' : 'warn'}`}>{l.ok ? '✓' : '!'}</div>
-              <div className="log-content">
-                <div className="log-title">{l.msg}</div>
-                <div className="log-time">{l.t}</div>
-              </div>
+
+          {recentJobs.length === 0 ? (
+            <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+              Henüz kayıt yok. Ürün eşleştirip düzenlediğinizde aktiviteler burada görünecek.
             </div>
-          ))}
+          ) : (
+            recentJobs.map(job => {
+              const isOk  = job.status === 'success';
+              const isErr = job.status === 'error';
+              const isBusy = job.status === 'syncing' || job.status === 'pending';
+              const icon  = isOk ? '✓' : isErr ? '✕' : '…';
+              const cls   = isOk ? 'ok' : isErr ? 'warn' : '';
+
+              // İşlem etiketi
+              const ACTION_LABELS: Record<string, string> = {
+                sync:           'Shopify Sync',
+                'auto-stock':   'Otomatik Stok',
+                'auto-product': 'Otomatik Ürün',
+                'auto-price':   'Otomatik Fiyat',
+                'auto-image':   'Otomatik Görsel',
+                create:         'Ürün Oluşturuldu',
+                update:         'Ürün Güncellendi',
+                delete:         'Ürün Silindi',
+                'mapping.create': 'Eşleştirildi',
+                'mapping.delete': 'Eşleştirme Kaldırıldı',
+                'settings.update': 'Ayar Güncellendi',
+              };
+              const actionLabel = ACTION_LABELS[job.action] || job.action;
+              const title = job.product_name && job.product_name !== 'Toplu Senkronizasyon'
+                ? `${actionLabel} — ${job.product_name}`
+                : actionLabel;
+
+              return (
+                <div key={job.id} className="log-row" style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 12,
+                  padding: '10px 20px', borderBottom: '1px solid var(--border-light)',
+                }}>
+                  {/* Status icon */}
+                  <div style={{
+                    width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 11, fontWeight: 700, marginTop: 1,
+                    background: isOk ? '#dcfce7' : isErr ? '#fee2e2' : '#e0f2fe',
+                    color:      isOk ? '#15803d' : isErr ? '#dc2626' : '#0369a1',
+                  }}>
+                    {isBusy ? (
+                      <span style={{ fontSize: 10, animation: 'spin-dot 1s linear infinite', display: 'inline-block' }}>●</span>
+                    ) : icon}
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize: 12, fontWeight: 600, color: 'var(--text)',
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}>
+                      {title}
+                    </div>
+                    <div style={{
+                      fontSize: 11, color: isErr ? '#dc2626' : 'var(--text-muted)',
+                      marginTop: 1,
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}>
+                      {job.message}
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', flexShrink: 0, marginTop: 2 }}>
+                    {timeAgo(job.updated_at)}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Disconnect confirm modal */}

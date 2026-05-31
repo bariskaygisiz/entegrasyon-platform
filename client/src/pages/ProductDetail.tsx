@@ -5,9 +5,74 @@ import Modal from '../components/Modal';
 import { useToast } from '../context/ToastContext';
 import { api, type ShopifyApiProduct } from '../lib/api';
 import { formatMoney, statusLabel } from '../lib/utils';
-import type { Product, ShopifyMapping, ShopifySettings, VariantOption, VariantDataEntry } from '../types';
+import type { Product, MediaItem, ShopifyMapping, ShopifySettings, VariantOption, VariantDataEntry } from '../types';
 
-const CATEGORIES = ['Telefon','Bilgisayar','Tablet','Aksesuar','Ses Sistemleri','Monitör','Televizyon','Ev Elektroniği','Fotoğraf'];
+const KDV_RATES = [0, 1, 8, 10, 18, 20];
+
+function KdvSection({ vatRate, vatIncluded, basePrice, onRateChange, onIncludedChange }: {
+  vatRate: number; vatIncluded: boolean; basePrice: number;
+  onRateChange: (v: number) => void; onIncludedChange: (v: boolean) => void;
+}) {
+  const kdvTutar = vatRate > 0 && basePrice > 0
+    ? vatIncluded
+      ? basePrice - basePrice / (1 + vatRate / 100)
+      : basePrice * (vatRate / 100)
+    : null;
+  const kdvDahilFiyat = vatRate > 0 && basePrice > 0 && !vatIncluded
+    ? basePrice + basePrice * (vatRate / 100)
+    : null;
+
+  return (
+    <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border-light)' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <div className="form-group" style={{ marginBottom: 0, minWidth: 120 }}>
+          <label className="form-label">KDV Oranı</label>
+          <select
+            className="form-control"
+            value={vatRate}
+            onChange={e => onRateChange(parseInt(e.target.value))}
+            style={{ maxWidth: 120 }}
+          >
+            {KDV_RATES.map(r => <option key={r} value={r}>%{r}</option>)}
+          </select>
+        </div>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label">Fiyatlara KDV</label>
+          <div style={{ display: 'flex', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', width: 'fit-content' }}>
+            {[true, false].map(val => (
+              <button
+                key={String(val)}
+                type="button"
+                onClick={() => onIncludedChange(val)}
+                style={{
+                  padding: '7px 14px', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer',
+                  background: vatIncluded === val ? 'var(--primary)' : 'transparent',
+                  color: vatIncluded === val ? '#fff' : 'var(--text-muted)',
+                  transition: 'all .15s',
+                }}
+              >
+                {val ? 'KDV Dahil' : 'KDV Hariç'}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      {basePrice > 0 && vatRate > 0 && (
+        <div style={{ marginTop: 10, fontSize: 12, color: 'var(--text-muted)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          {kdvTutar !== null && (
+            <span>KDV Tutarı: <strong style={{ color: 'var(--text)' }}>₺{kdvTutar.toFixed(2)}</strong></span>
+          )}
+          {kdvDahilFiyat !== null && (
+            <span>KDV Dahil Fiyat: <strong style={{ color: 'var(--text)' }}>₺{kdvDahilFiyat.toFixed(2)}</strong></span>
+          )}
+          {vatIncluded && basePrice > 0 && vatRate > 0 && (
+            <span>KDV Hariç Fiyat: <strong style={{ color: 'var(--text)' }}>₺{(basePrice / (1 + vatRate / 100)).toFixed(2)}</strong></span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Shopify mock products for offline demo ─────────────────────────────────────
 const MOCK_SHOPIFY: ShopifyApiProduct[] = [
@@ -52,10 +117,21 @@ export default function ProductDetail() {
   const [stock, setStock]       = useState('');
   const [weight, setWeight]     = useState('');
   const [status, setStatus]     = useState<'active' | 'draft' | 'archived'>('active');
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
   const [channels, setChannels] = useState<string[]>([]);
   const [tags, setTags]         = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [vatRate, setVatRate]         = useState(20);
+  const [vatIncluded, setVatIncluded] = useState(true);
+  const [b2bPrice, setB2bPrice]             = useState('');
+  const [b2bDiscounted, setB2bDiscounted]   = useState('');
+
+  // Media state
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const mediaInputRef  = useRef<HTMLInputElement>(null);
+  const dragIdxRef     = useRef<number | null>(null);
+  const dragOverIdxRef = useRef<number | null>(null);
 
   // Variant state
   const [hasVariants, setHasVariants] = useState(false);
@@ -77,7 +153,37 @@ export default function ProductDetail() {
 
   const markDirty = useCallback(() => setDirty(true), []);
 
+  // Tüm form state'ini bir Product nesnesinden resetler (Vazgeç + load)
+  const resetToProduct = useCallback((p: Product) => {
+    setName(p.name);
+    setDesc(p.description);
+    setPrice(String(p.price));
+    setDisc(p.discounted_price ? String(p.discounted_price) : '');
+    setCost(String(p.cost));
+    setSku(p.sku);
+    setBarcode(p.barcode);
+    setStock(String(p.stock));
+    setWeight(String(p.weight));
+    setStatus(p.status);
+    setCategory(p.category);
+    setChannels(p.channels);
+    setTags(p.tags || []);
+    setMedia((p.media || []).map(m => ({ ...m, selected: false })));
+    setHasVariants(p.has_variants);
+    setVariantOptions(p.variant_options || []);
+    setVariantData(p.variant_data || {});
+    setVatRate(p.vat_rate ?? 20);
+    setVatIncluded(p.vat_included !== false);
+    setB2bPrice(p.b2b_price != null ? String(p.b2b_price) : '');
+    setB2bDiscounted(p.b2b_discounted_price != null ? String(p.b2b_discounted_price) : '');
+    setDirty(false);
+  }, []);
+
   // Load product
+  useEffect(() => {
+    api.categories.names().then(setAllCategories).catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (!id) return;
     Promise.all([
@@ -92,28 +198,125 @@ export default function ProductDetail() {
       setStock(String(p.stock)); setWeight(String(p.weight));
       setStatus(p.status); setCategory(p.category); setChannels(p.channels);
       setTags(p.tags || []);
+      setMedia((p.media || []).map(m => ({ ...m, selected: false })));
       setHasVariants(p.has_variants);
       setVariantOptions(p.variant_options || []);
       setVariantData(p.variant_data || {});
+      setVatRate(p.vat_rate ?? 20);
+      setVatIncluded(p.vat_included !== false);
+      setB2bPrice(p.b2b_price != null ? String(p.b2b_price) : '');
+      setB2bDiscounted(p.b2b_discounted_price != null ? String(p.b2b_discounted_price) : '');
       setShopifySettings(shopify);
       setShopifyMapping(mapping);
     }).finally(() => setLoading(false));
   }, [id]);
 
+  const readFiles = (files: FileList | File[]) => {
+    Array.from(files).filter(f => f.type.startsWith('image/')).forEach((f, i) => {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        if (!ev.target?.result) return;
+        // Canvas ile sıkıştır: max 1200px, JPEG %80 — base64 boyutunu ~10x küçültür
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 1200;
+          const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width  = Math.round(img.width  * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const compressed = canvas.toDataURL('image/jpeg', 0.8);
+          setMedia(prev => [...prev, { id: Date.now() + i + Math.random(), src: compressed, selected: false }]);
+          markDirty();
+        };
+        img.src = ev.target!.result as string;
+      };
+      reader.readAsDataURL(f);
+    });
+  };
+
   const handleSave = async () => {
     if (!id) return;
     setSaving(true);
     try {
+      const newStock = hasVariants
+        ? Object.values(variantData).reduce((s, v) => s + (parseInt(v.stock || '0') || 0), 0)
+        : parseInt(stock) || 0;
+      const newMedia = media.map(m => ({ id: m.id, src: m.src ?? null, emoji: m.emoji }));
+
+      // Shopify diff — product (eski değerler) ile karşılaştır, API çağrısından ÖNCE
+      let shopifyChanges: string[] = [];
+      if (shopifyMapping && product) {
+        if (name !== product.name || desc !== product.description || status !== product.status)
+          shopifyChanges.push('productInfo');
+        if (!hasVariants) {
+          if ((parseFloat(price) || 0) !== product.price ||
+              (discounted ? parseFloat(discounted) : null) !== product.discounted_price)
+            shopifyChanges.push('pricing');
+          if ((parseInt(stock) || 0) !== product.stock)
+            shopifyChanges.push('stock');
+          if (sku !== product.sku || barcode !== product.barcode ||
+              (parseFloat(weight) || 0) !== product.weight)
+            shopifyChanges.push('inventoryData');
+        } else {
+          const oldVD = product.variant_data || {};
+          for (const combo of Object.keys(variantData)) {
+            const o = oldVD[combo] || {};
+            const n = variantData[combo] || {};
+            if (n.price !== o.price || n.disc !== o.disc) shopifyChanges.push('pricing');
+            if (n.stock !== o.stock)                      shopifyChanges.push('variantStock');
+            if (n.sku !== o.sku || n.barcode !== o.barcode || n.weight !== o.weight)
+              shopifyChanges.push('inventoryData');
+          }
+        }
+        if (JSON.stringify(newMedia.map(m => m.src)) !==
+            JSON.stringify((product.media || []).map(m => m.src)))
+          shopifyChanges.push('media');
+        shopifyChanges = [...new Set(shopifyChanges)];
+      }
+
       await api.products.update(id, {
         name, description: desc, price: parseFloat(price) || 0,
         discounted_price: discounted ? parseFloat(discounted) : null,
         cost: parseFloat(cost) || 0, sku, barcode,
-        stock: hasVariants ? Object.values(variantData).reduce((s, v) => s + (parseInt(v.stock || '0') || 0), 0) : parseInt(stock) || 0,
+        stock: newStock,
         weight: parseFloat(weight) || 0, status, category, channels, tags,
+        media: newMedia,
         has_variants: hasVariants, variant_options: variantOptions, variant_data: variantData,
+        vat_rate: vatRate, vat_included: vatIncluded,
+        b2b_price: b2bPrice ? parseFloat(b2bPrice) : null,
+        b2b_discounted_price: b2bDiscounted ? parseFloat(b2bDiscounted) : null,
       });
+
+      // product state'ini her zaman güncelle — bir sonraki Vazgeç/diff için referans noktası
+      setProduct(prev => prev ? {
+        ...prev,
+        name, description: desc,
+        price: parseFloat(price) || 0,
+        discounted_price: discounted ? parseFloat(discounted) : null,
+        b2b_price: b2bPrice ? parseFloat(b2bPrice) : null,
+        b2b_discounted_price: b2bDiscounted ? parseFloat(b2bDiscounted) : null,
+        cost: parseFloat(cost) || 0, sku, barcode,
+        stock: newStock,
+        weight: parseFloat(weight) || 0,
+        status, category, channels, tags,
+        media: newMedia,
+        has_variants: hasVariants, variant_options: variantOptions, variant_data: variantData,
+        vat_rate: vatRate, vat_included: vatIncluded,
+      } : prev);
+
       showToast('Kaydedildi', 'Ürün bilgileri güncellendi.', 'success');
       setDirty(false);
+
+      // Shopify sync (arka planda)
+      if (shopifyChanges.length > 0) {
+        api.shopify.syncProduct(id, shopifyChanges)
+          .then(res => {
+            if (res.ok) showToast("Shopify'a Aktarıldı", res.message, 'success');
+            else        showToast('Shopify Sync Hatası',  res.message, 'error');
+          })
+          .catch(() => {});
+      }
     } catch (e: unknown) {
       showToast('Hata', e instanceof Error ? e.message : 'Kayıt sırasında hata.', 'error');
     } finally {
@@ -203,45 +406,113 @@ export default function ProductDetail() {
     setShopifyCreating(true);
     try {
       const combos = hasVariants ? getCombinations(variantOptions) : [];
-      const apiVariants = combos.length > 0
-        ? combos.map((combo, i) => {
-            const vd = variantData[combo] || {};
-            const parts = combo.split(' / ');
-            return { option1: parts[0], option2: parts[1], option3: parts[2],
-                     price: vd.price || price, sku: vd.sku || (sku ? sku + '-' + (i + 1) : ''),
-                     inventory_quantity: parseInt(vd.stock || '0') || 0 };
-          })
-        : [{ price, sku }];
-      const data = await api.shopify.createProduct(shopifySettings.shop_domain, shopifySettings.access_token, {
-        title: name, status: 'active', variants: apiVariants,
-      });
+
+      // Görseller — base64 attachment veya URL
+      const images = (media || [])
+        .filter(m => m.src).slice(0, 5)
+        .map((m, i) => m.src!.startsWith('data:')
+          ? { attachment: m.src!.split(',')[1], filename: `image-${i + 1}.jpg` }
+          : { src: m.src });
+
+      let apiProduct: Record<string, unknown>;
+
+      if (combos.length > 0) {
+        // Varyantlı ürün — Shopify'a options tanımı zorunlu
+        const options = variantOptions
+          .filter(o => o.name && o.values.length > 0)
+          .map(o => ({ name: o.name, values: o.values }));
+
+        const apiVariants = combos.map((combo, i) => {
+          const vd = variantData[combo] || {};
+          const parts = combo.split(' / ');
+          const sellingPrice = vd.disc || vd.price || price;
+          const compareAt    = vd.disc && vd.price ? vd.price : null;
+          return {
+            option1: parts[0] ?? null,
+            option2: parts[1] ?? null,
+            option3: parts[2] ?? null,
+            price: sellingPrice || '0',
+            compare_at_price: compareAt,
+            sku: vd.sku || (sku ? `${sku}-${i + 1}` : ''),
+            barcode: vd.barcode || '',
+            weight: parseFloat(vd.weight || '0') || 0,
+            weight_unit: 'kg',
+            inventory_management: 'shopify',
+            inventory_quantity: parseInt(vd.stock || '0') || 0,
+          };
+        });
+
+        apiProduct = {
+          title: name,
+          body_html: desc,
+          status,
+          options,
+          variants: apiVariants,
+          ...(images.length > 0 ? { images } : {}),
+        };
+      } else {
+        // Tekil ürün
+        const sellingPrice = discounted || price;
+        const compareAt    = discounted ? price : null;
+        apiProduct = {
+          title: name,
+          body_html: desc,
+          status,
+          variants: [{
+            price: sellingPrice || '0',
+            compare_at_price: compareAt,
+            sku,
+            barcode,
+            weight: parseFloat(weight) || 0,
+            weight_unit: 'kg',
+            inventory_management: 'shopify',
+            inventory_quantity: parseInt(stock) || 0,
+          }],
+          ...(images.length > 0 ? { images } : {}),
+        };
+      }
+
+      const data = await api.shopify.createProduct(
+        shopifySettings.shop_domain, shopifySettings.access_token, apiProduct,
+      );
       const sp = data.product;
       const mapping = await api.shopify.saveMapping(id, {
-        shopify_id: String(sp.id), shopify_title: sp.title, handle: sp.handle,
-        sku: sp.variants[0]?.sku || sku, price: parseFloat(sp.variants[0]?.price || price) || 0,
-        type: 'created', is_variant: hasVariants && combos.length > 0,
-        variant_mappings: hasVariants
-          ? Object.fromEntries(combos.map((c, i) => [c, { shopifyVariantId: String(sp.variants[i]?.id || ''), shopifyVariantTitle: sp.variants[i]?.title || c, shopifySku: sp.variants[i]?.sku || '', shopifyPrice: sp.variants[i]?.price || price }]))
+        shopify_id:    String(sp.id),
+        shopify_title: sp.title,
+        handle:        sp.handle,
+        sku:           sp.variants[0]?.sku || sku,
+        price:         parseFloat(sp.variants[0]?.price || price) || 0,
+        type:          'created',
+        is_variant:    hasVariants && combos.length > 0,
+        variant_mappings: hasVariants && combos.length > 0
+          ? Object.fromEntries(combos.map((c, i) => [c, {
+              shopifyVariantId:    String(sp.variants[i]?.id || ''),
+              shopifyVariantTitle: sp.variants[i]?.title || c,
+              shopifySku:          sp.variants[i]?.sku || '',
+              shopifyPrice:        sp.variants[i]?.price || price,
+            }]))
           : {},
         mapped_at: new Date().toLocaleDateString('tr-TR'),
       });
       setShopifyMapping(mapping);
-      showToast('Shopify\'da Oluşturuldu', `"${sp.title}" eklendi. ID: #${sp.id}`, 'success');
-    } catch {
+      showToast("Shopify'da Oluşturuldu", `"${sp.title}" eklendi. ID: #${sp.id}`, 'success');
+    } catch (err: any) {
       // Demo fallback
       const mockId = String(7899000 + Math.floor(Math.random() * 999));
-      const handle = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 50);
+      const handle  = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 50);
+      const combos  = hasVariants ? getCombinations(variantOptions) : [];
       const mapping = await api.shopify.saveMapping(id, {
-        shopify_id: mockId, shopify_title: name, handle, sku, price: parseFloat(price) || 0,
+        shopify_id: mockId, shopify_title: name, handle, sku,
+        price: parseFloat(price) || 0,
         type: 'created', is_variant: false, variant_mappings: {},
         mapped_at: new Date().toLocaleDateString('tr-TR'),
       });
       setShopifyMapping(mapping);
-      showToast('Oluşturuldu (Demo)', 'Proxy başlatılmamış, demo olarak kaydedildi.', 'info');
+      showToast('Oluşturuldu (Demo)', `Proxy yanıt vermedi, demo olarak kaydedildi. (${err.message})`, 'info');
     } finally {
       setShopifyCreating(false);
     }
-  }, [id, shopifySettings, hasVariants, variantOptions, variantData, name, price, sku, showToast]);
+  }, [id, shopifySettings, hasVariants, variantOptions, variantData, name, desc, price, discounted, sku, barcode, stock, weight, media, showToast]);
 
   const handleUnmap = useCallback(async () => {
     if (!id) return;
@@ -274,6 +545,12 @@ export default function ProductDetail() {
 
   const combos = hasVariants ? getCombinations(variantOptions) : [];
 
+  // Varyantlı ürünlerde stok variant_data'daki toplamdan hesaplanır;
+  // böylece DB'de stock=0 olan eski/import kayıtlarda badge doğru görünür
+  const effectiveStock = hasVariants
+    ? Object.values(variantData).reduce((s, v) => s + (parseInt(v.stock || '0') || 0), 0)
+    : (product?.stock ?? 0);
+
   if (loading) return <Layout title="Ürün"><div style={{ padding: 60, textAlign: 'center', color: 'var(--text-muted)' }}>Yükleniyor…</div></Layout>;
   if (!product) return <Layout title="Ürün Bulunamadı"><div style={{ padding: 60, textAlign: 'center' }}>Ürün bulunamadı.</div></Layout>;
 
@@ -284,7 +561,7 @@ export default function ProductDetail() {
       title={name || product.name}
       actions={dirty ? (
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => setDirty(false)}>Vazgeç</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => product && resetToProduct(product)}>Vazgeç</button>
           <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving}>
             {saving ? 'Kaydediliyor…' : 'Kaydet'}
           </button>
@@ -297,11 +574,10 @@ export default function ProductDetail() {
       </Link>
 
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>{product.name}</h1>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <span className={`badge ${stBadge.cls}`}>{stBadge.label}</span>
-          {product.stock === 0 && <span className="badge badge-danger">Stok Yok</span>}
-          {product.category && <span className="badge badge-gray">{product.category}</span>}
+          {effectiveStock === 0 && <span className="badge badge-danger">Stok Yok</span>}
+          {(product.category || []).map(c => <span key={c} className="badge badge-gray">{c}</span>)}
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>ID: #{String(product.id).replace('new_', '')}</span>
         </div>
       </div>
@@ -327,6 +603,68 @@ export default function ProductDetail() {
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Açıklama</label>
                   <textarea className="form-control" rows={8} value={desc} onChange={e => { setDesc(e.target.value); markDirty(); }} style={{ resize: 'vertical' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Medya */}
+            <div className="pd-card">
+              <div className="pd-card-title">
+                <span>Medya</span>
+                {media.some(m => m.selected) && (
+                  <button className="btn btn-ghost btn-sm" style={{ fontSize: 12, color: 'var(--danger)' }}
+                    onClick={() => { setMedia(prev => prev.filter(m => !m.selected)); markDirty(); }}>
+                    Seçilenleri Sil
+                  </button>
+                )}
+              </div>
+              <div className="pd-card-body">
+                <input ref={mediaInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
+                  onChange={e => { readFiles(e.target.files || []); e.target.value = ''; }} />
+                <div className="media-grid"
+                  onDragOver={e => { if (e.dataTransfer.types.includes('Files')) e.preventDefault(); }}
+                  onDrop={e => { if (e.dataTransfer.files.length > 0) { e.preventDefault(); readFiles(e.dataTransfer.files); } }}
+                >
+                  {media.map((m, idx) => (
+                    <div key={m.id}
+                      className={`media-thumb${idx === 0 ? ' main-thumb' : ''}${m.selected ? ' selected' : ''}`}
+                      draggable
+                      onDragStart={() => { dragIdxRef.current = idx; }}
+                      onDragEnter={() => { dragOverIdxRef.current = idx; }}
+                      onDragOver={e => e.preventDefault()}
+                      onDragEnd={() => {
+                        const from = dragIdxRef.current;
+                        const to   = dragOverIdxRef.current;
+                        if (from === null || to === null || from === to) return;
+                        setMedia(prev => {
+                          const arr = [...prev];
+                          arr.splice(to, 0, arr.splice(from, 1)[0]);
+                          return arr;
+                        });
+                        markDirty();
+                        dragIdxRef.current = null;
+                        dragOverIdxRef.current = null;
+                      }}
+                      onClick={() => setMedia(prev => prev.map(x => x.id === m.id ? { ...x, selected: !x.selected } : x))}
+                      style={{ cursor: 'grab' }}
+                    >
+                      <input type="checkbox" className="media-cb" checked={!!m.selected}
+                        onChange={e => { e.stopPropagation(); setMedia(prev => prev.map(x => x.id === m.id ? { ...x, selected: !x.selected } : x)); markDirty(); }}
+                        onClick={e => e.stopPropagation()} />
+                      {m.src ? (
+                        <img src={m.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: idx === 0 ? 48 : 32 }}>{m.emoji || '🖼'}</span>
+                      )}
+                      {idx === 0 && <div className="media-main-badge">ANA GÖRSEL</div>}
+                    </div>
+                  ))}
+                  <div className="media-thumb add" onClick={() => mediaInputRef.current?.click()}>
+                    <svg width={24} height={24} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Ekle</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -384,21 +722,46 @@ export default function ProductDetail() {
                         <table style={{ margin: 0 }}>
                           <thead>
                             <tr>
-                              <th>Varyant</th><th>Fiyat (₺)</th><th>Stok</th><th>SKU</th>
+                              <th style={{ minWidth: 120 }}>Varyant</th>
+                              <th style={{ minWidth: 100 }}>Fiyat (₺)</th>
+                              <th style={{ minWidth: 110 }}>İnd. Fiyat (₺)</th>
+                              <th style={{ minWidth: 105 }}>Toptan Fiyatı (₺)</th>
+                              <th style={{ minWidth: 115 }}>Toptan İnd. (₺)</th>
+                              <th style={{ minWidth: 80 }}>Stok</th>
+                              <th style={{ minWidth: 120 }}>SKU</th>
+                              <th style={{ minWidth: 130 }}>Barkod</th>
+                              <th style={{ minWidth: 90 }}>Ağırlık (kg)</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {combos.map((combo, ci) => (
-                              <tr key={combo}>
-                                <td><span style={{ fontWeight: 600, fontSize: 13 }}>{combo}</span></td>
-                                <td><input className="form-control" type="number" style={{ width: 100 }} placeholder={price || '0'} value={variantData[combo]?.price || ''}
-                                  onChange={e => { setVariantData(prev => ({ ...prev, [combo]: { ...prev[combo], price: e.target.value } })); markDirty(); }} /></td>
-                                <td><input className="form-control" type="number" style={{ width: 80 }} placeholder="0" value={variantData[combo]?.stock || ''}
-                                  onChange={e => { setVariantData(prev => ({ ...prev, [combo]: { ...prev[combo], stock: e.target.value } })); markDirty(); }} /></td>
-                                <td><input className="form-control" type="text" style={{ width: 110 }} placeholder={sku ? sku + '-' + (ci + 1) : 'SKU'} value={variantData[combo]?.sku || ''}
-                                  onChange={e => { setVariantData(prev => ({ ...prev, [combo]: { ...prev[combo], sku: e.target.value } })); markDirty(); }} /></td>
-                              </tr>
-                            ))}
+                            {combos.map((combo, ci) => {
+                              const vd = variantData[combo] || {};
+                              const upd = (field: string, val: string) => {
+                                setVariantData(prev => ({ ...prev, [combo]: { ...prev[combo], [field]: val } }));
+                                markDirty();
+                              };
+                              return (
+                                <tr key={combo}>
+                                  <td><span style={{ fontWeight: 600, fontSize: 13 }}>{combo}</span></td>
+                                  <td><input className="form-control" type="number" style={{ width: 95 }} placeholder={price || '0'}
+                                    value={vd.price || ''} onChange={e => upd('price', e.target.value)} /></td>
+                                  <td><input className="form-control" type="number" style={{ width: 105 }} placeholder="—"
+                                    value={vd.disc || ''} onChange={e => upd('disc', e.target.value)} /></td>
+                                  <td><input className="form-control" type="number" style={{ width: 100 }} placeholder="—"
+                                    value={vd.b2b_price || ''} onChange={e => upd('b2b_price', e.target.value)} /></td>
+                                  <td><input className="form-control" type="number" style={{ width: 110 }} placeholder="—"
+                                    value={vd.b2b_disc || ''} onChange={e => upd('b2b_disc', e.target.value)} /></td>
+                                  <td><input className="form-control" type="number" style={{ width: 75 }} placeholder="0"
+                                    value={vd.stock || ''} onChange={e => upd('stock', e.target.value)} /></td>
+                                  <td><input className="form-control" type="text" style={{ width: 115 }} placeholder={sku ? sku + '-' + (ci + 1) : 'SKU'}
+                                    value={vd.sku || ''} onChange={e => upd('sku', e.target.value)} /></td>
+                                  <td><input className="form-control" type="text" style={{ width: 125 }} placeholder="8680000000000"
+                                    value={vd.barcode || ''} onChange={e => upd('barcode', e.target.value)} /></td>
+                                  <td><input className="form-control" type="number" step="0.1" style={{ width: 85 }} placeholder="0.0"
+                                    value={vd.weight || ''} onChange={e => upd('weight', e.target.value)} /></td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -415,11 +778,11 @@ export default function ProductDetail() {
                 <div className="pd-card-body">
                   <div className="price-row">
                     <div className="form-group">
-                      <label className="form-label">Satış Fiyatı (₺)</label>
+                      <label className="form-label">Perakende Fiyatı (₺)</label>
                       <input className="form-control" type="number" value={price} onChange={e => { setPrice(e.target.value); markDirty(); }} />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">İndirimli Fiyat (₺) <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>opsiyonel</span></label>
+                      <label className="form-label">Perakende İndirimli Fiyatı (₺) <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>opsiyonel</span></label>
                       <input className="form-control" type="number" value={discounted} onChange={e => { setDisc(e.target.value); markDirty(); }} placeholder="—" />
                     </div>
                   </div>
@@ -431,6 +794,29 @@ export default function ProductDetail() {
                     <span style={{ color: 'var(--text-muted)' }}>Tahmini kâr marjı</span>
                     <span style={{ fontWeight: 700, color: profit >= 20 ? 'var(--success)' : profit >= 10 ? 'var(--warning)' : 'var(--danger)' }}>{profit}%</span>
                   </div>
+
+                  {/* Toptan Fiyatlandırma */}
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border-light)' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.05em', textTransform: 'uppercase', marginBottom: 10 }}>Toptan Fiyatlandırma</div>
+                    <div className="price-row">
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Toptan Fiyatı (₺) <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>opsiyonel</span></label>
+                        <input className="form-control" type="number" value={b2bPrice} onChange={e => { setB2bPrice(e.target.value); markDirty(); }} placeholder="—" />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Toptan İndirimli Fiyatı (₺) <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>opsiyonel</span></label>
+                        <input className="form-control" type="number" value={b2bDiscounted} onChange={e => { setB2bDiscounted(e.target.value); markDirty(); }} placeholder="—" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* KDV */}
+                  <KdvSection
+                    vatRate={vatRate} vatIncluded={vatIncluded}
+                    basePrice={parseFloat(discounted || price) || 0}
+                    onRateChange={v => { setVatRate(v); markDirty(); }}
+                    onIncludedChange={v => { setVatIncluded(v); markDirty(); }}
+                  />
                 </div>
               </div>
             )}
@@ -458,16 +844,33 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* Kargo */}
-            <div className="pd-card">
-              <div className="pd-card-title">Kargo</div>
-              <div className="pd-card-body">
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Ağırlık (kg)</label>
-                  <input className="form-control" type="number" step="0.1" value={weight} onChange={e => { setWeight(e.target.value); markDirty(); }} style={{ maxWidth: 160 }} />
+            {/* Kargo — varyantlı ürünlerde ağırlık varyant tablosunda girilir */}
+            {!hasVariants && (
+              <div className="pd-card">
+                <div className="pd-card-title">Kargo</div>
+                <div className="pd-card-body">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Ağırlık (kg)</label>
+                    <input className="form-control" type="number" step="0.1" value={weight} onChange={e => { setWeight(e.target.value); markDirty(); }} style={{ maxWidth: 160 }} />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* KDV — varyantlı ürünlerde ayrı kart */}
+            {hasVariants && (
+              <div className="pd-card">
+                <div className="pd-card-title">KDV</div>
+                <div className="pd-card-body">
+                  <KdvSection
+                    vatRate={vatRate} vatIncluded={vatIncluded}
+                    basePrice={0}
+                    onRateChange={v => { setVatRate(v); markDirty(); }}
+                    onIncludedChange={v => { setVatIncluded(v); markDirty(); }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right column */}
@@ -489,9 +892,29 @@ export default function ProductDetail() {
               <div className="pd-card-body">
                 <div className="form-group">
                   <label className="form-label">Kategori</label>
-                  <select className="form-control" value={category} onChange={e => { setCategory(e.target.value); markDirty(); }}>
-                    <option value="">Kategori seçin</option>
-                    {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                  {category.length > 0 && (
+                    <div className="tag-list" style={{ marginBottom: 8 }}>
+                      {category.map(c => (
+                        <span key={c} className="tag">
+                          {c}
+                          <button onClick={() => { setCategory(prev => prev.filter(x => x !== c)); markDirty(); }}>×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <select
+                    className="form-control"
+                    value=""
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (val && !category.includes(val)) {
+                        setCategory(prev => [...prev, val]);
+                        markDirty();
+                      }
+                    }}
+                  >
+                    <option value="">Kategori ekle…</option>
+                    {[...new Set([...allCategories, ...category])].filter(c => !category.includes(c)).map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
@@ -517,23 +940,47 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            <div className="pd-card">
-              <div className="pd-card-title">Satış Kanalları</div>
-              <div className="pd-card-body">
-                <div className="channel-list">
-                  {CHANNEL_OPTS.map(ch => (
-                    <label key={ch} id={`crow-${ch}`}
-                      className={`channel-row${channels.includes(ch) ? ' active' : ''}`}>
-                      <input type="checkbox" checked={channels.includes(ch)}
-                        onChange={e => { setChannels(prev => e.target.checked ? [...prev, ch] : prev.filter(c => c !== ch)); markDirty(); }} />
-                      <img src={`https://www.google.com/s2/favicons?domain=${CHANNEL_META[ch]?.favicon}&sz=16`}
-                        width={16} height={16} style={{ borderRadius: 3 }} alt="" />
-                      <span style={{ fontSize: 13 }}>{CHANNEL_META[ch]?.label || ch}</span>
-                    </label>
-                  ))}
+            {(() => {
+              // Tüm aktif entegrasyonları birleştir
+              const mappedChannels = [
+                ...channels,
+                ...(shopifyMapping && !channels.includes('shopify') ? ['shopify'] : []),
+              ];
+              return (
+                <div className="pd-card">
+                  <div className="pd-card-title">Satış Kanalları</div>
+                  <div className="pd-card-body" style={{ padding: 0 }}>
+                    {mappedChannels.length > 0 ? mappedChannels.map((ch, i) => {
+                      const m = CHANNEL_META[ch];
+                      const isShopify = ch === 'shopify' && shopifyMapping && hasVariants && combos.length > 0;
+                      const mappedVariantCount = isShopify ? Object.keys(shopifyMapping!.variant_mappings || {}).length : 0;
+                      const allMapped = mappedVariantCount === combos.length;
+                      return (
+                        <div key={ch} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: i < mappedChannels.length - 1 ? '1px solid var(--border-light)' : 'none' }}>
+                          <img src={`https://www.google.com/s2/favicons?domain=${m?.favicon}&sz=32`} width={20} height={20} style={{ borderRadius: 4, flexShrink: 0 }} alt="" />
+                          <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{m?.label || ch}</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: 'var(--success)', whiteSpace: 'nowrap' }}>
+                              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} />
+                              Eşleştirildi
+                            </span>
+                            {isShopify && (
+                              <span style={{ fontSize: 10, fontWeight: 600, whiteSpace: 'nowrap', color: allMapped ? 'var(--text-muted)' : '#D97706' }}>
+                                {combos.length} varyanttan {mappedVariantCount} tanesi eşleştirildi
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }) : (
+                      <div style={{ padding: '20px 16px', textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
+                        Henüz eşleştirme yok
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             <div className="pd-card">
               <div className="pd-card-title" style={{ color: 'var(--danger)' }}>Tehlikeli Alan</div>
@@ -586,29 +1033,52 @@ export default function ProductDetail() {
                         <span className="val">{v}</span>
                       </div>
                     ))}
-                    {shopifyMapping.is_variant && Object.keys(shopifyMapping.variant_mappings).length > 0 && (
+                    {combos.length > 0 && (
                       <div style={{ marginTop: 8, borderTop: '1px solid var(--border-light)', paddingTop: 10 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8 }}>
-                          VARYANT EŞLEŞTİRMELERİ ({Object.keys(shopifyMapping.variant_mappings).length})
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>
+                            VARYANT EŞLEŞTİRMELERİ
+                          </div>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>
+                            <span style={{ color: 'var(--success)' }}>{Object.keys(shopifyMapping.variant_mappings || {}).length}</span>
+                            /{combos.length} eşleştirildi
+                          </div>
                         </div>
                         <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
                           <table style={{ margin: 0, fontSize: 11 }}>
-                            <thead><tr><th>Platform</th><th>Shopify Varyantı</th><th>SKU</th></tr></thead>
+                            <thead>
+                              <tr>
+                                <th>Platform Varyantı</th>
+                                <th>Shopify Varyantı</th>
+                                <th>SKU</th>
+                              </tr>
+                            </thead>
                             <tbody>
-                              {Object.entries(shopifyMapping.variant_mappings).map(([combo, vm]) => (
-                                <tr key={combo}>
-                                  <td style={{ fontWeight: 600 }}>{combo}</td>
-                                  <td>{vm.shopifyVariantTitle}</td>
-                                  <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{vm.shopifySku || '—'}</td>
-                                </tr>
-                              ))}
+                              {combos.map(combo => {
+                                const vm = (shopifyMapping.variant_mappings || {})[combo];
+                                return (
+                                  <tr key={combo}>
+                                    <td style={{ fontWeight: 600 }}>{combo}</td>
+                                    {vm ? (
+                                      <>
+                                        <td>{vm.shopifyVariantTitle}</td>
+                                        <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{vm.shopifySku || '—'}</td>
+                                      </>
+                                    ) : (
+                                      <td colSpan={2} style={{ color: 'var(--warning, #D97706)', fontWeight: 600 }}>
+                                        ⚠ Eşleştirilmedi
+                                      </td>
+                                    )}
+                                  </tr>
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>
                       </div>
                     )}
                   </div>
-                  <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border-light)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border-light)', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                     <a href={`https://${shopifyDomain}/products/${shopifyMapping.handle}`} target="_blank" rel="noreferrer"
                       className="btn btn-ghost btn-sm" style={{ fontSize: 12, textDecoration: 'none' }}>
                       Shopify'da Görüntüle ↗
@@ -643,64 +1113,45 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* Channel cards */}
-          <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 13 }}>Satış Kanalları</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{channels.length} aktif kanal bağlı</div>
+          {/* Aktif satış kanalları — ikon görünümü */}
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--border-light)' }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 13 }}>Satış Kanalları</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{channels.length} aktif kanal</div>
+              </div>
+              {channels.length > 0 && (
+                <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }}
+                  onClick={() => showToast('Senkronizasyon', 'Tüm kanallar senkronize ediliyor…', 'info')}>
+                  <svg width={13} height={13} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 5 }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Tümünü Senkronize Et
+                </button>
+              )}
             </div>
-            {channels.length > 0 && (
-              <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }}
-                onClick={() => showToast('Senkronizasyon', 'Tüm kanallar senkronize ediliyor…', 'info')}>
-                <svg width={13} height={13} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 5 }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Tümünü Senkronize Et
-              </button>
-            )}
-          </div>
-          {channels.length > 0 ? (
-            <div className="int-grid">
-              {channels.map(ch => {
-                const m = CHANNEL_META[ch];
-                return (
-                  <div key={ch} className="int-card">
-                    <div className="int-card-head">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <img src={`https://www.google.com/s2/favicons?domain=${m?.favicon}&sz=32`} width={20} height={20} style={{ borderRadius: 4 }} alt="" />
-                        <span style={{ fontWeight: 700, fontSize: 13 }}>{m?.label || ch}</span>
-                      </div>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--success)' }}>
-                        <span className="int-status-dot" style={{ background: 'var(--success)' }} />
+            {channels.length > 0 ? (
+              <div style={{ padding: '14px 16px', display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                {channels.map(ch => {
+                  const m = CHANNEL_META[ch];
+                  return (
+                    <div key={ch} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg)' }}>
+                      <img src={`https://www.google.com/s2/favicons?domain=${m?.favicon}&sz=32`} width={20} height={20} style={{ borderRadius: 4 }} alt="" />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{m?.label || ch}</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: 'var(--success)' }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} />
                         Yayında
                       </span>
                     </div>
-                    <div className="int-card-body">
-                      <div className="int-row"><span className="lbl">Fiyat</span><span className="val">{formatMoney(parseFloat(price) || 0)}</span></div>
-                      <div className="int-row"><span className="lbl">Stok</span><span className="val">{parseInt(stock) || 0} adet</span></div>
-                    </div>
-                    <div className="int-card-foot">
-                      <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }}
-                        onClick={() => showToast('Senkronizasyon', `${m?.label} senkronize ediliyor…`, 'info')}>
-                        Senkronize Et
-                      </button>
-                      <a href={`https://${m?.favicon}`} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm" style={{ fontSize: 12, textDecoration: 'none' }}>
-                        Kanalda Gör ↗
-                      </a>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: 13 }}>
-              <svg width={36} height={36} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ margin: '0 auto 12px', display: 'block', opacity: .4 }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-              Henüz hiçbir satış kanalı bağlı değil.<br />
-              <span style={{ fontSize: 12 }}>Genel sekmesinden Satış Kanalları bölümünü kullanabilirsiniz.</span>
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+                Henüz satış kanalı seçilmemiş. Genel sekmesinden ekleyebilirsiniz.
+              </div>
+            )}
+          </div>
         </div>
       )}
 

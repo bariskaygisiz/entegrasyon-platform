@@ -4,13 +4,15 @@ export interface Product {
   description: string;
   price: number;
   discounted_price: number | null;
+  b2b_price: number | null;
+  b2b_discounted_price: number | null;
   cost: number;
   sku: string;
   barcode: string;
   stock: number;
   weight: number;
   status: 'active' | 'draft' | 'archived';
-  category: string;
+  category: string[];
   channels: string[];
   tags: string[];
   media: MediaItem[];
@@ -18,6 +20,8 @@ export interface Product {
   variant_options: VariantOption[];
   variant_data: Record<string, VariantDataEntry>;
   emoji: string;
+  vat_rate: number;
+  vat_included: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -39,6 +43,8 @@ export interface VariantOption {
 export interface VariantDataEntry {
   price?: string;
   disc?: string;
+  b2b_price?: string;
+  b2b_disc?: string;
   stock?: string;
   sku?: string;
   barcode?: string;
@@ -54,6 +60,7 @@ export interface ShopifySettings {
   plan: string;
   shop_name: string;
   currency: string;
+  price_type: 'retail' | 'wholesale';  // 'retail' = Perakende, 'wholesale' = Toptan
   created_at: string;
   updated_at: string;
 }
@@ -78,8 +85,18 @@ export interface ShopifyVariantMapping {
   shopifyPrice: string;
 }
 
+export interface OrderLineItem {
+  title: string;
+  quantity: number;
+  price: string;
+  sku: string;
+  vendor: string;
+}
+
 export interface Order {
   id: number;
+  shopifyOrderId?: string | null;
+  orderName?: string;
   customer: string;
   email: string;
   phone: string;
@@ -100,6 +117,29 @@ export interface Order {
   cargoCompany: string;
   paymentMethod: string;
   note: string | null;
+  lineItems?: OrderLineItem[];
+}
+
+export interface SyncJob {
+  id: number;
+  product_id: string;
+  product_name: string;
+  channel: string;
+  action: string;
+  status: 'pending' | 'syncing' | 'success' | 'error';
+  message: string;
+  detail: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export type ToastType = 'success' | 'warning' | 'error' | 'info';

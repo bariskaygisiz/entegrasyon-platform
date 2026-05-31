@@ -13,6 +13,8 @@ import Integrations   from './pages/Integrations';
 import IntegrationDetail from './pages/IntegrationDetail';
 import Inventory      from './pages/Inventory';
 import Categories     from './pages/Categories';
+import CategoryNew    from './pages/CategoryNew';
+import CategoryDetail from './pages/CategoryDetail';
 import Customers      from './pages/Customers';
 import Flows          from './pages/Flows';
 import Logs           from './pages/Logs';
@@ -21,6 +23,7 @@ import Account        from './pages/Account';
 import Support        from './pages/Support';
 import Training       from './pages/Training';
 import Login          from './pages/Login';
+import Operations     from './pages/Operations';
 
 export default function App() {
   return (
@@ -38,10 +41,13 @@ export default function App() {
           <Route path="/integrations"     element={<Integrations />} />
           <Route path="/integrations/:slug" element={<IntegrationDetail />} />
           <Route path="/inventory"        element={<Inventory />} />
-          <Route path="/categories"       element={<Categories />} />
+          <Route path="/categories"         element={<Categories />} />
+          <Route path="/categories/new"   element={<CategoryNew />} />
+          <Route path="/categories/:id"   element={<CategoryDetail />} />
           <Route path="/customers"        element={<Customers />} />
           <Route path="/flows"            element={<Flows />} />
           <Route path="/logs"             element={<Logs />} />
+          <Route path="/operations"       element={<Operations />} />
           <Route path="/settings"         element={<Settings />} />
           <Route path="/account"          element={<Account />} />
           <Route path="/destek"           element={<Support />} />

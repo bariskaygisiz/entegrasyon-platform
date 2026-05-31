@@ -1,4 +1,4 @@
-import type { Product, ShopifySettings, ShopifyMapping, Order } from '../types';
+import type { Product, ShopifySettings, ShopifyMapping, Order, SyncJob, Category } from '../types';
 
 const BASE = '/api';
 
@@ -28,7 +28,11 @@ export const api = {
     get:    (id: string) => request<Product>(`/products/${id}`),
     create: (data: Partial<Product>) => request<Product>('/products', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: Partial<Product>) => request<Product>(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    patch:  (id: string, data: Partial<Product>) => request<Product>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => request<{ ok: boolean }>(`/products/${id}`, { method: 'DELETE' }),
+    importCsv: (csv: string) => request<{ created: number; updated: number; total: number; errors: { row: number; message: string }[] }>(
+      '/products/import-csv', { method: 'POST', body: JSON.stringify({ csv }) }
+    ),
   },
 
   orders: {
@@ -40,7 +44,8 @@ export const api = {
       if (params?.offset)  q.set('offset', String(params.offset));
       return request<{ orders: Order[]; total: number }>(`/orders?${q}`);
     },
-    get: (id: number) => request<Order>(`/orders/${id}`),
+    get:   (id: number) => request<Order>(`/orders/${id}`),
+    patch: (id: number, data: Partial<Order>) => request<Order>(`/orders/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   },
 
   shopify: {
@@ -64,6 +69,51 @@ export const api = {
         headers: { 'X-Shop-Domain': domain, 'X-Shop-Token': token },
         body: JSON.stringify({ product }),
       }),
+
+    // Sync
+    syncProduct:  (productId: string, changes: string[] = []) =>
+      request<{ ok: boolean; jobId: number; message: string; detail: string }>(
+        `/shopify/sync/${productId}`,
+        { method: 'POST', body: JSON.stringify({ changes }) }
+      ),
+
+    // Jobs
+    getJobs:  () => request<SyncJob[]>('/shopify/jobs'),
+    retryJob: (jobId: number) =>
+      request<{ ok: boolean; message: string }>(`/shopify/jobs/${jobId}/retry`, { method: 'POST' }),
+
+    // Sync config (toggle'lar)
+    getSyncConfig: () => request<Record<string, boolean>>('/shopify/sync-config'),
+    saveSyncConfig: (config: Record<string, boolean>) =>
+      request<{ ok: boolean }>('/shopify/sync-config', { method: 'PUT', body: JSON.stringify(config) }),
+
+    // Fiyat tipi (retail / wholesale)
+    savePriceType: (price_type: 'retail' | 'wholesale') =>
+      request<{ ok: boolean; price_type: string }>('/shopify/price-type', {
+        method: 'PUT', body: JSON.stringify({ price_type }),
+      }),
+
+    // İçeri aktar
+    importProducts: () =>
+      request<{ imported: number; skipped: number; total: number; errors: string[] }>(
+        '/shopify/import', { method: 'POST' }
+      ),
+
+    // Sipariş senkronizasyonu
+    syncOrders: () =>
+      request<{ synced: number; updated: number; total: number }>(
+        '/shopify/sync-orders', { method: 'POST' }
+      ),
+  },
+
+  categories: {
+    list:   ()                           => request<Category[]>('/categories'),
+    names:  ()                           => request<string[]>('/categories/names'),
+    get:    (id: string)                 => request<Category>(`/categories/${id}`),
+    create: (data: Partial<Category>)    => request<Category>('/categories', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: Partial<Category>) =>
+      request<Category>(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: string)                 => request<{ ok: boolean }>(`/categories/${id}`, { method: 'DELETE' }),
   },
 };
 
