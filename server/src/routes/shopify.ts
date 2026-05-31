@@ -965,6 +965,59 @@ function mapShopifyOrderRow(order: any): {
   };
 }
 
+// ── Shared: sipariş satırlarını DB'ye upsert et ──────────────────────────────
+function upsertOrderRows(orders: any[], now: string): { synced: number; updated: number } {
+  const upsertStmt = db.prepare(`
+    INSERT INTO orders
+      (shopify_order_id, order_name, channel, status, customer, email, phone,
+       city, district, address, product_name, product_sku, product_emoji,
+       product_price, product_category, qty, amount, cargo_code, cargo_company,
+       payment_method, note, line_items, date_str, shopify_synced_at, created_at, updated_at)
+    VALUES (?, ?, 'shopify', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(shopify_order_id) DO UPDATE SET
+      status            = excluded.status,
+      cargo_code        = excluded.cargo_code,
+      cargo_company     = excluded.cargo_company,
+      amount            = excluded.amount,
+      line_items        = excluded.line_items,
+      payment_method    = excluded.payment_method,
+      note              = excluded.note,
+      shopify_synced_at = excluded.shopify_synced_at,
+      updated_at        = excluded.updated_at
+  `);
+
+  const existingIds = new Set(
+    (db.prepare('SELECT shopify_order_id FROM orders').all() as { shopify_order_id: string }[])
+      .map(r => r.shopify_order_id),
+  );
+
+  let synced = 0, updated = 0;
+
+  const syncMany = db.transaction((rows: any[]) => {
+    for (const order of rows) {
+      const m = mapShopifyOrderRow(order);
+      const isNew = !existingIds.has(m.shopify_order_id);
+      upsertStmt.run(
+        m.shopify_order_id, m.order_name, m.status,
+        m.customer, m.email, m.phone,
+        m.city, m.district, m.address,
+        m.product_name, m.product_sku, m.product_emoji,
+        m.product_price, m.product_category,
+        m.qty, m.amount,
+        m.cargo_code, m.cargo_company,
+        m.payment_method, m.note,
+        m.line_items, m.date_str,
+        now, now, now,
+      );
+      if (isNew) synced++; else updated++;
+    }
+  });
+
+  syncMany(orders);
+  return { synced, updated };
+}
+
+// ── Manuel (tam) sipariş sync — since_id pagination ─────────────────────────
 router.post('/sync-orders', async (_req: Request, res: Response) => {
   const settingsRow = db.prepare('SELECT * FROM shopify_settings WHERE id = 1').get() as ShopifySettingsRow | undefined;
   if (!settingsRow?.connected) return res.status(400).json({ error: 'Shopify bağlantısı bulunamadı.' });
@@ -972,8 +1025,6 @@ router.post('/sync-orders', async (_req: Request, res: Response) => {
 
   try {
     const now = new Date().toISOString();
-
-    // ── since_id pagination → tüm siparişleri çek ────────────────────────────
     const allOrders: any[] = [];
     let sinceId = 0;
 
@@ -988,54 +1039,10 @@ router.post('/sync-orders', async (_req: Request, res: Response) => {
       await delay(300);
     }
 
-    let synced = 0, updated = 0;
+    const { synced, updated } = upsertOrderRows(allOrders, now);
 
-    const upsertStmt = db.prepare(`
-      INSERT INTO orders
-        (shopify_order_id, order_name, channel, status, customer, email, phone,
-         city, district, address, product_name, product_sku, product_emoji,
-         product_price, product_category, qty, amount, cargo_code, cargo_company,
-         payment_method, note, line_items, date_str, shopify_synced_at, created_at, updated_at)
-      VALUES (?, ?, 'shopify', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(shopify_order_id) DO UPDATE SET
-        status         = excluded.status,
-        cargo_code     = excluded.cargo_code,
-        cargo_company  = excluded.cargo_company,
-        amount         = excluded.amount,
-        line_items     = excluded.line_items,
-        payment_method = excluded.payment_method,
-        note           = excluded.note,
-        shopify_synced_at = excluded.shopify_synced_at,
-        updated_at     = excluded.updated_at
-    `);
-
-    // Check existing IDs to count new vs updated
-    const existingIds = new Set(
-      (db.prepare('SELECT shopify_order_id FROM orders').all() as { shopify_order_id: string }[])
-        .map(r => r.shopify_order_id),
-    );
-
-    const syncMany = db.transaction((orders: any[]) => {
-      for (const order of orders) {
-        const mapped = mapShopifyOrderRow(order);
-        const isNew = !existingIds.has(mapped.shopify_order_id);
-        upsertStmt.run(
-          mapped.shopify_order_id, mapped.order_name, mapped.status,
-          mapped.customer, mapped.email, mapped.phone,
-          mapped.city, mapped.district, mapped.address,
-          mapped.product_name, mapped.product_sku, mapped.product_emoji,
-          mapped.product_price, mapped.product_category,
-          mapped.qty, mapped.amount,
-          mapped.cargo_code, mapped.cargo_company,
-          mapped.payment_method, mapped.note,
-          mapped.line_items, mapped.date_str,
-          now, now, now,
-        );
-        if (isNew) synced++; else updated++;
-      }
-    });
-
-    syncMany(allOrders);
+    // Son sync zamanını güncelle
+    setSyncState('orders_last_sync', { updated_at: now });
 
     log({
       channel: 'shopify', action: 'sync-orders', status: 'success',
@@ -1048,6 +1055,50 @@ router.post('/sync-orders', async (_req: Request, res: Response) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+// ── Otomatik (artımlı) sipariş sync — her 5 dk'da çağrılır ─────────────────
+export async function runOrderSync(): Promise<void> {
+  const settingsRow = db.prepare('SELECT * FROM shopify_settings WHERE id = 1').get() as ShopifySettingsRow | undefined;
+  if (!settingsRow?.connected) return; // Shopify bağlı değilse sessizce atla
+
+  const { shop_domain, access_token } = rowToSettings(settingsRow);
+
+  // Son sync zamanını oku; yoksa 24 saat geriye git
+  const stateRow = db.prepare("SELECT value FROM sync_state WHERE key = 'orders_last_sync'").get() as { value: string } | undefined;
+  let lastSync: string;
+  try {
+    lastSync = stateRow ? (JSON.parse(stateRow.value).updated_at as string) : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  } catch {
+    lastSync = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  }
+
+  const now = new Date().toISOString();
+
+  try {
+    // Son sync'ten bu yana güncellenen siparişleri çek (max 250 — 5 dk'lık pencere için yeterli)
+    const url = `/admin/api/2024-01/orders.json?status=any&limit=250&order=updated_at+asc&updated_at_min=${encodeURIComponent(lastSync)}`;
+    const result = await shopifyRequest(shop_domain, access_token, 'GET', url);
+    const orders: any[] = result.orders || [];
+
+    // Sync zamanını her çalışmada güncelle (sipariş olmasa bile)
+    setSyncState('orders_last_sync', { updated_at: now });
+
+    if (orders.length === 0) return;
+
+    const { synced, updated } = upsertOrderRows(orders, now);
+
+    if (synced > 0 || updated > 0) {
+      console.log(`[order-sync] ${synced} yeni + ${updated} güncellenen sipariş.`);
+      log({
+        channel: 'shopify', action: 'auto-orders', status: 'success',
+        message: `${synced} yeni + ${updated} güncellenen sipariş otomatik senkronize edildi.`,
+        detail: `updated_at_min: ${lastSync.slice(0, 19).replace('T', ' ')}`,
+      });
+    }
+  } catch (e: any) {
+    console.error('[order-sync] Hata:', e.message);
+  }
+}
 
 // ─── Proxy: list Shopify products ─────────────────────────────────────────────
 router.get('/products', (req: Request, res: Response) => {
