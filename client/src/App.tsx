@@ -15,7 +15,8 @@ import Inventory      from './pages/Inventory';
 import Categories     from './pages/Categories';
 import CategoryNew    from './pages/CategoryNew';
 import CategoryDetail from './pages/CategoryDetail';
-import Customers      from './pages/Customers';
+import Customers        from './pages/Customers';
+import CustomerDetail   from './pages/CustomerDetail';
 import Flows          from './pages/Flows';
 import Logs           from './pages/Logs';
 import Settings       from './pages/Settings';
@@ -44,7 +45,8 @@ export default function App() {
           <Route path="/categories"         element={<Categories />} />
           <Route path="/categories/new"   element={<CategoryNew />} />
           <Route path="/categories/:id"   element={<CategoryDetail />} />
-          <Route path="/customers"        element={<Customers />} />
+          <Route path="/customers"          element={<Customers />} />
+          <Route path="/customers/:key"   element={<CustomerDetail />} />
           <Route path="/flows"            element={<Flows />} />
           <Route path="/logs"             element={<Logs />} />
           <Route path="/operations"       element={<Operations />} />

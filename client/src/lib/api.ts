@@ -1,4 +1,4 @@
-import type { Product, ShopifySettings, ShopifyMapping, Order, SyncJob, Category } from '../types';
+import type { Product, ShopifySettings, ShopifyMapping, Order, SyncJob, Category, Customer, CustomerWithOrders } from '../types';
 
 const BASE = '/api';
 
@@ -104,6 +104,17 @@ export const api = {
       request<{ synced: number; updated: number; total: number }>(
         '/shopify/sync-orders', { method: 'POST' }
       ),
+  },
+
+  customers: {
+    list: (params?: { search?: string; limit?: number; offset?: number }) => {
+      const q = new URLSearchParams();
+      if (params?.search) q.set('search', params.search);
+      if (params?.limit)  q.set('limit',  String(params.limit));
+      if (params?.offset) q.set('offset', String(params.offset));
+      return request<{ customers: Customer[]; total: number }>(`/customers?${q}`);
+    },
+    get: (key: string) => request<CustomerWithOrders>(`/customers/${encodeURIComponent(key)}`),
   },
 
   categories: {

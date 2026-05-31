@@ -4,6 +4,7 @@ import productsRouter from './routes/products';
 import ordersRouter from './routes/orders';
 import shopifyRouter, { loadAndApplySyncConfig, runStockSync, runProductInfoSync, runPriceSync, runOrderSync } from './routes/shopify';
 import categoriesRouter from './routes/categories';
+import customersRouter  from './routes/customers';
 import { registerRunner } from './lib/syncScheduler';
 import { cleanupOldLogs } from './lib/log';
 
@@ -23,6 +24,7 @@ app.use('/api/products',   productsRouter);
 app.use('/api/orders',    ordersRouter);
 app.use('/api/shopify',   shopifyRouter);
 app.use('/api/categories', categoriesRouter);
+app.use('/api/customers',  customersRouter);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, version: '2.0.0' }));
 

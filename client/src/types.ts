@@ -142,6 +142,42 @@ export interface Category {
   updated_at: string;
 }
 
+export interface Customer {
+  key: string;           // e-posta (varsa) ya da isim — benzersiz tanımlayıcı
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  district: string;
+  address: string;
+  orderCount: number;
+  totalSpent: number;
+  lastOrderDate: string;
+  firstOrderDate: string;
+  lastOrderAt: string;
+  firstOrderAt: string;
+  channels: string[];
+}
+
+export interface CustomerWithOrders extends Customer {
+  orders: {
+    id: number;
+    orderName: string;
+    channel: string;
+    status: string;
+    productName: string;
+    productEmoji: string;
+    productCategory: string;
+    qty: number;
+    amount: number;
+    dateStr: string;
+    cargoCode: string | null;
+    cargoCompany: string;
+    paymentMethod: string;
+    note: string | null;
+  }[];
+}
+
 export type ToastType = 'success' | 'warning' | 'error' | 'info';
 
 export interface Toast {
