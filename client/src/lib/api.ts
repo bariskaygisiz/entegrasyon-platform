@@ -114,7 +114,12 @@ export const api = {
       if (params?.offset) q.set('offset', String(params.offset));
       return request<{ customers: Customer[]; total: number }>(`/customers?${q}`);
     },
-    get: (key: string) => request<CustomerWithOrders>(`/customers/${encodeURIComponent(key)}`),
+    get: (key: string) =>
+      request<CustomerWithOrders>(`/customers/${encodeURIComponent(key)}`),
+    update: (key: string, data: Partial<Customer>) =>
+      request<Partial<Customer>>(`/customers/${encodeURIComponent(key)}`, {
+        method: 'PUT', body: JSON.stringify(data),
+      }),
   },
 
   categories: {

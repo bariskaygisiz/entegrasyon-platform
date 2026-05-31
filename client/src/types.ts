@@ -150,6 +150,11 @@ export interface Customer {
   city: string;
   district: string;
   address: string;
+  invoiceType: 'individual' | 'corporate';
+  tcNo: string;
+  taxNo: string;
+  taxOffice: string;
+  notes: string;
   orderCount: number;
   totalSpent: number;
   lastOrderDate: string;

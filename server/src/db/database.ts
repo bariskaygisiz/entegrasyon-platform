@@ -122,6 +122,23 @@ db.exec(`
     created_at       TEXT NOT NULL,
     updated_at       TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS customers (
+    customer_key  TEXT PRIMARY KEY,
+    name          TEXT NOT NULL DEFAULT '',
+    email         TEXT NOT NULL DEFAULT '',
+    phone         TEXT NOT NULL DEFAULT '',
+    city          TEXT NOT NULL DEFAULT '',
+    district      TEXT NOT NULL DEFAULT '',
+    address       TEXT NOT NULL DEFAULT '',
+    invoice_type  TEXT NOT NULL DEFAULT 'individual',
+    tc_no         TEXT NOT NULL DEFAULT '',
+    tax_no        TEXT NOT NULL DEFAULT '',
+    tax_office    TEXT NOT NULL DEFAULT '',
+    notes         TEXT NOT NULL DEFAULT '',
+    created_at    TEXT NOT NULL,
+    updated_at    TEXT NOT NULL
+  );
 `);
 
 // ─── Migrations (sütunlar yoksa ekle) ────────────────────────────────────────

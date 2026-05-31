@@ -14,12 +14,11 @@ const CHANNEL_META: Record<string, { label: string; favicon?: string; color: str
   ikas:     { label: 'İkas',        favicon: 'ikas.com',        color: '#3730a3', bg: '#e0e7ff' },
   site:     { label: 'Site',        color: '#1d4ed8', bg: '#dbeafe' },
 };
-
 function ChannelBadge({ channel }: { channel: string }) {
   const m = CHANNEL_META[channel] || { label: channel, color: '#475569', bg: '#f1f5f9' };
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: m.bg, color: m.color }}>
-      {m.favicon && <img src={`https://www.google.com/s2/favicons?domain=${m.favicon}&sz=16`} width={11} height={11} alt="" style={{ borderRadius: 2 }} />}
+    <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:20, background:m.bg, color:m.color }}>
+      {m.favicon && <img src={`https://www.google.com/s2/favicons?domain=${m.favicon}&sz=16`} width={11} height={11} alt="" style={{ borderRadius:2 }} />}
       {m.label}
     </span>
   );
@@ -33,17 +32,16 @@ const STATUS_STYLE: Record<string, { label: string; color: string; bg: string }>
   delivered: { label: 'Teslim Edildi',   color: '#15803d', bg: '#dcfce7' },
   cancelled: { label: 'İptal Edildi',    color: '#dc2626', bg: '#fee2e2' },
 };
-
 function StatusBadge({ status }: { status: string }) {
   const s = STATUS_STYLE[status] || STATUS_STYLE['approved'];
-  return <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: s.bg, color: s.color }}>{s.label}</span>;
+  return <span style={{ fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:20, background:s.bg, color:s.color }}>{s.label}</span>;
 }
 
 // ── Avatar ────────────────────────────────────────────────────────────────────
 const AVATAR_COLORS: [string, string][] = [
-  ['#fff', '#6366f1'], ['#fff', '#0ea5e9'], ['#fff', '#10b981'],
-  ['#fff', '#f59e0b'], ['#fff', '#ef4444'], ['#fff', '#8b5cf6'],
-  ['#fff', '#ec4899'], ['#fff', '#14b8a6'],
+  ['#fff','#6366f1'],['#fff','#0ea5e9'],['#fff','#10b981'],
+  ['#fff','#f59e0b'],['#fff','#ef4444'],['#fff','#8b5cf6'],
+  ['#fff','#ec4899'],['#fff','#14b8a6'],
 ];
 function avatarColor(name: string): [string, string] {
   let h = 0;
@@ -51,30 +49,95 @@ function avatarColor(name: string): [string, string] {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
+// ── Form field helper ─────────────────────────────────────────────────────────
+function Field({ label, children, span }: { label: string; children: React.ReactNode; span?: boolean }) {
+  return (
+    <div style={{ gridColumn: span ? '1 / -1' : undefined }}>
+      <label style={{ display:'block', fontSize:11, fontWeight:600, color:'var(--text-muted)', marginBottom:5, textTransform:'uppercase', letterSpacing:.4 }}>
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+const INPUT_STYLE: React.CSSProperties = {
+  width: '100%', padding: '8px 12px', border: '1px solid var(--border)',
+  borderRadius: 8, fontSize: 13, background: 'var(--bg)',
+  color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
+  transition: 'border-color .15s',
+};
+
 // ── Ana bileşen ───────────────────────────────────────────────────────────────
+type ProfileState = {
+  name: string; email: string; phone: string;
+  city: string; district: string; address: string;
+  invoiceType: 'individual' | 'corporate';
+  tcNo: string; taxNo: string; taxOffice: string; notes: string;
+};
+
 export default function CustomerDetail() {
   const { key }    = useParams<{ key: string }>();
   const navigate   = useNavigate();
   const [customer, setCustomer] = useState<CustomerWithOrders | null>(null);
   const [loading,  setLoading]  = useState(true);
+  const [saving,   setSaving]   = useState(false);
+  const [saved,    setSaved]    = useState(false);
+  const [saveErr,  setSaveErr]  = useState('');
+  const [profile,  setProfile]  = useState<ProfileState>({
+    name:'', email:'', phone:'', city:'', district:'', address:'',
+    invoiceType:'individual', tcNo:'', taxNo:'', taxOffice:'', notes:'',
+  });
 
   useEffect(() => {
     if (!key) return;
     api.customers.get(key)
-      .then(setCustomer)
+      .then(c => {
+        setCustomer(c);
+        setProfile({
+          name:        c.name,
+          email:       c.email,
+          phone:       c.phone,
+          city:        c.city,
+          district:    c.district,
+          address:     c.address,
+          invoiceType: c.invoiceType || 'individual',
+          tcNo:        c.tcNo        || '',
+          taxNo:       c.taxNo       || '',
+          taxOffice:   c.taxOffice   || '',
+          notes:       c.notes       || '',
+        });
+      })
       .catch(() => setCustomer(null))
       .finally(() => setLoading(false));
   }, [key]);
 
+  const set = (field: keyof ProfileState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setProfile(prev => ({ ...prev, [field]: e.target.value }));
+
+  const handleSave = async () => {
+    if (!key) return;
+    setSaving(true); setSaved(false); setSaveErr('');
+    try {
+      await api.customers.update(key, profile as any);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (e: any) {
+      setSaveErr(e.message || 'Kayıt hatası');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
-    return <Layout title="Müşteri Detayı"><div style={{ padding: 60, textAlign: 'center', color: 'var(--text-muted)' }}>Yükleniyor…</div></Layout>;
+    return <Layout title="Müşteri Detayı"><div style={{ padding:60, textAlign:'center', color:'var(--text-muted)' }}>Yükleniyor…</div></Layout>;
   }
   if (!customer) {
     return (
       <Layout title="Müşteri Bulunamadı">
-        <div style={{ padding: 60, textAlign: 'center', color: 'var(--text-muted)' }}>
+        <div style={{ padding:60, textAlign:'center', color:'var(--text-muted)' }}>
           <p>Müşteri bulunamadı.</p>
-          <Link to="/customers" style={{ color: 'var(--primary)' }}>← Müşterilere Dön</Link>
+          <Link to="/customers" style={{ color:'var(--primary)' }}>← Müşterilere Dön</Link>
         </div>
       </Layout>
     );
@@ -85,76 +148,197 @@ export default function CustomerDetail() {
 
   return (
     <Layout title={customer.name}>
-      {/* Geri butonu */}
-      <Link to="/customers" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none', marginBottom: 20 }}>
+      <style>{`
+        .prof-input:focus { border-color: var(--primary) !important; box-shadow: 0 0 0 3px var(--primary-light,#EEF2FF); }
+        .invoice-radio { display:flex; gap:10px; }
+        .invoice-radio label { display:flex; align-items:center; gap:8px; padding:8px 14px; border:2px solid var(--border); border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; transition:all .15s; flex:1; justify-content:center; }
+        .invoice-radio label.active { border-color:var(--primary); background:var(--primary-light,#EEF2FF); color:var(--primary); }
+        .invoice-radio input[type=radio] { display:none; }
+        @media (max-width:700px) { .prof-grid { grid-template-columns: 1fr !important; } .detail-grid { grid-template-columns: 1fr !important; } }
+      `}</style>
+
+      {/* Geri */}
+      <Link to="/customers" style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:13, color:'var(--text-muted)', textDecoration:'none', marginBottom:20 }}>
         <svg width={16} height={16} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
         Müşteriler
       </Link>
 
-      {/* Müşteri başlık kartı */}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '20px 24px', marginBottom: 20, display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: bg, color: fg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 26, flexShrink: 0 }}>
-          {(customer.name || '?')[0].toUpperCase()}
+      {/* Başlık */}
+      <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:24, flexWrap:'wrap' }}>
+        <div style={{ width:56, height:56, borderRadius:'50%', background:bg, color:fg, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:22, flexShrink:0 }}>
+          {(customer.name||'?')[0].toUpperCase()}
         </div>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 6px' }}>{customer.name}</h1>
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 13, color: 'var(--text-muted)' }}>
-            {customer.email && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <svg width={13} height={13} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                {customer.email}
-              </span>
-            )}
-            {customer.phone && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <svg width={13} height={13} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                {customer.phone}
-              </span>
-            )}
-            {customer.city && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <svg width={13} height={13} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                {customer.city}{customer.district ? ` / ${customer.district}` : ''}
-              </span>
-            )}
+        <div style={{ flex:1 }}>
+          <h1 style={{ fontSize:20, fontWeight:800, margin:'0 0 4px' }}>{customer.name}</h1>
+          <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+            {customer.channels.map(ch => <ChannelBadge key={ch} channel={ch} />)}
           </div>
-          {customer.address && (
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{customer.address}</div>
-          )}
-        </div>
-        {/* Kanal badges */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {customer.channels.map(ch => <ChannelBadge key={ch} channel={ch} />)}
         </div>
       </div>
 
-      {/* İstatistik kartları */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
-        {[
-          { label: 'Toplam Sipariş',   value: customer.orderCount.toLocaleString('tr-TR'), icon: '🛒', color: '#6366f1' },
-          { label: 'Toplam Harcama',   value: formatMoney(customer.totalSpent), icon: '💰', color: '#10b981' },
-          { label: 'Ort. Sipariş',     value: formatMoney(Math.round(avgOrder)), icon: '📊', color: '#f59e0b' },
-          { label: 'Son Sipariş',      value: customer.lastOrderDate || '—', icon: '📅', color: '#0ea5e9' },
-        ].map(s => (
-          <div key={s.label} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '14px 16px' }}>
-            <div style={{ fontSize: 20, marginBottom: 6 }}>{s.icon}</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: s.color, marginBottom: 2 }}>{s.value}</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{s.label}</div>
+      <div className="detail-grid" style={{ display:'grid', gridTemplateColumns:'1fr 320px', gap:20, alignItems:'start' }}>
+        {/* SOL: Profil formu */}
+        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+
+          {/* İletişim Bilgileri */}
+          <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', overflow:'hidden' }}>
+            <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border-light)', fontWeight:700, fontSize:13 }}>
+              İletişim Bilgileri
+            </div>
+            <div className="prof-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, padding:16 }}>
+              <Field label="Adı Soyadı" span>
+                <input className="prof-input" style={INPUT_STYLE} value={profile.name} onChange={set('name')} placeholder="Ad Soyad" />
+              </Field>
+              <Field label="E-posta Adresi">
+                <input className="prof-input" style={INPUT_STYLE} value={profile.email} onChange={set('email')} placeholder="ornek@email.com" type="email" />
+              </Field>
+              <Field label="Telefon">
+                <input className="prof-input" style={INPUT_STYLE} value={profile.phone} onChange={set('phone')} placeholder="05xx xxx xx xx" />
+              </Field>
+              <Field label="İl">
+                <input className="prof-input" style={INPUT_STYLE} value={profile.city} onChange={set('city')} placeholder="Şehir" />
+              </Field>
+              <Field label="İlçe">
+                <input className="prof-input" style={INPUT_STYLE} value={profile.district} onChange={set('district')} placeholder="İlçe" />
+              </Field>
+              <Field label="Adres" span>
+                <input className="prof-input" style={INPUT_STYLE} value={profile.address} onChange={set('address')} placeholder="Sokak, mahalle, bina no..." />
+              </Field>
+            </div>
           </div>
-        ))}
+
+          {/* Fatura Bilgileri */}
+          <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', overflow:'hidden' }}>
+            <div style={{ padding:'12px 16px', borderBottom:'1px solid var(--border-light)', fontWeight:700, fontSize:13 }}>
+              Fatura Bilgileri
+            </div>
+            <div style={{ padding:16, display:'flex', flexDirection:'column', gap:14 }}>
+
+              {/* Fatura türü seçici */}
+              <Field label="Fatura Türü">
+                <div className="invoice-radio">
+                  <label className={profile.invoiceType === 'individual' ? 'active' : ''}>
+                    <input type="radio" value="individual" checked={profile.invoiceType === 'individual'}
+                      onChange={() => setProfile(p => ({ ...p, invoiceType: 'individual' }))} />
+                    <svg width={15} height={15} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Bireysel
+                  </label>
+                  <label className={profile.invoiceType === 'corporate' ? 'active' : ''}>
+                    <input type="radio" value="corporate" checked={profile.invoiceType === 'corporate'}
+                      onChange={() => setProfile(p => ({ ...p, invoiceType: 'corporate' }))} />
+                    <svg width={15} height={15} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    Kurumsal
+                  </label>
+                </div>
+              </Field>
+
+              {/* Bireysel → TC No */}
+              {profile.invoiceType === 'individual' && (
+                <Field label="TC Kimlik Numarası">
+                  <input
+                    className="prof-input" style={INPUT_STYLE}
+                    value={profile.tcNo} onChange={set('tcNo')}
+                    placeholder="11 haneli TC kimlik numaranızı girin"
+                    maxLength={11}
+                    inputMode="numeric"
+                  />
+                  {profile.tcNo && profile.tcNo.length !== 11 && (
+                    <div style={{ fontSize:11, color:'#ef4444', marginTop:4 }}>TC kimlik numarası 11 haneli olmalıdır.</div>
+                  )}
+                </Field>
+              )}
+
+              {/* Kurumsal → Vergi No + Vergi Dairesi */}
+              {profile.invoiceType === 'corporate' && (
+                <div className="prof-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+                  <Field label="Vergi Numarası">
+                    <input
+                      className="prof-input" style={INPUT_STYLE}
+                      value={profile.taxNo} onChange={set('taxNo')}
+                      placeholder="10 haneli vergi numarası"
+                      maxLength={10}
+                      inputMode="numeric"
+                    />
+                    {profile.taxNo && profile.taxNo.length !== 10 && (
+                      <div style={{ fontSize:11, color:'#ef4444', marginTop:4 }}>Vergi numarası 10 haneli olmalıdır.</div>
+                    )}
+                  </Field>
+                  <Field label="Vergi Dairesi">
+                    <input
+                      className="prof-input" style={INPUT_STYLE}
+                      value={profile.taxOffice} onChange={set('taxOffice')}
+                      placeholder="Örn: Kadıköy Vergi Dairesi"
+                    />
+                  </Field>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Kaydet */}
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="btn btn-primary"
+              style={{ minWidth:120 }}
+            >
+              {saving ? 'Kaydediliyor…' : 'Değişiklikleri Kaydet'}
+            </button>
+            {saved && (
+              <span style={{ fontSize:13, color:'#15803d', display:'flex', alignItems:'center', gap:5 }}>
+                <svg width={15} height={15} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+                Kaydedildi
+              </span>
+            )}
+            {saveErr && <span style={{ fontSize:12, color:'#ef4444' }}>{saveErr}</span>}
+          </div>
+        </div>
+
+        {/* SAĞ: İstatistikler + özet */}
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          {/* Stat kartları */}
+          {[
+            { label:'Toplam Sipariş', value: customer.orderCount.toLocaleString('tr-TR'), icon:'🛒', color:'#6366f1' },
+            { label:'Toplam Harcama', value: formatMoney(customer.totalSpent), icon:'💰', color:'#10b981' },
+            { label:'Ort. Sipariş',   value: formatMoney(Math.round(avgOrder)), icon:'📊', color:'#f59e0b' },
+            { label:'Son Sipariş',    value: customer.lastOrderDate || '—', icon:'📅', color:'#0ea5e9' },
+          ].map(s => (
+            <div key={s.label} style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'12px 14px', display:'flex', alignItems:'center', gap:12 }}>
+              <span style={{ fontSize:22 }}>{s.icon}</span>
+              <div>
+                <div style={{ fontSize:17, fontWeight:800, color:s.color }}>{s.value}</div>
+                <div style={{ fontSize:11, color:'var(--text-muted)' }}>{s.label}</div>
+              </div>
+            </div>
+          ))}
+
+          {/* İlk sipariş */}
+          {customer.firstOrderDate && (
+            <div style={{ fontSize:11, color:'var(--text-muted)', textAlign:'center', paddingTop:4 }}>
+              İlk sipariş: <strong>{customer.firstOrderDate}</strong>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Sipariş geçmişi */}
-      <div className="card">
-        <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontWeight: 700, fontSize: 14 }}>Sipariş Geçmişi</span>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{customer.orders.length} sipariş</span>
+      <div className="card" style={{ marginTop:20 }}>
+        <div style={{ padding:'14px 16px', borderBottom:'1px solid var(--border-light)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <span style={{ fontWeight:700, fontSize:14 }}>Sipariş Geçmişi</span>
+          <span style={{ fontSize:12, color:'var(--text-muted)' }}>{customer.orders.length} sipariş</span>
         </div>
 
         {customer.orders.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>Sipariş bulunamadı.</div>
+          <div style={{ padding:40, textAlign:'center', color:'var(--text-muted)' }}>Sipariş bulunamadı.</div>
         ) : (
           <div className="table-wrap">
             <table>
@@ -163,7 +347,7 @@ export default function CustomerDetail() {
                   <th>Sipariş No</th>
                   <th>Ürün</th>
                   <th>Kanal</th>
-                  <th style={{ textAlign: 'right' }}>Tutar</th>
+                  <th style={{ textAlign:'right' }}>Tutar</th>
                   <th>Durum</th>
                   <th>Tarih</th>
                   <th>Kargo</th>
@@ -173,33 +357,29 @@ export default function CustomerDetail() {
                 {customer.orders.map(o => (
                   <tr
                     key={o.id}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor:'pointer' }}
                     onClick={() => navigate(`/orders/${o.id}`)}
-                    onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).querySelectorAll('td').forEach(td => (td.style.background = 'var(--primary-light,#EEF2FF)'))}
-                    onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).querySelectorAll('td').forEach(td => (td.style.background = ''))}
+                    onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).querySelectorAll('td').forEach(td => (td.style.background='var(--primary-light,#EEF2FF)'))}
+                    onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).querySelectorAll('td').forEach(td => (td.style.background=''))}
                   >
+                    <td><span style={{ fontWeight:700, color:'var(--primary)', fontSize:13 }}>{o.orderName}</span></td>
                     <td>
-                      <span style={{ fontWeight: 700, color: 'var(--primary)', fontSize: 13 }}>{o.orderName}</span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                         <span>{o.productEmoji}</span>
                         <div>
-                          <div style={{ fontSize: 12, fontWeight: 500 }}>{o.productName}</div>
-                          {o.qty > 1 && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>x{o.qty}</div>}
+                          <div style={{ fontSize:12, fontWeight:500 }}>{o.productName}</div>
+                          {o.qty > 1 && <div style={{ fontSize:11, color:'var(--text-muted)' }}>x{o.qty}</div>}
                         </div>
                       </div>
                     </td>
                     <td><ChannelBadge channel={o.channel} /></td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap' }}>
-                      {formatMoney(o.amount)}
-                    </td>
+                    <td style={{ textAlign:'right', fontWeight:700, fontSize:13, whiteSpace:'nowrap' }}>{formatMoney(o.amount)}</td>
                     <td><StatusBadge status={o.status} /></td>
-                    <td style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{o.dateStr}</td>
-                    <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    <td style={{ fontSize:12, color:'var(--text-muted)', whiteSpace:'nowrap' }}>{o.dateStr}</td>
+                    <td style={{ fontSize:12, color:'var(--text-muted)' }}>
                       {o.cargoCode
-                        ? <><span style={{ fontWeight: 600 }}>{o.cargoCompany}</span><br /><span style={{ fontSize: 11 }}>{o.cargoCode}</span></>
-                        : <span style={{ color: 'var(--border)' }}>—</span>}
+                        ? <><span style={{ fontWeight:600 }}>{o.cargoCompany}</span><br /><span style={{ fontSize:11 }}>{o.cargoCode}</span></>
+                        : <span style={{ color:'var(--border)' }}>—</span>}
                     </td>
                   </tr>
                 ))}
@@ -208,13 +388,6 @@ export default function CustomerDetail() {
           </div>
         )}
       </div>
-
-      {/* İlk sipariş bilgisi */}
-      {customer.firstOrderDate && customer.firstOrderDate !== customer.lastOrderDate && (
-        <div style={{ marginTop: 12, fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
-          İlk sipariş: <strong>{customer.firstOrderDate}</strong>
-        </div>
-      )}
     </Layout>
   );
 }
