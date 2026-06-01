@@ -947,6 +947,7 @@ function mapShopifyOrderRow(order: any): {
     price:    li.price || '0',
     sku:      li.sku || '',
     vendor:   li.vendor || '',
+    image:    li.image?.src || li.featured_image?.url || '',
   }));
 
   return {

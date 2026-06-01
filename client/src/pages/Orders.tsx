@@ -353,14 +353,23 @@ export default function Orders() {
                       {/* Ürün */}
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div style={{ width: 36, height: 36, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                            {o.productImage
-                              ? <img src={o.productImage} alt={o.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              : <span style={{ fontSize: 18 }}>{o.productEmoji}</span>}
+                          <div style={{ position: 'relative', flexShrink: 0 }}>
+                            <div style={{ width: 36, height: 36, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                              {o.productImage
+                                ? <img src={o.productImage} alt={o.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                : <span style={{ fontSize: 18 }}>{o.productEmoji}</span>}
+                            </div>
+                            {o.lineItems && o.lineItems.length > 1 && (
+                              <span style={{ position: 'absolute', top: -5, right: -5, background: 'var(--primary)', color: '#fff', fontSize: 9, fontWeight: 800, borderRadius: 10, padding: '1px 4px', lineHeight: 1.4 }}>
+                                +{o.lineItems.length - 1}
+                              </span>
+                            )}
                           </div>
                           <div>
                             <div style={{ fontSize: 12 }}>{o.productName}</div>
-                            {o.qty > 1 && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>x{o.qty}</div>}
+                            {o.lineItems && o.lineItems.length > 1
+                              ? <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{o.lineItems.length} kalem</div>
+                              : o.qty > 1 && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>x{o.qty}</div>}
                           </div>
                         </div>
                       </td>

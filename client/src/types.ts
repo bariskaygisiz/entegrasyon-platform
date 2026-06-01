@@ -91,6 +91,7 @@ export interface OrderLineItem {
   price: string;
   sku: string;
   vendor: string;
+  image?: string;
 }
 
 export interface Order {

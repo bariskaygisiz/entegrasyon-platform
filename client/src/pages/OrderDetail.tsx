@@ -98,27 +98,47 @@ export default function OrderDetail() {
         <div>
           {/* Sipariş kalemleri */}
           <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 16 }}>
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-light)', fontWeight: 700, fontSize: 13 }}>Sipariş Kalemleri</div>
-            <div style={{ padding: 16 }}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--border-light)' }}>
-                <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-sm)', background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, overflow: 'hidden', flexShrink: 0 }}>
-                  {order.productImage
-                    ? <img src={order.productImage} alt={order.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : order.productEmoji}
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 700, fontSize: 13 }}>Sipariş Kalemleri</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                {(order.lineItems && order.lineItems.length > 0 ? order.lineItems.length : 1)} kalem
+              </span>
+            </div>
+            <div style={{ padding: '0 16px' }}>
+              {/* lineItems varsa tümünü göster, yoksa tek ürünü göster */}
+              {(order.lineItems && order.lineItems.length > 0 ? order.lineItems : [{
+                title: order.productName, quantity: order.qty,
+                price: String(order.productPrice), sku: order.productSku,
+                vendor: order.productCategory, image: order.productImage,
+              }]).map((item, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--border-light)' }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 'var(--radius-sm)', background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, overflow: 'hidden', flexShrink: 0 }}>
+                    {item.image
+                      ? <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : '📦'}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{item.title}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                      {item.sku && <span>SKU: {item.sku}</span>}
+                      {item.sku && item.vendor && <span> · </span>}
+                      {item.vendor && <span>{item.vendor}</span>}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: 13 }}>{formatMoney(parseFloat(item.price) * item.quantity)}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                      {formatMoney(parseFloat(item.price))} × {item.quantity}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{order.productName}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>SKU: {order.productSku}</div>
-                </div>
+              ))}
+
+              {/* Toplam */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 0' }}>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 600 }}>{formatMoney(order.productPrice)}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>x{order.qty}</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 12 }}>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Toplam</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--primary)' }}>{formatMoney(order.amount)}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Sipariş Toplamı</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--primary)' }}>{formatMoney(order.amount)}</div>
                 </div>
               </div>
             </div>
