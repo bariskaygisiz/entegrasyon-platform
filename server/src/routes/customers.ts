@@ -145,7 +145,7 @@ router.get('/:key', (req: Request, res: Response) => {
   // Sipariş geçmişi
   const orderRows = db.prepare(`
     SELECT id, order_name, channel, status,
-           product_name, product_emoji, product_category,
+           product_name, product_emoji, product_image, product_category,
            qty, amount, date_str, created_at,
            cargo_code, cargo_company, payment_method, note
     FROM orders
@@ -161,6 +161,7 @@ router.get('/:key', (req: Request, res: Response) => {
     status:          o.status,
     productName:     o.product_name,
     productEmoji:    o.product_emoji,
+    productImage:    o.product_image || '',
     productCategory: o.product_category,
     qty:             o.qty,
     amount:          o.amount,

@@ -30,6 +30,7 @@ interface OrderRow {
   product_name: string;
   product_sku: string;
   product_emoji: string;
+  product_image: string;
   product_price: number;
   product_category: string;
   qty: number;
@@ -70,6 +71,7 @@ function rowToOrder(row: OrderRow) {
     productName:     row.product_name,
     productSku:      row.product_sku,
     productEmoji:    row.product_emoji,
+    productImage:    row.product_image || '',
     productPrice:    row.product_price,
     productCategory: row.product_category,
     qty:             row.qty,

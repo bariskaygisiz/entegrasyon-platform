@@ -918,7 +918,7 @@ function mapShopifyOrderRow(order: any): {
   postal_code: string; tc_no: string; shipping_method: string;
   billing_name: string; billing_address: string; billing_district: string;
   billing_city: string; billing_postal: string;
-  product_name: string; product_sku: string; product_emoji: string;
+  product_name: string; product_sku: string; product_emoji: string; product_image: string;
   product_price: number; product_category: string;
   qty: number; amount: number;
   cargo_code: string | null; cargo_company: string;
@@ -974,6 +974,7 @@ function mapShopifyOrderRow(order: any): {
     product_name:     firstItem.title || firstItem.name || '',
     product_sku:      firstItem.sku || '',
     product_emoji:    '📦',
+    product_image:    firstItem.image?.src || firstItem.featured_image?.url || '',
     product_price:    parseFloat(firstItem.price || '0') || 0,
     product_category: firstItem.vendor || '',
     qty:              firstItem.quantity || 1,
@@ -996,10 +997,10 @@ function upsertOrderRows(orders: any[], now: string): { synced: number; updated:
       (shopify_order_id, order_name, channel, status, customer, email, phone,
        city, district, address, postal_code, tc_no, shipping_method,
        billing_name, billing_address, billing_district, billing_city, billing_postal,
-       product_name, product_sku, product_emoji,
+       product_name, product_sku, product_emoji, product_image,
        product_price, product_category, qty, amount, cargo_code, cargo_company,
        payment_method, note, line_items, date_str, shopify_synced_at, created_at, updated_at)
-    VALUES (?, ?, 'shopify', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, 'shopify', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(shopify_order_id) DO UPDATE SET
       status            = excluded.status,
       customer          = excluded.customer,
@@ -1016,6 +1017,7 @@ function upsertOrderRows(orders: any[], now: string): { synced: number; updated:
       billing_district  = excluded.billing_district,
       billing_city      = excluded.billing_city,
       billing_postal    = excluded.billing_postal,
+      product_image     = excluded.product_image,
       cargo_code        = excluded.cargo_code,
       cargo_company     = excluded.cargo_company,
       amount            = excluded.amount,
@@ -1042,7 +1044,7 @@ function upsertOrderRows(orders: any[], now: string): { synced: number; updated:
         m.customer, m.email, m.phone,
         m.city, m.district, m.address, m.postal_code, m.tc_no, m.shipping_method,
         m.billing_name, m.billing_address, m.billing_district, m.billing_city, m.billing_postal,
-        m.product_name, m.product_sku, m.product_emoji,
+        m.product_name, m.product_sku, m.product_emoji, m.product_image,
         m.product_price, m.product_category,
         m.qty, m.amount,
         m.cargo_code, m.cargo_company,

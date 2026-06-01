@@ -101,8 +101,10 @@ export default function OrderDetail() {
             <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-light)', fontWeight: 700, fontSize: 13 }}>Sipariş Kalemleri</div>
             <div style={{ padding: 16 }}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--border-light)' }}>
-                <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-sm)', background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
-                  {order.productEmoji}
+                <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-sm)', background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, overflow: 'hidden', flexShrink: 0 }}>
+                  {order.productImage
+                    ? <img src={order.productImage} alt={order.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : order.productEmoji}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{order.productName}</div>

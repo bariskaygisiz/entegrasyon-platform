@@ -157,6 +157,7 @@ try { db.exec(`ALTER TABLE orders ADD COLUMN billing_address  TEXT NOT NULL DEFA
 try { db.exec(`ALTER TABLE orders ADD COLUMN billing_district TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
 try { db.exec(`ALTER TABLE orders ADD COLUMN billing_city     TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
 try { db.exec(`ALTER TABLE orders ADD COLUMN billing_postal   TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE orders ADD COLUMN product_image   TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
 
 // ─── Veri düzeltme: varyantlı ürünlerde stock=0 ama variant_data'da stok var ─
 try {

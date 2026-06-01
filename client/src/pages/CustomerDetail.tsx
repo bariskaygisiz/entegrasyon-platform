@@ -395,8 +395,12 @@ export default function CustomerDetail() {
                   >
                     <td><span style={{ fontWeight:700, color:'var(--primary)', fontSize:13 }}>{o.orderName}</span></td>
                     <td>
-                      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                        <span>{o.productEmoji}</span>
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <div style={{ width:32, height:32, borderRadius:6, border:'1px solid var(--border)', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, overflow:'hidden' }}>
+                          {o.productImage
+                            ? <img src={o.productImage} alt={o.productName} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                            : <span style={{ fontSize:16 }}>{o.productEmoji}</span>}
+                        </div>
                         <div>
                           <div style={{ fontSize:12, fontWeight:500 }}>{o.productName}</div>
                           {o.qty > 1 && <div style={{ fontSize:11, color:'var(--text-muted)' }}>x{o.qty}</div>}

@@ -114,6 +114,7 @@ export interface Order {
   productName: string;
   productSku: string;
   productEmoji: string;
+  productImage: string;
   productPrice: number;
   productCategory: string;
   qty: number;
@@ -180,6 +181,7 @@ export interface CustomerWithOrders extends Customer {
     status: string;
     productName: string;
     productEmoji: string;
+    productImage: string;
     productCategory: string;
     qty: number;
     amount: number;
