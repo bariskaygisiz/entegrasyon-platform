@@ -317,6 +317,7 @@ export default function Orders() {
                   <th>Müşteri</th>
                   <th>Ürün</th>
                   <th>Kanal</th>
+                  <th>Kargo / Ödeme</th>
                   <th>Tarih</th>
                   <th>Tutar</th>
                   <th>Durum</th>
@@ -362,6 +363,23 @@ export default function Orders() {
 
                       {/* Kanal */}
                       <td><ChannelBadge channel={o.channel} /></td>
+
+                      {/* Kargo / Ödeme */}
+                      <td>
+                        {o.shippingMethod && (
+                          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap' }}>
+                            🚚 {o.shippingMethod}
+                          </div>
+                        )}
+                        {o.paymentMethod && (
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: o.shippingMethod ? 2 : 0, whiteSpace: 'nowrap' }}>
+                            💳 {o.paymentMethod}
+                          </div>
+                        )}
+                        {!o.shippingMethod && !o.paymentMethod && (
+                          <span style={{ color: 'var(--border)' }}>—</span>
+                        )}
+                      </td>
 
                       {/* Tarih */}
                       <td style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>

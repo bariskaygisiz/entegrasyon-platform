@@ -103,6 +103,14 @@ export interface Order {
   city: string;
   district: string;
   address: string;
+  postalCode: string;
+  tcNo: string;
+  shippingMethod: string;
+  billingName: string;
+  billingAddress: string;
+  billingDistrict: string;
+  billingCity: string;
+  billingPostal: string;
   productName: string;
   productSku: string;
   productEmoji: string;

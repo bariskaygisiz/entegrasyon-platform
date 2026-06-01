@@ -915,6 +915,9 @@ function mapShopifyOrderRow(order: any): {
   shopify_order_id: string; order_name: string; status: string;
   customer: string; email: string; phone: string;
   city: string; district: string; address: string;
+  postal_code: string; tc_no: string; shipping_method: string;
+  billing_name: string; billing_address: string; billing_district: string;
+  billing_city: string; billing_postal: string;
   product_name: string; product_sku: string; product_emoji: string;
   product_price: number; product_category: string;
   qty: number; amount: number;
@@ -924,12 +927,19 @@ function mapShopifyOrderRow(order: any): {
 } {
   const firstItem   = (order.line_items || [])[0] || {};
   const shipAddr    = order.shipping_address || order.billing_address || {};
+  const billAddr    = order.billing_address  || order.shipping_address || {};
   const cust        = order.customer || {};
   const fulfillment = (order.fulfillments || [])[0] || null;
 
-  const customerName = (cust.first_name || cust.last_name)
-    ? `${cust.first_name || ''} ${cust.last_name || ''}`.trim()
-    : (shipAddr.name || '');
+  // Ad Soyad: Shopify first_name + last_name (shipping_address veya customer objesinden)
+  const firstName = shipAddr.first_name || cust.first_name || '';
+  const lastName  = shipAddr.last_name  || cust.last_name  || '';
+  const customerName = (firstName || lastName)
+    ? `${firstName} ${lastName}`.trim()
+    : (shipAddr.name || billAddr.name || '');
+
+  // TC No: Shopify'da Company alanına girilir (TR e-ticaret standardı)
+  const tcNo = shipAddr.company || billAddr.company || '';
 
   const lineItemsMapped = (order.line_items || []).map((li: any) => ({
     title:    li.title || li.name || '',
@@ -946,9 +956,21 @@ function mapShopifyOrderRow(order: any): {
     customer:         customerName,
     email:            order.email || cust.email || '',
     phone:            shipAddr.phone || cust.phone || order.phone || '',
-    city:             shipAddr.city || '',
-    district:         shipAddr.address2 || shipAddr.province || '',
-    address:          shipAddr.address1 || '',
+    // Teslimat adresi
+    city:             shipAddr.city       || '',
+    district:         shipAddr.address2   || '',
+    address:          shipAddr.address1   || '',
+    postal_code:      shipAddr.zip        || '',
+    tc_no:            tcNo,
+    // Fatura adresi
+    billing_name:     (billAddr.first_name || billAddr.last_name)
+                        ? `${billAddr.first_name || ''} ${billAddr.last_name || ''}`.trim()
+                        : (billAddr.name || ''),
+    billing_address:  billAddr.address1   || '',
+    billing_district: billAddr.address2   || '',
+    billing_city:     billAddr.city       || '',
+    billing_postal:   billAddr.zip        || '',
+    // Ürün
     product_name:     firstItem.title || firstItem.name || '',
     product_sku:      firstItem.sku || '',
     product_emoji:    '📦',
@@ -956,8 +978,10 @@ function mapShopifyOrderRow(order: any): {
     product_category: firstItem.vendor || '',
     qty:              firstItem.quantity || 1,
     amount:           parseFloat(order.total_price || '0') || 0,
+    // Kargo
+    shipping_method:  (order.shipping_lines || [])[0]?.title || '',
     cargo_code:       fulfillment?.tracking_number || null,
-    cargo_company:    fulfillment?.tracking_company || (order.shipping_lines || [])[0]?.title || '',
+    cargo_company:    fulfillment?.tracking_company || '',
     payment_method:   mapPaymentGateway(order),
     note:             order.note || null,
     line_items:       JSON.stringify(lineItemsMapped),
@@ -970,12 +994,28 @@ function upsertOrderRows(orders: any[], now: string): { synced: number; updated:
   const upsertStmt = db.prepare(`
     INSERT INTO orders
       (shopify_order_id, order_name, channel, status, customer, email, phone,
-       city, district, address, product_name, product_sku, product_emoji,
+       city, district, address, postal_code, tc_no, shipping_method,
+       billing_name, billing_address, billing_district, billing_city, billing_postal,
+       product_name, product_sku, product_emoji,
        product_price, product_category, qty, amount, cargo_code, cargo_company,
        payment_method, note, line_items, date_str, shopify_synced_at, created_at, updated_at)
-    VALUES (?, ?, 'shopify', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, 'shopify', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(shopify_order_id) DO UPDATE SET
       status            = excluded.status,
+      customer          = excluded.customer,
+      email             = excluded.email,
+      phone             = excluded.phone,
+      city              = excluded.city,
+      district          = excluded.district,
+      address           = excluded.address,
+      postal_code       = excluded.postal_code,
+      tc_no             = excluded.tc_no,
+      shipping_method   = excluded.shipping_method,
+      billing_name      = excluded.billing_name,
+      billing_address   = excluded.billing_address,
+      billing_district  = excluded.billing_district,
+      billing_city      = excluded.billing_city,
+      billing_postal    = excluded.billing_postal,
       cargo_code        = excluded.cargo_code,
       cargo_company     = excluded.cargo_company,
       amount            = excluded.amount,
@@ -1000,7 +1040,8 @@ function upsertOrderRows(orders: any[], now: string): { synced: number; updated:
       upsertStmt.run(
         m.shopify_order_id, m.order_name, m.status,
         m.customer, m.email, m.phone,
-        m.city, m.district, m.address,
+        m.city, m.district, m.address, m.postal_code, m.tc_no, m.shipping_method,
+        m.billing_name, m.billing_address, m.billing_district, m.billing_city, m.billing_postal,
         m.product_name, m.product_sku, m.product_emoji,
         m.product_price, m.product_category,
         m.qty, m.amount,

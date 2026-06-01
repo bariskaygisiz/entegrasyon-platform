@@ -10,6 +10,16 @@ const STATUS_LABELS: Record<string, string> = {
   new: 'Yeni Sipariş', preparing: 'Hazırlanıyor', shipped: 'Kargoya Verildi', delivered: 'Teslim Edildi', cancelled: 'İptal Edildi',
 };
 
+function InfoRow({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2, fontWeight: 600, textTransform: 'uppercase', letterSpacing: .3 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 500 }}>{value}</div>
+    </div>
+  );
+}
+
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<Order | null>(null);
@@ -26,8 +36,20 @@ export default function OrderDetail() {
   const st = statusLabel(order.status);
   const stepIdx = STATUS_STEPS.indexOf(order.status);
 
+  // Teslimat ve fatura adresini karşılaştır — farklıysa ayrı göster
+  const shipKey = [order.address, order.city, order.postalCode].filter(Boolean).join('|').toLowerCase();
+  const billKey = [order.billingAddress, order.billingCity, order.billingPostal].filter(Boolean).join('|').toLowerCase();
+  const hasBilling = !!(order.billingAddress || order.billingCity);
+  const billingDiffers = hasBilling && shipKey !== billKey;
+
+  // Teslimat adresini formatla
+  const formatAddr = (addr: string, district: string, city: string, postal: string) => {
+    const parts = [addr, district, city, postal].filter(Boolean);
+    return parts.join(', ');
+  };
+
   return (
-    <Layout title={`Sipariş #${order.id}`}>
+    <Layout title={`Sipariş ${order.orderName || '#' + order.id}`}>
       <Link to="/orders" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none', marginBottom: 16 }}>
         <svg width={16} height={16} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         Siparişler
@@ -36,7 +58,7 @@ export default function OrderDetail() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 16, flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, marginBottom: 6 }}>Sipariş #{order.id}</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, marginBottom: 6 }}>{order.orderName || `#${order.id}`}</h1>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span className={`badge ${st.cls}`}>{st.label}</span>
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{order.dateStr}</span>
@@ -74,7 +96,7 @@ export default function OrderDetail() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20 }}>
         <div>
-          {/* Order items */}
+          {/* Sipariş kalemleri */}
           <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 16 }}>
             <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-light)', fontWeight: 700, fontSize: 13 }}>Sipariş Kalemleri</div>
             <div style={{ padding: 16 }}>
@@ -100,14 +122,14 @@ export default function OrderDetail() {
             </div>
           </div>
 
-          {/* Payment */}
+          {/* Ödeme & kargo yöntemi */}
           <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16, marginBottom: 16 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>Ödeme Bilgisi</div>
+            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>Ödeme & Kargo Yöntemi</div>
             {[
               ['Ödeme Yöntemi', order.paymentMethod],
-              ['Kargo Ücreti', formatMoney(0)],
-              ['Toplam', formatMoney(order.amount)],
-            ].map(([lbl, val]) => (
+              ['Kargo Yöntemi', order.shippingMethod],
+              ['Toplam',        formatMoney(order.amount)],
+            ].filter(([, v]) => v).map(([lbl, val]) => (
               <div key={lbl} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '5px 0', borderBottom: '1px solid var(--border-light)' }}>
                 <span style={{ color: 'var(--text-muted)' }}>{lbl}</span>
                 <span style={{ fontWeight: lbl === 'Toplam' ? 700 : 400 }}>{val}</span>
@@ -115,34 +137,61 @@ export default function OrderDetail() {
             ))}
           </div>
 
-          {/* Cargo */}
-          {order.cargoCode && (
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>Kargo Bilgisi</div>
+          {/* Kargo takip bilgisi */}
+          {(order.cargoCode || order.cargoCompany) && (
+            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16, marginBottom: 16 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>Kargo Takip</div>
               <div style={{ fontSize: 13 }}>
-                <div style={{ marginBottom: 8 }}><span style={{ color: 'var(--text-muted)' }}>Firma: </span>{order.cargoCompany}</div>
-                <div><span style={{ color: 'var(--text-muted)' }}>Takip No: </span><strong>{order.cargoCode}</strong></div>
+                {order.cargoCompany && <div style={{ marginBottom: 6 }}><span style={{ color: 'var(--text-muted)' }}>Firma: </span>{order.cargoCompany}</div>}
+                {order.cargoCode   && <div><span style={{ color: 'var(--text-muted)' }}>Takip No: </span><strong>{order.cargoCode}</strong></div>}
               </div>
+            </div>
+          )}
+
+          {/* Teslimat Adresi */}
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16, marginBottom: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>📦</span> Teslimat Adresi
+              {!billingDiffers && hasBilling && (
+                <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-muted)', marginLeft: 4 }}>· Fatura adresi ile aynı</span>
+              )}
+            </div>
+            <InfoRow label="Ad Soyad" value={order.customer} />
+            <InfoRow label="TC Kimlik No" value={order.tcNo} />
+            <InfoRow label="Telefon" value={order.phone} />
+            <InfoRow label="Adres" value={order.address} />
+            <InfoRow label="İlçe" value={order.district} />
+            <InfoRow label="Şehir" value={order.city} />
+            <InfoRow label="Posta Kodu" value={order.postalCode} />
+          </div>
+
+          {/* Fatura Adresi — sadece teslimat adresinden farklıysa */}
+          {billingDiffers && (
+            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16, marginBottom: 16 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>🧾</span> Fatura Adresi
+              </div>
+              <InfoRow label="Ad Soyad" value={order.billingName || order.customer} />
+              <InfoRow label="Adres" value={order.billingAddress} />
+              <InfoRow label="İlçe" value={order.billingDistrict} />
+              <InfoRow label="Şehir" value={order.billingCity} />
+              <InfoRow label="Posta Kodu" value={order.billingPostal} />
             </div>
           )}
         </div>
 
-        {/* Sidebar info */}
+        {/* Sidebar */}
         <div>
+          {/* Müşteri özet */}
           <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16, marginBottom: 16 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>Müşteri Bilgisi</div>
-            {[
-              ['Ad Soyad', order.customer],
-              ['E-posta', order.email],
-              ['Telefon', order.phone],
-              ['Şehir', `${order.district}, ${order.city}`],
-              ['Adres', order.address],
-            ].map(([lbl, val]) => (
-              <div key={lbl} style={{ marginBottom: 8 }}>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>{lbl}</div>
-                <div style={{ fontSize: 13, fontWeight: 500 }}>{val}</div>
-              </div>
-            ))}
+            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12 }}>Müşteri</div>
+            <InfoRow label="Ad Soyad" value={order.customer} />
+            <InfoRow label="E-posta" value={order.email} />
+            <InfoRow label="Telefon" value={order.phone} />
+            {(order.district || order.city) && (
+              <InfoRow label="Şehir" value={[order.district, order.city].filter(Boolean).join(', ')} />
+            )}
+            <InfoRow label="Adres" value={order.address} />
           </div>
 
           {order.note && (

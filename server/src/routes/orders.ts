@@ -19,6 +19,14 @@ interface OrderRow {
   city: string;
   district: string;
   address: string;
+  postal_code: string;
+  tc_no: string;
+  shipping_method: string;
+  billing_name: string;
+  billing_address: string;
+  billing_district: string;
+  billing_city: string;
+  billing_postal: string;
   product_name: string;
   product_sku: string;
   product_emoji: string;
@@ -51,6 +59,14 @@ function rowToOrder(row: OrderRow) {
     city:            row.city,
     district:        row.district,
     address:         row.address,
+    postalCode:      row.postal_code      || '',
+    tcNo:            row.tc_no            || '',
+    shippingMethod:  row.shipping_method  || '',
+    billingName:     row.billing_name     || '',
+    billingAddress:  row.billing_address  || '',
+    billingDistrict: row.billing_district || '',
+    billingCity:     row.billing_city     || '',
+    billingPostal:   row.billing_postal   || '',
     productName:     row.product_name,
     productSku:      row.product_sku,
     productEmoji:    row.product_emoji,

@@ -148,6 +148,15 @@ try { db.exec(`ALTER TABLE products ADD COLUMN vat_included INTEGER NOT NULL DEF
 try { db.exec(`ALTER TABLE products ADD COLUMN b2b_price            REAL`); } catch { /* zaten var */ }
 try { db.exec(`ALTER TABLE products ADD COLUMN b2b_discounted_price REAL`); } catch { /* zaten var */ }
 try { db.exec(`ALTER TABLE shopify_settings ADD COLUMN price_type TEXT NOT NULL DEFAULT 'retail'`); } catch { /* zaten var */ }
+// orders — yeni alanlar
+try { db.exec(`ALTER TABLE orders ADD COLUMN postal_code      TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE orders ADD COLUMN tc_no            TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE orders ADD COLUMN shipping_method  TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE orders ADD COLUMN billing_name     TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE orders ADD COLUMN billing_address  TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE orders ADD COLUMN billing_district TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE orders ADD COLUMN billing_city     TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
+try { db.exec(`ALTER TABLE orders ADD COLUMN billing_postal   TEXT NOT NULL DEFAULT ''`); } catch { /* zaten var */ }
 
 // ─── Veri düzeltme: varyantlı ürünlerde stock=0 ama variant_data'da stok var ─
 try {
