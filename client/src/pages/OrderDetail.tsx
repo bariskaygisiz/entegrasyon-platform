@@ -152,9 +152,6 @@ export default function OrderDetail() {
           <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16, marginBottom: 16 }}>
             <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
               <span>📦</span> Teslimat Adresi
-              {!billingDiffers && hasBilling && (
-                <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-muted)', marginLeft: 4 }}>· Fatura adresi ile aynı</span>
-              )}
             </div>
             <InfoRow label="Ad Soyad" value={order.customer} />
             <InfoRow label="TC Kimlik No" value={order.tcNo} />
@@ -165,19 +162,21 @@ export default function OrderDetail() {
             <InfoRow label="Posta Kodu" value={order.postalCode} />
           </div>
 
-          {/* Fatura Adresi — sadece teslimat adresinden farklıysa */}
-          {billingDiffers && (
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16, marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>🧾</span> Fatura Adresi
-              </div>
-              <InfoRow label="Ad Soyad" value={order.billingName || order.customer} />
-              <InfoRow label="Adres" value={order.billingAddress} />
-              <InfoRow label="İlçe" value={order.billingDistrict} />
-              <InfoRow label="Şehir" value={order.billingCity} />
-              <InfoRow label="Posta Kodu" value={order.billingPostal} />
+          {/* Fatura Adresi — her zaman göster */}
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16, marginBottom: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>🧾</span> Fatura Adresi
+              {!billingDiffers && (
+                <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-muted)', marginLeft: 4 }}>· Teslimat adresi ile aynı</span>
+              )}
             </div>
-          )}
+            <InfoRow label="Ad Soyad"    value={billingDiffers ? (order.billingName || order.customer) : order.customer} />
+            <InfoRow label="TC Kimlik No" value={order.tcNo} />
+            <InfoRow label="Adres"        value={billingDiffers ? order.billingAddress  : order.address} />
+            <InfoRow label="İlçe"         value={billingDiffers ? order.billingDistrict : order.district} />
+            <InfoRow label="Şehir"        value={billingDiffers ? order.billingCity     : order.city} />
+            <InfoRow label="Posta Kodu"   value={billingDiffers ? order.billingPostal   : order.postalCode} />
+          </div>
         </div>
 
         {/* Sidebar */}
